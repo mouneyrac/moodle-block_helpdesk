@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/helpdesk/db" VERSION="20101004" COMMENT="XMLDB file for Moodle blocks/helpdesk"
+<XMLDB PATH="blocks/helpdesk/db" VERSION="20111129" COMMENT="XMLDB file for Moodle blocks/helpdesk"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -28,6 +28,11 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_hd_t_userid" UNIQUE="false" FIELDS="userid" NEXT="idx_hd_t_firstcontact"/>
+        <INDEX NAME="idx_hd_t_firstcontact" UNIQUE="false" FIELDS="firstcontact" PREVIOUS="idx_hd_t_userid" NEXT="idx_hd_t_status"/>
+        <INDEX NAME="idx_hd_t_status" UNIQUE="false" FIELDS="status" PREVIOUS="idx_hd_t_firstcontact"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="helpdesk_ticket_tag" COMMENT="A table that holds individual custom tags per ticket." PREVIOUS="helpdesk_ticket" NEXT="helpdesk_ticket_update">
       <FIELDS>
@@ -39,6 +44,9 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_hd_tt_ticketid" UNIQUE="false" FIELDS="ticketid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="helpdesk_ticket_update" COMMENT="Every time a ticket is updated with a new status, it gets put here. This table will contain the full history of each ticket." PREVIOUS="helpdesk_ticket_tag" NEXT="helpdesk_ticket_assignments">
       <FIELDS>
@@ -67,6 +75,10 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_hd_ta_userid" UNIQUE="false" FIELDS="userid" NEXT="idx_hd_ta_ticketid"/>
+        <INDEX NAME="idx_hd_ta_ticketid" UNIQUE="false" FIELDS="ticketid" PREVIOUS="idx_hd_ta_userid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="helpdesk_ticket_group" COMMENT="Ticket groupings table." PREVIOUS="helpdesk_ticket_assignments" NEXT="helpdesk_status">
       <FIELDS>

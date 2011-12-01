@@ -42,6 +42,7 @@ $sort           = optional_param('sort', 'name', PARAM_ALPHA);
 $dir            = optional_param('dir', 'ASC', PARAM_ALPHA);
 
 $baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$searchurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $thisurl = new moodle_url(me());
 $thisurl->remove_params();
 $thisurl->param('paramname', $paramname);
@@ -50,7 +51,7 @@ $thisurl->param('returnurl', $returnurl);
 $nav = array (
     array (
         'name' => get_string('helpdesk', 'block_helpdesk'),
-        'link' => $baseurl->out()
+        'link' => $searchurl->out()
     )
 );
 if (is_numeric($ticketid)) {

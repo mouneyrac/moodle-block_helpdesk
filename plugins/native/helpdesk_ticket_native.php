@@ -553,7 +553,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * determine the Moodle status string. Returned value is mixed. String if
      * there is a matching string, or false if not.
      *
-     * @param string    $status status to be converted to a native language.
+     * @param object    $status status to be converted to a native language.
      * @return mixed
      */
     function get_status_string($status=null) {
@@ -761,6 +761,20 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $result = insert_record('helpdesk_ticket', $dataobject, true);
             if ($result) {
                 $this->id = $result;
+            } else {
+                error(get_string('error_insertquestion', 'block_helpdesk'));
+            }
+            if(get_config(null, 'block_helpdesk_includeagent') == true) {
+                $tag = new stdClass;
+                $tag->name = get_string('useragent', 'block_helpdesk');
+                $tag->value = $_SERVER['HTTP_USER_AGENT'];
+                $tag->ticketid = $this->get_idstring();
+                $this->add_tag($tag);
+                $tag = new stdClass;
+                $tag->ticketid = $this->get_idstring();
+                $tag->name = addslashes(get_string('useroperatingsystem', 'block_helpdesk'));
+                $tag->value = addslashes($this->get_os($_SERVER['HTTP_USER_AGENT']));
+                $this->add_tag($tag);
             }
         }
         if (is_numeric($result) or $result == true) {
@@ -969,7 +983,6 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         }
         if (!isset($tag->name) or
             !isset($tag->value) or
-            !isset($tag->ticketid) or
             isset($tag->id)){
 
             return false;
@@ -1110,5 +1123,39 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         return true;
     }
 
+    private function get_os($agent=false) {
+        // the order of this array is important
+        $oses = array(
+            'Windows 3.11' => 'Win16',
+            'Windows 95' => '(Windows 95)|(Win95)|(Windows_95)',
+            'Windows ME' => '(Windows 98)|(Win 9x 4.90)|(Windows ME)',
+            'Windows 98' => '(Windows 98)|(Win98)',
+            'Windows 2000' => '(Windows NT 5.0)|(Windows 2000)',
+            'Windows XP' => '(Windows NT 5.1)|(Windows XP)',
+            'Windows Server 2003' => '(Windows NT 5.2)',
+            'Windows Vista' => '(Windows NT 6.0)',
+            'Windows 7' => '(Windows NT 6.1)',
+            'Windows NT' => '(Windows NT 4.0)|(WinNT4.0)|(WinNT)|(Windows NT)',
+            'OpenBSD' => 'OpenBSD',
+            'SunOS' => 'SunOS',
+            'Linux' => '(Linux)|(X11)',
+            'MacOS' => '(Mac_PowerPC)|(Macintosh)',
+            'QNX' => 'QNX',
+            'BeOS' => 'BeOS',
+            'OS2' => 'OS/2',
+            'SearchBot'=>'(nuhk)|(Googlebot)|(Yammybot)|(Openbot)|(Slurp)|(MSNBot)|(Ask Jeeves/Teoma)|(ia_archiver)'
+        );
+        $agent = strtolower($agent ? $agent : $_SERVER['HTTP_USER_AGENT']);
+        foreach($oses as $os=>$pattern) {
+            if (preg_match('/'.$pattern.'/i', $agent)) {
+                if(preg_match('/WOW64/i', $agent)) {
+                    return $os . ' (x64)';
+                }
+                return $os;
+            }
+        }
+        return 'Unknown';
+    }
 }
 ?>
+

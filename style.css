@@ -9,13 +9,15 @@ div.ticketinfo {
 div#ticketlistoptions {
     display: block;
     width: 95%;
-    height: 13.5em;
+    min-height: 15em;
 }
 div.left2div {
+    display: inline-block;
     width: 49%;
-    float: left;
+    /*float: left;*/
 }
 div.right2div {
+    display: inline-block;
     width: 49%;
     float: right;
 }

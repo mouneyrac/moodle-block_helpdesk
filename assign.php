@@ -45,7 +45,7 @@ $page   = ($page == null ? 0 : $page);
 
 $context = get_context_instance(CONTEXT_SYSTEM);
 
-$viewurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$viewurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $qurl = clone $viewurl;
 $qurl->param('id', $tid);
 

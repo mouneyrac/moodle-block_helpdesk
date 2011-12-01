@@ -174,6 +174,38 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $result = $result && add_field($table, $field);
     } 
 
+    if($oldversion < 2011112900) {
+        $table = new XMLDBTable('helpdesk_ticket');
+        $index = new XMLDBIndex('idx_hd_t_userid');
+        $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('userid'));
+        $result = $result && add_index($table, $index);
+
+        $table = new XMLDBTable('helpdesk_ticket');
+        $index = new XMLDBIndex('idx_hd_t_firstcontact');
+        $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('firstcontact'));
+        $result = $result && add_index($table, $index);
+
+        $table = new XMLDBTable('helpdesk_ticket');
+        $index = new XMLDBIndex('idx_hd_t_status');
+        $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('status'));
+        $result = $result && add_index($table, $index);
+
+        $table = new XMLDBTable('helpdesk_ticket_tag');
+        $index = new XMLDBIndex('idx_hd_tt_ticketid');
+        $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('ticketid'));
+        $result = $result && add_index($table, $index);
+
+        $table = new XMLDBTable('helpdesk_ticket_assignments');
+        $index = new XMLDBIndex('idx_hd_ta_userid');
+        $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('userid'));
+        $result = $result && add_index($table, $index);
+
+        $table = new XMLDBTable('helpdesk_ticket_assignments');
+        $index = new XMLDBIndex('idx_hd_ta_ticketid');
+        $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('ticketid'));
+        $result = $result && add_index($table, $index);
+    }
+
     return $result;
 }
 ?>

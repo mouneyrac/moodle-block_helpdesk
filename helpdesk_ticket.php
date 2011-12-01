@@ -8,6 +8,7 @@
  * @copyright   2010 VLACS
  * @author      Jonathan Doane <jdoane@vlacs.org>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     block_helpdesk
  */
 abstract class helpdesk_ticket {
     /**

@@ -19,7 +19,7 @@
  * entire helpdesk.
  *
  * @package     block_helpdesk
- * @copyright   2010 VLACS
+ * @copyright   2010-2011 VLACS
  * @author      Jonathan Doane <jdoane@vlacs.org>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,7 +30,7 @@ require_once($CFG->libdir . '/weblib.php');
 
 require_login(0, false);
 
-global $CFG;
+global $CFG, $USER;
 
 $nav = array (
     array (
@@ -38,34 +38,139 @@ $nav = array (
           ),
     array (
         'name' => get_string('search'),
-        'link'  => "$CFG->wwwroot/blocks/helpdesk/search.php"
           )
     );
+$hd             = helpdesk::get_helpdesk();
+$cap            = helpdesk_is_capable();
 
-$hd = helpdesk::get_helpdesk();
-$form = $hd->search_form();
-$data = $form->get_data();
-if ($form->is_validated()) {
-    $nav[] = array ('name' => get_string('searchresults'));
+$httpdata       = optional_param('sd', null, PARAM_RAW);
+$count          = optional_param('count', 10, PARAM_INT);
+$page           = optional_param('page', 0, PARAM_INT);
+
+$defaultrel     = $hd->get_default_relation($cap);
+$rel            = optional_param('rel', $defaultrel, PARAM_TEXT);
+
+$form           = $hd->search_form();
+$data           = $form->get_data();
+
+if(!helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
+    $data->submitter = $USER->id;
 }
 
 $title = get_string('helpdesksearch', 'block_helpdesk');
 helpdesk_print_header(build_navigation($nav), $title);
 print_heading(get_string('helpdesk', 'block_helpdesk'));
+// Do we have a relation to use? Lets us it!
+if(!$form->is_submitted() and empty($httpdata)) {
+    // TODO: Use search preset from database.
+    // TODO: Implement all of this.
+    if(is_numeric($rel)) {
+        error("This feature has not been implemented.");
+    }
+    if(is_string($rel)) {
+        $data = $hd->get_ticket_relation_search($rel);
+        if(!$data) {
+            error(get_string('relationnosearchpreset', 'block_helpdesk'));
+        }
+        if($cap !== HELPDESK_CAP_ANSWER) {
+            $data->submitter = $USER->id;
+        }
+    }
+} else {
+    $rel = null;
+}
 
-// Always display this.
+// Do we have a special search? Lets use it instead of anything else!
+if(!empty($httpdata)) {
+    $data = unserialize(base64_decode($httpdata));
+    // Override "rel" if it exists. This will make the menu option selectable 
+    // again.
+    $rel = null;
+}
+
+$fd = clone $data;
+$fd->status = implode(',', $fd->status);
+unset($fd->submitter);
+$form->set_data($fd);
+
+$options = $hd->get_ticket_relations($cap);
+if ($options == false) {
+    error(get_string('nocapabilities', 'block_helpdesk'));
+}
+
+// At this point we have an $options with all the available ticket relation 
+// views available for the user's capability. We may want to write 
+// a function to handle this automatically incase we want these options to 
+// be dynamic. So we must view the options to the user, except for the 
+// current one. (which is already stored in $rel)
+
+// We want to have links for all relations except for the current one.
+
+// Let's use a table!
+$str = get_string('relations', 'block_helpdesk');
+$relhelp = helpdesk_simple_helpbutton($str, 'relations');
+$table = new stdClass;
+$table->width = '95%';
+$table->head = array(get_string('changerelation', 'block_helpdesk') . $relhelp);
+$table->data = array();
+
+foreach($options as $option) {
+    // If we're using a relation, we want don't want to make it selectable, so 
+    // just set the text and move on to the next one.
+    if($rel == $option) {
+        $table->data[] = array(get_string($option, 'block_helpdesk'));
+        continue;
+    }
+    $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
+    $url->param('rel', $option);
+    $url = $url->out();
+    $table->data[] = array("<a href=\"$url\">" . get_string($option, 'block_helpdesk') . '</a>');
+}
+
+echo "<div id=\"ticketlistoptions\">
+    <div class=\"left2div\">";
 $form->display();
+echo "</div>";
 
-// Lets construct our helpdesk.
-if ($form->is_validated()) {
-    $tickets = $hd->search($data->searchstring);
-    echo '<h3>' . get_string('searchresults') . ": 
-              <small>$data->searchstring</small>
-          </h3>";
+echo "<div class=\"right2div\">";
+print_table($table);
+echo "</div></div>";
 
-    if ($tickets == false) {
+if ($form->is_validated() or !empty($httpdata) or $rel !== null) {
+    $result = $hd->search($data, $count, $page);
+    $tickets = $result->results;
+
+    if (empty($result->count)) {
         notify(get_string('noticketstodisplay', 'block_helpdesk'));
     } else {
+        // We want paging and page counts at the front AND back.
+        $url = new moodle_url(qualified_me());
+        $url->remove_params(); // We don't really care about what we don't have.
+        if($rel !== null) {
+            $url->param('rel', $rel);
+        } else {
+            $url->param('sd', $result->httpdata);
+        }
+        if($count != 10) { $url->param('count', $count); }
+        if($count > 10) {
+            print_paging_bar($result->count, $page, $count, $url, 'page');
+        }
+        $qppstring = get_string('questionsperpage', 'block_helpdesk');
+        $defaultcounts = array(10, 25, 50, 100, 250);
+        $links = array();
+        foreach($defaultcounts as $d) {
+            if($result->count < $d) {
+                continue;
+            }
+            $url->param('count', $d);
+            $curl = $url->out();
+            if($count == $d) {
+                $links[] = $d;
+            } else {
+                $links[] = "<a href=\"$curl\">$d</a>";
+            }
+        }
+
         // This is a table that will display generic information that any help 
         // desk should have.
         $ticketnamestr = get_string('summary', 'block_helpdesk');
@@ -81,23 +186,35 @@ if ($form->is_validated()) {
         $table->head = $head;
 
         foreach($tickets as $ticket) {
-            $user = helpdesk_get_user($ticket->get_userid());
-            $userurl = new moodle_url("$CFG->wwwroot/user/view.php");
+            $user       = helpdesk_get_user($ticket->get_userid());
+            $userurl    = new moodle_url("$CFG->wwwroot/user/view.php");
             $userurl->param('id', $user->id);
-            $userurl = $userurl->out();
-            $user = fullname($user);
-            $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+            $userurl    = $userurl->out();
+            $user       = fullname($user);
+            $url        = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
             $url->param('id', $ticket->get_idstring());
-            $url = $url->out();
-            $row = array();
-            $row[] = "<a href=\"$url\">" . $ticket->get_summary() . '</a>';
-            $row[] = "<a href=\"$userurl\">$user</a>";
-            $row[] = $ticket->get_status_string();
-            $row[] = helpdesk_get_date_string($ticket->get_timemodified());
+            $url        = $url->out();
+            $row        = array();
+            $row[]      = "<a href=\"$url\">" . $ticket->get_summary() . '</a>';
+            $row[]      = "<a href=\"$userurl\">$user</a>";
+            $row[]      = $ticket->get_status_string();
+            $row[]      = helpdesk_get_date_string($ticket->get_timemodified());
             $table->data[] = $row;
         }
         print_table($table);
-
+        
+        $url = new moodle_url(qualified_me());
+        $url->remove_params(); // We don't really care about what we don't have.
+        if($rel !== null) {
+            $url->param('rel', $rel);
+        } else {
+            $url->param('sd', $result->httpdata);
+        }
+        if($count != 10) { $url->param('count', $count); }
+        print_paging_bar($result->count, $page, $count, $url, 'page');
+        if($result->count >= 25) {
+            print "<p style=\"text-align: center;\">{$qppstring}: " . implode(', ', $links) . '</p>';
+        }
     }
 }
 

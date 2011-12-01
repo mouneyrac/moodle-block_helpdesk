@@ -48,7 +48,7 @@ $hd = helpdesk::get_helpdesk();
 $form = $hd->tag_ticket_form($tid);
 
 // Build Navigation
-$ticketurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$ticketurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $nav = array();
 $nav[] = array ('name' => get_string('helpdesk', 'block_helpdesk'),
                 'link' => $ticketurl->out());

@@ -35,12 +35,13 @@ global $CFG;
 
 $id = required_param('id', PARAM_INT);
 $baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$searchurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $url = clone $baseurl;
 $url->param('id', $id);
 $nav = array (
     array (
         'name' => get_string('helpdesk', 'block_helpdesk'),
-        'link' => $baseurl->out()
+        'link' => $searchurl->out()
           ),
     array (
         'name' => get_string('ticketview', 'block_helpdesk'),
