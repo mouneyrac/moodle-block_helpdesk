@@ -774,9 +774,8 @@ class helpdesk_native extends helpdesk {
         $ticketwheresql = 'WHERE ' . implode(' AND ', $andwhere);
         // END BEWARE
 
-        $orderby        = "ORDER BY u.lastname, u.firstname, t.timemodified DESC";
-        $orderby        = '';
-        $searchquery    = "{$selectsearch} {$sqltickets} {$ticketwheresql} {$orderby}";
+        $orderby        = "ORDER BY timemodified DESC";
+        $searchquery    = "SELECT * FROM ({$selectsearch} {$sqltickets} {$ticketwheresql}) AS foo {$orderby}";
         $countquery     = "{$selectcount} {$sqltickets} {$ticketwheresql}";
 
         $tidbitcount    = count_records_sql($countquery);
