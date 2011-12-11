@@ -28,7 +28,7 @@ require_once('init.php');
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true); // require answerer capability.
 $id = required_param('id', PARAM_INT); // this is a ticket update id.
 
-$update = get_record('helpdesk_ticket_update', 'id', $id);
+$update = get_record('helpdesk_ticket_update', 'id', $id, '', '', '', '', 'id, hidden, ticketid');
 $update->hidden = 1;
 if(!update_record('helpdesk_ticket_update', $update)) {
     error(get_string('unabletohideupdate', 'block_helpdesk'));
