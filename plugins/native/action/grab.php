@@ -23,26 +23,12 @@
  * @author      Joanthan Doane <jdoane@vlacs.org>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-// At this point, we've very deep inside moodle, we're 7 sub directories away 
-// from config, plus the file we're on.
-$hd_depth = 4;
-$www_depth = 6;
-$path = __FILE__;
-for($i = 1; $i <= $www_depth; $i++) {
-    $path = dirname($path);
-    if($i == $hd_depth) { $hdpath = $path; }
-}
-
-require_once("{$path}/config.php");
-require_once("{$hdpath}/lib.php");
+define('MOODLE_INTERNAL', true);
+require_once('init.php');
 
 global $CFG, $USER;
 
-require_login(0, false);
-
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true); // require answerer capability.
-
 $hd = helpdesk::get_helpdesk();
 
 /**

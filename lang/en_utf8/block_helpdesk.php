@@ -186,6 +186,9 @@ $string['questionsperpage']     = 'Questions per page';
 $string['answerertools']        = 'Answerer question tools';
 $string['grabquestion']         = 'Grab this question';
 $string['questiongrabbed']      = 'Question grabbed';
+$string['showupdate']           = 'Show update';
+$string['updatewillnowbeshown'] = 'Update will now be shown';
+$string['updatewillnowbehidden']= 'Update will now be hidden';
 
 /**
  * These are settings.php strings.

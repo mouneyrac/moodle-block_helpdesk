@@ -326,9 +326,25 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                     $str = get_string($update->type, 'block_helpdesk');
                     $row[] = $str;
                     if ($hd->is_update_hidden($update)) {
-                        $row[] = get_string('thisupdateishidden', 'block_helpdesk');
+                        $url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/plugins/native/action/showupdate.php");
+                        $str = get_string('showupdate', 'block_helpdesk');
                     } else {
-                        $row[] = '';
+                        $url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/plugins/native/action/hideupdate.php");
+                        $str = get_string('hideupdate', 'block_helpdesk');
+                    }
+                    $url = $url->out();
+                    if($isanswerer) {
+                    $hideshowbutton = "<form name=\"updatehideshow\"action=\"{$url}\" method=\"get\">" .
+                        "<input type=\"submit\" value=\"{$str}\" />" .
+                        "<input type=\"hidden\" name=\"id\" value=\"{$update->id}\" /></form>";
+                    } else {
+                        $hideshowbutton = '';
+                    }
+                    if ($hd->is_update_hidden($update)) {
+                        $row[] = get_string('thisupdateishidden', 'block_helpdesk') . '<br />'
+                            . $hideshowbutton;
+                    } else {
+                        $row[] = $hideshowbutton;
                     }
                     $table->head = $row;
                 }
