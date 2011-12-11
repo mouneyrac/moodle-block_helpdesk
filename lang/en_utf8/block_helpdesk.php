@@ -183,6 +183,9 @@ $string['helpdesknewticket']    = 'Help Desk: New Question';
 $string['relationnosearchpreset'] = 'Relation string has no search preset. Invalid relation?';
 $string['noanswerers']          = 'No answerers';
 $string['questionsperpage']     = 'Questions per page';
+$string['answerertools']        = 'Answerer question tools';
+$string['grabquestion']         = 'Grab this question';
+$string['questiongrabbed']      = 'Question grabbed';
 
 /**
  * These are settings.php strings.

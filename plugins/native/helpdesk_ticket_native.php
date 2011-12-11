@@ -166,6 +166,25 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $row[] = $this->get_detail();
         $table->data[] = $row;
 
+        /**
+         * TODO: Expand on this.
+         * If we want a series of tool we will want to put them here.
+         */
+        if(empty($this->firstcontact) and helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
+            $row = array();
+            $row[] = get_string('answerertools', 'block_helpdesk');
+            $url = "{$CFG->wwwroot}/blocks/helpdesk/plugins/native/action/grab.php";
+            $grab_help = helpdesk_simple_helpbutton(get_string('grabquestion', 'block_helpdesk'),
+                'grabquestion', true);
+            $row[] = "<form action=\"{$url}\" method=\"get\">"
+                . '<input type="hidden" name="id" value="'
+                . $this->get_idstring() . '" />'
+                . '<input type="submit" value="'
+                . get_string('grabquestion', 'block_helpdesk')
+                . "\" />{$grab_help}</form>";
+            $table->data[] = $row;
+        }
+
         print_table($table, false);
         echo '<br />';
 
@@ -729,7 +748,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $dataobject->status         = $this->status->id;
 
         if (is_numeric($this->firstcontact)) {
-            if(record_exists('user', 'id', $this->firstcontact)) {
+            if(!record_exists('user', 'id', $this->firstcontact)) {
                 error('Invalid first contact user id.');
             }
             $this->firstcontact = helpdesk_get_user($this->firstcontact);
@@ -1155,6 +1174,39 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             }
         }
         return 'Unknown';
+    }
+
+    /**
+     * This gives the user object for the first contact user or false if there 
+     * is no firstcontact.
+     *
+     * @return mixed
+     */
+    public function get_firstcontact() {
+        if(empty($this->firstcontact)) {
+            return false;
+        }
+        return get_record('user', 'id', $this->firstcontact);
+    }
+
+    /**
+     * This only sets the first contact if it isn't already set.
+     *
+     * @param mixed     $user can be a user object or a user id.
+     * @return bool
+     */
+    public function set_firstcontact($user) {
+        if(is_object($user)) {
+            $user = $user->id;
+        }
+        if(empty($user)) {
+            error(get_string('invalidtype', 'block_helpdesk') . ' - ' . __FILE__ . ':' . __LINE__);
+        }
+        if(empty($this->firstcontact)) {
+            $this->firstcontact = $user;
+            return true;
+        }
+        return false;
     }
 }
 ?>
