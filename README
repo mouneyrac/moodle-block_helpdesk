@@ -1,0 +1,19 @@
+Moodle-Block-Helpdesk
+
+Sponsored/maintained by:
+    Virtual Learning Academy Charter School (vlacs.org)
+
+Developers:
+    Jon Doane <jdoane@vlacs.org>
+
+Supported Moodle versions:
+    * 1.9.5+
+
+Introduction:
+    If you run a help center and need a ticket tracking system, and especially
+    if you use Moodle :), this block might help you out. It's a simple way for
+    users to ask questions that get tracked until your help desk staff can
+    answer them fully.
+
+Matt Oquist <moquist@majen.net>
+Wed Mar 14 13:51:46 EDT 2012
