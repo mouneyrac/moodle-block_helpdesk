@@ -65,7 +65,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function display_ticket($readonly=false) {
-        global $CFG;
+        global $CFG, $DB;
 
         $hd = helpdesk::get_helpdesk();
 
@@ -78,7 +78,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
         $showfirstcontact = get_config(null, 'block_helpdesk_show_firstcontact');
 
-        $user   = get_record('user', 'id', $this->get_userid());
+        $user   = $DB->get_record('user', array('id' => $this->get_userid()));
         $url    = new moodle_url("$CFG->wwwroot/user/view.php");
         $url->param('id', $user->id);
         $url    = $url->out();
@@ -96,7 +96,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         }
         print_table_head($headstr);
 
-        $table = new stdClass;
+        $table = new html_table();
         $table->size = array('30%');
         $table->width = '95%';
 
@@ -166,7 +166,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $row[] = $this->get_detail();
         $table->data[] = $row;
 
-        print_table($table, false);
+        echo html_writer::table($table);
         echo '<br />';
 
         // Assignments start here.
@@ -212,7 +212,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             }
         }
         $table->size = array('70%');
-        print_table($table, false);
+        echo html_writer::table($table);
         echo '<br />';
         $table->size = array('30%');
 
@@ -260,7 +260,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         } else {
             $table->data = array(array(get_string('notags', 'block_helpdesk')));
         }
-        print_table($table);
+        echo html_writer::table($table);
 
         // END TAGS DISPLAY
 
@@ -314,7 +314,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                     $table->head = $row;
                 }
 
-                $user = get_record('user', 'id', $update->userid);
+                $user = $DB->get_record('user', 'id', $update->userid);
                 if (!$user) {
                     error(getstring('unabletopulluser', 'block_helpdesk'));
                 }
@@ -338,7 +338,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 // New ticket status if status changed.
                 if ($update->newticketstatus != null) {
                     $row = array();
-                    $tstat = get_record('helpdesk_status', 'id', $update->newticketstatus);
+                    $tstat = $DB->get_record('helpdesk_status', 'id', $update->newticketstatus);
                     $row[] = get_string('newquestionstatus', 'block_helpdesk');
                     $row[] = $this->get_status_string($tstat);
                     $table->data[] = $row;
@@ -358,7 +358,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 $row[] = get_string('note', 'block_helpdesk');
                 $row[] = $update->notes;
                 $table->data[] = $row;
-                print_table($table);
+                echo html_writer::table($table);
                 echo '<br />';
             }
         }
@@ -366,7 +366,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $row = array();
             $row[] = get_string('noupdatestoview', 'block_helpdesk');
             $table->data[] = $row;
-            print_table($table);
+            echo html_writer::table($table);
         }
 
         echo '</div>';
@@ -437,8 +437,9 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function set_status($status) {
+        global $DB;
         if (is_numeric($status)) {
-            $status = get_record('helpdesk_status', 'id', $status);
+            $status = $DB->get_record('helpdesk_status', 'id', $status);
         }
         if (!is_object($status)) {
             error('Status must be an object or id.');
@@ -580,18 +581,18 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function add_assignment($userid) {
-        global $CFG;
+        global $CFG, $DB;
         $assign = new stdClass;
         $assign->userid = $userid;
         $assign->ticketid = $this->id;
-        $rval = insert_record('helpdesk_ticket_assignments', $assign, false);
+        $rval = $DB->insert_record('helpdesk_ticket_assignments', $assign, false);
         if (!$rval) {
             return false;
         }
 
         // Now lets add an update for what changed. We want to track things like
         // this from now on.
-        $urecord        = get_record('user', 'id', $userid);
+        $urecord        = $DB->get_record('user', 'id', $userid);
         $dat            = new stdClass;
         $dat->ticketid  = $this->id;
         $dat->notes     = fullname($urecord) . ' '
@@ -616,10 +617,11 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function remove_assignment($userid) {
-        $result = delete_records('helpdesk_ticket_assignments', 'userid', $userid, 'ticketid', $this->id);
+        global $DB;
+        $result = $DB->delete_records('helpdesk_ticket_assignments', array('userid' => $userid, 'ticketid' => $this->id));
         if ($result) {
             $this->store();
-            $urecord            = get_record('user', 'id', $userid);
+            $urecord            = $DB->get_record('user', array('id' => $userid));
             $dat                = new stdClass;
             $dat->ticketid      = $this->id;
             $dat->notes         = fullname($urecord) . ' ' .
@@ -641,11 +643,12 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return array
      */
     function get_assigned() {
+        global $DB;
         // When a new ticket is stored, there is no id. We want to stop here.
         if (empty($this->id)) {
             return false;
         }
-        $records = get_records('helpdesk_ticket_assignments', 'ticketid', $this->id);
+        $records = $DB->get_records('helpdesk_ticket_assignments', array('ticketid' => $this->id));
 
         // If there are no records, there are no users assigned.
         if (!$records) {
@@ -670,11 +673,11 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function fetch($permissionhalt=true) {
-        global $USER;
+        global $USER, $DB;
         if (!$this->id) {
             return false;
         }
-        $ticket = get_record('helpdesk_ticket', 'id', $this->id);
+        $ticket = $DB->get_record('helpdesk_ticket', array('id' => $this->id));
         if (!$ticket) {
             return false;
         }
@@ -686,11 +689,11 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         }
 
         $this->parse_db_ticket($ticket);
-        $updates        = get_records('helpdesk_ticket_update', 'ticketid',
-                                      $this->id, 'timecreated DESC');
-        $tags           = get_records('helpdesk_ticket_tag', 'ticketid',
-                                      $this->id, 'name ASC');
-        $this->status   = get_record('helpdesk_status', 'id', $this->status);
+        $updates        = $DB->get_records('helpdesk_ticket_update',
+                        array('ticketid' => $this->id), 'timecreated DESC');
+        $tags           = $DB->get_records('helpdesk_ticket_tag',
+                        array('ticketid' => $this->id), 'name ASC');
+        $this->status   = $DB->get_record('helpdesk_status', array('id' => $this->status));
         if(!is_object($this->status)) {
             error("Invalid status id on ticket $this->id.");
         }
@@ -708,7 +711,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      **/
     function store() {
-        global $USER;
+        global $USER, $DB;
         $dataobject                     = new stdClass;
         $dataobject->summary            = $this->summary;
         $dataobject->detail             = $this->detail;
@@ -723,13 +726,13 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $dataobject->userid             = $this->userid;
 
         if (empty($this->status)) {
-            $this->status               = get_record('helpdesk_status', 'ticketdefault', 1);
+            $this->status               = $DB->get_record('helpdesk_status', array('ticketdefault' => 1));
         }
 
         $dataobject->status         = $this->status->id;
 
         if (is_numeric($this->firstcontact)) {
-            if(record_exists('user', 'id', $this->firstcontact)) {
+            if($DB->record_exists('user', array('id' => $this->firstcontact))) {
                 error('Invalid first contact user id.');
             }
             $this->firstcontact = helpdesk_get_user($this->firstcontact);
@@ -756,9 +759,9 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             foreach($dataobject as &$col) {
                 $col = addslashes($col);
             }
-            $result = update_record('helpdesk_ticket', $dataobject);
+            $result = $DB->update_record('helpdesk_ticket', $dataobject);
         } else {
-            $result = insert_record('helpdesk_ticket', $dataobject, true);
+            $result = $DB->insert_record('helpdesk_ticket', $dataobject, true);
             if ($result) {
                 $this->id = $result;
             }
@@ -828,7 +831,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
     /**
      * Very similar to parse, except this one strips slashes. This takes in
-     * database records specifically. Like ones returned from get_record().
+     * database records specifically. Like ones returned from $DB->get_record().
      *
      * @param object    $record is a database record from moodle.
      * @return true
@@ -860,7 +863,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function add_update($update) {
-        global $USER;
+        global $USER, $DB;
         $hd = helpdesk::get_helpdesk();
         $isanswerer = helpdesk_is_capable(HELPDESK_CAP_ANSWER);
         if (!is_object($update)) {
@@ -894,7 +897,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $dat->newticketstatus   = $update->newticketstatus;
         }
 
-        if ( insert_record('helpdesk_ticket_update', $dat) ) {
+        if ( $DB->insert_record('helpdesk_ticket_update', $dat) ) {
             
             $usefirstcontact = get_config(null, 'block_helpdesk_firstcontact');
             $isanswerer = helpdesk_is_capable(HELPDESK_CAP_ANSWER);
@@ -924,13 +927,14 @@ class helpdesk_ticket_native extends helpdesk_ticket {
     }
 
     private function process_update($update) {
+        global $DB;
         // This allows us to change the status of a ticket at the same time as 
         // we add an update.
 
         // New Method
         // If the status is a number, its a status id to change the ticket to.
         if (is_numeric($update->status)) {
-            $this->status = get_record('helpdesk_status', 'id', $update->status);
+            $this->status = $DB->get_record('helpdesk_status', array('id' => $update->status));
             $update->newticketstatus = $this->status->id;
             if (!is_object($this->status)) {
                 error('Invalid ticket status. Does not exist in status table.');
@@ -948,12 +952,13 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function update_tag($tag) {
-        if (update_record('helpdesk_ticket_tag', $tag)) {
-            $this->store();
-            $this->fetch();
-            return true;
+        global $DB;
+        if (!$DB->update_record('helpdesk_ticket_tag', $tag)) {
+            return false;
         }
-        return false;
+        $this->store();
+        $this->fetch();
+        return true;
     }
 
     /**
@@ -964,6 +969,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function add_tag($tag) {
+        global $DB;
         if (!is_object($tag)) {
             return false;
         }
@@ -975,7 +981,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             return false;
         }
 
-        if (!insert_record('helpdesk_ticket_tag', $tag)) {
+        if (!$DB->insert_record('helpdesk_ticket_tag', $tag)) {
             return false;
         }
 
@@ -1003,14 +1009,14 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function remove_tag($id) {
-        global $CFG;
+        global $CFG, $DB;
         if (!is_numeric($id)) {
             return false;
         }
 
-        $tag = get_record('helpdesk_ticket_tag', 'id', $id);
+        $tag = $DB->get_record('helpdesk_ticket_tag', array('id' => $id));
 
-        $result = delete_records('helpdesk_ticket_tag', 'id', $id);
+        $result = $DB->delete_records('helpdesk_ticket_tag', array('id' => $id));
         if (!$result) {
             return false;
         }

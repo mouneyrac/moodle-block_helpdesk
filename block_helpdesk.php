@@ -42,13 +42,19 @@ class block_helpdesk extends block_base {
     }
 
     /**
-     * This overridden method gets called after the block's tables are created.
+     * Overridden method that gets called every time. This is the only place to 
+     * make sure the help desk gets installed.
      *
-     * @return bool
+     * @return null
      */
-    function after_install() {
+    function specialization() {
+        global $DB;
+        // If no core statuses, install the plugin.
+        // TODO: Make this less brain dead.
         $hd = helpdesk::get_helpdesk();
-        $rval = $hd->install();
+        if(!$hd->is_installed()) {
+            $hd->install();
+        }
     }
 
     /**

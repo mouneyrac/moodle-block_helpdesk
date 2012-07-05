@@ -46,6 +46,7 @@ class helpdesk_native extends helpdesk {
      * @return bool
      */
     function install() {
+        global $DB;
         // Lets define base statuses.
         $new = new stdClass;
         $new->name = 'new';
@@ -75,13 +76,13 @@ class helpdesk_native extends helpdesk {
 
         // Lets add all of our statuses.
         $rval = true;
-        $rval = $rval and $new->id = insert_record('helpdesk_status', $new, true);
-        $rval = $rval and $wip->id = insert_record('helpdesk_status', $wip, true);
-        $rval = $rval and $closed->id = insert_record('helpdesk_status', $closed, true);
-        $rval = $rval and $resolved->id = insert_record('helpdesk_status', $resolved, true);
-        $rval = $rval and $reopen->id = insert_record('helpdesk_status', $reopen, true);
-        $rval = $rval and $nmi->id = insert_record('helpdesk_status', $nmi, true);
-        $rval = $rval and $ip->id = insert_record('helpdesk_status', $ip, true);
+        $rval = $rval and $new->id = $DB->insert_record('helpdesk_status', $new, true);
+        $rval = $rval and $wip->id = $DB->insert_record('helpdesk_status', $wip, true);
+        $rval = $rval and $closed->id = $DB->insert_record('helpdesk_status', $closed, true);
+        $rval = $rval and $resolved->id = $DB->insert_record('helpdesk_status', $resolved, true);
+        $rval = $rval and $reopen->id = $DB->insert_record('helpdesk_status', $reopen, true);
+        $rval = $rval and $nmi->id = $DB->insert_record('helpdesk_status', $nmi, true);
+        $rval = $rval and $ip->id = $DB->insert_record('helpdesk_status', $ip, true);
 
         // If one failed, we're doomed.
         if (!$rval) {
@@ -152,6 +153,11 @@ class helpdesk_native extends helpdesk {
         }
 
         return $rval;
+    }
+
+    function is_installed() {
+        global $DB;
+        return $DB->record_exists('helpdesk_status', array('core' => 1));
     }
 
     /**

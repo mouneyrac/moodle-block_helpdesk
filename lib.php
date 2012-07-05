@@ -76,10 +76,10 @@ function helpdesk_get_date_string($date) {
 }
 
 function print_table_head($string, $width='95%') {
-    $table = new stdClass;
+    $table = new html_table;
     $table->width   = $width;
     $table->head    = array($string);
-    print_table($table);
+    echo html_writer::table($table);
 }
 
 /**

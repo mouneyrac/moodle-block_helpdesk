@@ -104,7 +104,7 @@ if (!empty($id)) {
     // Let's use a table!
     $str = get_string('relations', 'block_helpdesk');
     $relhelp = helpdesk_simple_helpbutton($str, 'relations');
-    $table = new stdClass;
+    $table = new html_table();
     $table->width = '95%';
     $table->head = array(get_string('changerelation', 'block_helpdesk') . $relhelp);
     $table->data = array();
@@ -127,7 +127,7 @@ if (!empty($id)) {
     echo "</div>";
 
     echo "<div class=\"right2div\">";
-    print_table($table);
+    echo html_writer::table($table);
     echo "</div></div>";
 
     if (empty($count)) {
@@ -168,7 +168,7 @@ if (!empty($id)) {
     } else {
         // This is a table that will display generic information that any help 
         // desk should have.
-        $table = new stdClass;
+        $table = new html_table();
         $head = array();
         $head[] = get_string('summary', 'block_helpdesk');
         $head[] = get_string('submittedby', 'block_helpdesk');
@@ -193,9 +193,9 @@ if (!empty($id)) {
             $row[] = helpdesk_get_date_string($ticket->get_timemodified());
             $table->data[] = $row;
         }
-        print_table($table);
+        echo html_writer::table($table);
         $url = new moodle_url(qualified_me());
-        print_paging_bar($total, $page, $count, $url, 'page');
+        echo $OUTPUT->paging_bar($total, $page, $count, $url);
     }
 }
 

@@ -27,6 +27,8 @@ abstract class helpdesk {
         return true;
     }
 
+    abstract function is_installed();
+
     /**
      * Depending on the helpdesk being used, we want to check to see if an
      * update is hidden or not.
