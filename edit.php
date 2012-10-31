@@ -25,7 +25,7 @@
  */
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-global $CFG;
+global $CFG, $OUTPUT;
 
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
@@ -46,13 +46,15 @@ $nav = array (
         'link' => $url->out()
     ),
     array (
-        'name' => get_string('updateticketoverview', 'block_helpdesk')
+        'name' => get_string('updateticketoverview', 'block_helpdesk'),
+        'link' => ''
         )
     );
 
+
 $title = get_string('helpdeskeditticket', 'block_helpdesk');
-helpdesk_print_header(build_navigation($nav), $title);
-print_heading(get_string('updateticketoverview', 'block_helpdesk'));
+helpdesk_print_header($nav, $title);
+$OUTPUT->heading(get_string('updateticketoverview', 'block_helpdesk'));
 
 $hd = helpdesk::get_helpdesk();
 

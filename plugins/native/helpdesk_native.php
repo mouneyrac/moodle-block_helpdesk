@@ -789,6 +789,7 @@ class helpdesk_native extends helpdesk {
      * @return mixed
      */
     function get_tickets($userid, $rel, $offset=0, $count=10) {
+        global $DB;
         switch($rel) {
         case HELPDESK_NATIVE_REL_REPORTEDBY:
             $tickets = $this->get_user_tickets($userid, $offset, $count);
@@ -797,7 +798,7 @@ class helpdesk_native extends helpdesk {
             $tickets = $this->get_assigned_tickets($userid, $offset, $count);
             break;
         case HELPDESK_NATIVE_REL_NEW:
-            $status = get_field('helpdesk_status', 'id', 'name', 'new');
+            $status = $DB->get_field('helpdesk_status', 'id', array('name' => 'new'));
             $tickets = $this->get_status_tickets($status, $offset, $count);
             break;
         case HELPDESK_NATIVE_REL_CLOSED:
@@ -835,7 +836,9 @@ class helpdesk_native extends helpdesk {
         if (!isset($rel)) {
             error(__FUNCTION__ . ': Invalid relation.');
         }
-//        $as = sql_as();
+        //$as = $DB->sql_as();
+        $as = 'AS';
+
         switch($rel) {
         case HELPDESK_NATIVE_REL_REPORTEDBY:
             return $DB->count_records('helpdesk_ticket', array('userid'=>$userid));

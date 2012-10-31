@@ -233,3 +233,8 @@ function helpdesk_print_header($nav, $title) {
     // Start the page
     echo $OUTPUT->header();
 }
+
+function helpdesk_print_footer() {
+    global $OUTPUT;
+    $OUTPUT->footer();
+}
