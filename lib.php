@@ -75,6 +75,10 @@ function helpdesk_get_date_string($date) {
     return userdate($date);
 }
 
+/**
+ * This needs to be deprecated. We might be able to do what we want with HTML 
+ * tables in Moodle now. I have to look into this. --jdoane (20121102.00)
+ */
 function print_table_head($string, $width='95%') {
     $table = new html_table;
     $table->width   = $width;
@@ -91,14 +95,14 @@ function print_table_head($string, $width='95%') {
  * @return bool
  */
 function helpdesk_is_capable($capability=null, $require=false, $user=null) {
-
+    global $DB;
     if (empty($user)) {
         global $USER;
         $user = $USER;
     }
 
     if (is_numeric($user)) {
-	$user = get_record('user', 'id', $user);
+	$user = $DB->get_record('user', array('id' => $user));
     }
 
     $context = get_context_instance(CONTEXT_SYSTEM);
@@ -223,10 +227,17 @@ function helpdesk_print_header($nav, $title) {
     $PAGE->set_heading($title);
     $PAGE->set_title($title);
     $PAGE->set_pagelayout('standard');
+    $PAGE->set_url(new moodle_url(me()));
+
+    print qualified_me();
+    die();
 
     // Set up navigation
     $parent = $PAGE->navigation;
     foreach($nav as $navitem) {
+	if(empty($navitem['link'])) {
+	    $navitem['link'] = '';
+	}
         $parent = $parent->add($navitem['name'], $navitem['link']);
     }
     

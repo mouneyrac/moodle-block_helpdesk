@@ -579,9 +579,9 @@ class helpdesk_native extends helpdesk {
                 FROM {helpdesk_ticket} t
                     JOIN {helpdesk_status} s
                         ON t.status = s.id
-                WHERE s.id = {$status->id}";
+                WHERE s.id = ?";
 
-        $records = $DB->get_records_sql($sql, null, $offset, $count);
+        $records = $DB->get_records_sql($sql, array($status->id), $offset, $count);
 
         foreach($records as $record) {
             $ticket = $this->new_ticket();
@@ -724,10 +724,10 @@ class helpdesk_native extends helpdesk {
                         ON a.ticketid = t.id
                     JOIN {helpdesk_status} s
                         ON t.status = s.id
-                WHERE a.userid = $userid AND s.active = 1
+                WHERE a.userid = ? AND s.active = 1
                 ORDER BY t.timemodified DESC";
 
-        $recordset = $DB->get_records_sql($sql, null, $offset, $count);
+        $recordset = $DB->get_records_sql($sql, array($userid), $offset, $count);
         
         foreach ($recordset as $record) {
             $ticket = $this->new_ticket();
@@ -847,9 +847,9 @@ class helpdesk_native extends helpdesk {
                     FROM {helpdesk_ticket} t
                         JOIN {helpdesk_ticket_assignments} a ON a.ticketid = t.id
                         JOIN {helpdesk_status} s ON t.status = s.id
-                    WHERE a.userid = $userid AND s.active = 1";
+                    WHERE a.userid = ? AND s.active = 1";
 
-            $r = $DB->get_record_sql($sql);
+            $r = $DB->get_record_sql($sql, array($userid));
             return $r->count;
         case HELPDESK_NATIVE_REL_NEW:
             $sql = "SELECT COUNT(t.id) $as count
@@ -896,6 +896,9 @@ class helpdesk_native extends helpdesk {
      * according to a specific string. Basically we're "and"ing all the words
      * together and checking a bunch of stuff. We will get a mixed result, false
      * if unsucessful, or an array of tickets if we find matches.
+     *
+     * MOODLE 2.x NOTE: -- Search needs to be refactored. This is used for 
+     * browsing any ticket in the help desk system. --jdoane 20121031
      *
      * @return mixed
      */

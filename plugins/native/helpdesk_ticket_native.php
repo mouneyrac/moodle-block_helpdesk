@@ -286,6 +286,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $table->data = array();
         $updateprinted = false;
         if (is_array($udata) or is_object($udata)) {
+
             // If we have system or detailed updates, display them.
             $showdetailed = helpdesk_get_session_var('showdetailedupdates');
             $showsystem = helpdesk_get_session_var('showsystemupdates');
@@ -314,7 +315,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                     $table->head = $row;
                 }
 
-                $user = $DB->get_record('user', 'id', $update->userid);
+                $user = $DB->get_record('user', array('id' => $update->userid));
                 if (!$user) {
                     error(getstring('unabletopulluser', 'block_helpdesk'));
                 }
@@ -338,7 +339,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 // New ticket status if status changed.
                 if ($update->newticketstatus != null) {
                     $row = array();
-                    $tstat = $DB->get_record('helpdesk_status', 'id', $update->newticketstatus);
+                    $tstat = $DB->get_record('helpdesk_status', array('id' => $update->newticketstatus));
                     $row[] = get_string('newquestionstatus', 'block_helpdesk');
                     $row[] = $this->get_status_string($tstat);
                     $table->data[] = $row;
@@ -439,7 +440,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
     function set_status($status) {
         global $DB;
         if (is_numeric($status)) {
-            $status = $DB->get_record('helpdesk_status', 'id', $status);
+            $status = $DB->get_record('helpdesk_status', array('id' => $status));
         }
         if (!is_object($status)) {
             error('Status must be an object or id.');
@@ -592,7 +593,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
         // Now lets add an update for what changed. We want to track things like
         // this from now on.
-        $urecord        = $DB->get_record('user', 'id', $userid);
+        $urecord        = $DB->get_record('user', array('id' => $userid));
         $dat            = new stdClass;
         $dat->ticketid  = $this->id;
         $dat->notes     = fullname($urecord) . ' '

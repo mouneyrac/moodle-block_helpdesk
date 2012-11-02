@@ -46,7 +46,7 @@ $nav = array (
           )
     );
 
-helpdesk_print_header(build_navigation($nav));
+helpdesk_print_header($nav, get_string('preferences', 'block_helpdesk'));
 require_login();
 
 if(!helpdesk_is_capable()) {

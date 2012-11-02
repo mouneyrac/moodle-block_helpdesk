@@ -32,7 +32,8 @@ require_once($CFG->libdir . '/weblib.php');
 // We are also Helpdesk, so we shall also become a helpdesk.
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
-require_login(0, false);
+
+require_login(null, false);
 
 // Grab optional params.
 $tid    = required_param('tid', PARAM_INT);
@@ -64,8 +65,8 @@ $nav = array (
     );
 
 $title = get_string('helpdeskassignuser', 'block_helpdesk');
-helpdesk_print_header(build_navigation($nav), $title);
-print_heading(get_string('helpdesk', 'block_helpdesk'));
+helpdesk_print_header($nav, $title);
+$OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
 
 $hd = helpdesk::get_helpdesk();
@@ -128,7 +129,7 @@ if (!empty($uid)) {
 $offset = $page * $count;
 $assignables = get_users_by_capability($context, HELPDESK_CAP_ANSWER, 'u.*',
                                        'u.lastname ASC', $offset, $count);
-$table = new stdClass;
+$table = new html_table();
 $table->head = array (
     get_string('name'),
     get_string('email'),
@@ -152,7 +153,7 @@ foreach($assignables as $user) {
         "<a href=\"$assign\">$assignstr</a>",
         );
 }
-print_table($table);
+echo html_writer::table($table);
 
 // This makes the paging bar.
 $countfield = 'u.id';
@@ -160,7 +161,8 @@ $total = get_users_by_capability($context, HELPDESK_CAP_ANSWER,
                                  $countfield);
 $total = count($total);
 $url = new moodle_url(qualified_me());
-print_paging_bar($total, $page, $count, $url, 'page');
+$OUTPUT->paging_bar($total, $page, $count, $url, 'page');
 
-print_footer();
+global $OUTPUT;
+$OUTPUT->footer();
 ?>
