@@ -212,40 +212,16 @@ function helpdesk_simple_helpbutton($title, $name, $return=true) {
  * @return null
  */
 function helpdesk_print_header($nav, $title) {
-    global $PAGE, $OUTPUT;
-
-//    $helpdeskstr = get_string('helpdesk', 'block_helpdesk');
-//    if (empty($title)) {
-//	$title = $helpdeskstr;
-//    }
-//    $meta = "<meta http-equiv=\"x-ua-compatible\" content=\"IE=8\" />\n
-//	     <link rel=\"stylesheet\" type=\"text/css\" href=\"$CFG->wwwroot/blocks/helpdesk/style.css\" />\n";
-//    print_header($title, $helpdeskstr, $nav, '', $meta);
-
-    // Set up the page
-    $PAGE->set_context(get_context_instance(CONTEXT_SYSTEM));
-    $PAGE->set_heading($title);
-    $PAGE->set_title($title);
-    $PAGE->set_pagelayout('standard');
-    $PAGE->set_url(new moodle_url(me()));
-
-    print qualified_me();
-    die();
-
-    // Set up navigation
-    $parent = $PAGE->navigation;
-    foreach($nav as $navitem) {
-	if(empty($navitem['link'])) {
-	    $navitem['link'] = '';
-	}
-        $parent = $parent->add($navitem['name'], $navitem['link']);
-    }
-    
-    // Start the page
-    echo $OUTPUT->header();
+    // TODO: This function is deprecated. Please use static help desk methods to 
+    // do this. Example: helpdesk::page_header(); helpdesk::page_footer(); and
+    // helpdesk::page_init($title, $nav);
+    // --jdoane 20121105
+    debugging('helpdesk_print_header() has been deprecated. Do not use this function call.');
+    helpdesk::page_init($title, $nav);
+    helpdesk::page_header();
 }
 
 function helpdesk_print_footer() {
-    global $OUTPUT;
-    $OUTPUT->footer();
+    debugging('helpdesk_print_footer() has been deprecated. Do not use this function call.');
+    helpdesk::page_footer();
 }

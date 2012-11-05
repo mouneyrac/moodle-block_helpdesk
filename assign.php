@@ -65,8 +65,7 @@ $nav = array (
     );
 
 $title = get_string('helpdeskassignuser', 'block_helpdesk');
-helpdesk_print_header($nav, $title);
-$OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
+helpdesk::page_init($title, $nav);
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
 
 $hd = helpdesk::get_helpdesk();
@@ -124,6 +123,9 @@ if (!empty($uid)) {
 }
 
 // No user selected, so its time to find us one.
+// There are also no more redirects, lets print out the page!
+helpdesk::page_header();
+$OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
 
 // We are starting from scratch here!
 $offset = $page * $count;
@@ -163,6 +165,5 @@ $total = count($total);
 $url = new moodle_url(qualified_me());
 $OUTPUT->paging_bar($total, $page, $count, $url, 'page');
 
-global $OUTPUT;
-$OUTPUT->footer();
+helpdesk::page_footer();
 ?>

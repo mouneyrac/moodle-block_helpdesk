@@ -870,6 +870,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if (!is_object($update)) {
             return false;
         }
+        $dat = new stdclass();
         $dat->ticketid = $this->id;
 
         // No type is no longer allowed.
@@ -1074,6 +1075,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return mixed
      */
     function parse_tag($data) {
+        $tag = new stdClass();
         if (is_object($data)) {
             if (isset($data->id)) {
                 $tag->id = $data->id;

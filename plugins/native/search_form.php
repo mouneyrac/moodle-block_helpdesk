@@ -44,7 +44,7 @@ class search_form extends moodleform {
         $mform->addElement('submit', 'submitbutton', get_string('search'));
     }
 
-    function validation() {
+    function validation($data, $files) {
         // Add something at some point.
     }
 }

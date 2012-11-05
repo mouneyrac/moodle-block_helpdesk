@@ -52,8 +52,8 @@ $nav = array (
     );
 
 $title = get_string('helpdeskupdateticket', 'block_helpdesk');
-helpdesk_print_header(build_navigation($nav), $title);
-print_heading(get_string('updateticket', 'block_helpdesk'));
+helpdesk::page_init($title, $nav);
+$OUTPUT->heading(get_string('updateticket', 'block_helpdesk'));
 
 $hd = helpdesk::get_helpdesk();
 
@@ -75,8 +75,10 @@ if ( $form->is_submitted() and ($data = $form->get_data())) {
             error(get_string('cannotaddupdate', 'block_helpdesk'));
         }
 }
+
+helpdesk::page_header();
 $form->display();
 $hd->display_ticket($ticket, true);
+helpdesk::page_footer();
 
-print_footer();
 ?>

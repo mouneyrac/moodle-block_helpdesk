@@ -48,7 +48,7 @@ class new_ticket_form extends moodleform {
         $mform->addElement('submit', 'submitbutton', get_string('submitticket', 'block_helpdesk'));
     }
 
-    function validation($data) {
+    function validation($data, $files) {
         // At some point we could do custom validation, but moodleform defaults 
         // do just fine.
         return array();

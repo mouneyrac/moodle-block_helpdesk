@@ -52,7 +52,7 @@ class tag_ticket_form extends moodleform {
         $mform->addElement('submit', 'submitbutton', get_string('addtag', 'block_helpdesk'));
     }
 
-    function validation($data) {
+    function validation($data, $files) {
         // We'll do custom validation if we ever need to.
         return array();
     }

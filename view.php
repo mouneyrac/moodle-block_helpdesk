@@ -54,10 +54,8 @@ if (isset($id)) {
 }
 
 $title = get_string('helpdeskticketviewer', 'block_helpdesk');
-
-//helpdesk_print_header(build_navigation($nav), $title);
-//print_heading($heading);
-helpdesk_print_header($nav, $title);
+helpdesk::page_init($title, $nav);
+helpdesk::page_header();
 
 // Let's construct our helpdesk.
 $hd = helpdesk::get_helpdesk();
@@ -199,4 +197,4 @@ if (!empty($id)) {
     }
 }
 
-echo $OUTPUT->footer();
+helpdesk::page_footer();

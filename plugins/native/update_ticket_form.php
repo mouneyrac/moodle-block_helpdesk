@@ -58,7 +58,7 @@ class update_ticket_form extends moodleform {
     }
 
     function add_status($ticket=null) {
-        global $CFG;
+        global $CFG, $DB;
         if (!is_object($ticket)) {
             error('add_status() requires a ticket object when called.');
         }
@@ -74,13 +74,14 @@ class update_ticket_form extends moodleform {
         }
 
         $sql = "SELECT s.*
-                FROM {$CFG->prefix}helpdesk_status " . sql_as() . " s
-                    JOIN {$CFG->prefix}helpdesk_status_path " . sql_as() . " sp ON sp.tostatusid=s.id
-                WHERE sp.fromstatusid = $status->id
-                    AND sp.capabilityname = '$cap'";
+                FROM {helpdesk_status} AS s
+                    JOIN {helpdesk_status_path} AS sp
+                        ON sp.tostatusid=s.id
+                WHERE sp.fromstatusid = ?
+                    AND sp.capabilityname = ?";
 
 
-        $pstatuses = get_records_sql($sql);
+        $pstatuses = $DB->get_records_sql($sql, array($status->id, $cap));
 
         if (empty($pstatuses)) {
             error('No paths from this status!');
@@ -107,7 +108,7 @@ class update_ticket_form extends moodleform {
         $mform->addElement('checkbox', 'hidden', get_string('hideupdate', 'block_helpdesk'));
     }
 
-    function validation($data) {
+    function validation($data, $files) {
         // If we need to do more here we will.
         return array();
     }

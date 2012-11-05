@@ -50,11 +50,9 @@ $nav = array (
         'link' => ''
         )
     );
-
-
 $title = get_string('helpdeskeditticket', 'block_helpdesk');
-helpdesk_print_header($nav, $title);
-$OUTPUT->heading(get_string('updateticketoverview', 'block_helpdesk'));
+
+helpdesk::page_init($title, $nav);
 
 $hd = helpdesk::get_helpdesk();
 
@@ -87,8 +85,11 @@ if ( $form->is_submitted() and ($data = $form->get_data())) {
     redirect($url, get_string('ticketedited', 'block_helpdesk'));
 }
 
+helpdesk::page_header();
+print $OUTPUT->heading(get_string('updateticketoverview', 'block_helpdesk'));
+
 $form->display();
 
-print_footer();
+helpdesk::page_footer();
 
 ?>
