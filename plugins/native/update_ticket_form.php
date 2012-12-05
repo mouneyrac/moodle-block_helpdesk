@@ -73,12 +73,13 @@ class update_ticket_form extends moodleform {
             error('Unable to get capability for statuses.');
         }
 
-        $sql = "SELECT s.*
+        $sql = "SELECT s.id, s.*
                 FROM {helpdesk_status} AS s
                     JOIN {helpdesk_status_path} AS sp
                         ON sp.tostatusid=s.id
                 WHERE sp.fromstatusid = ?
-                    AND sp.capabilityname = ?";
+                    AND sp.capabilityname = ?
+                GROUP BY s.id, s.*";
 
 
         $pstatuses = $DB->get_records_sql($sql, array($status->id, $cap));

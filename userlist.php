@@ -69,13 +69,17 @@ $nav[] = array (
     'name' => get_string('selectauser', 'block_helpdesk'),
 );
 
-helpdesk_print_header(build_navigation($nav));
-print_heading(get_string('changeuser', 'block_helpdesk'));
+$title = get_string('changeuser', 'block_helpdesk');
+helpdesk::page_init($title, $nav);
+helpdesk::page_header();
+$OUTPUT->heading($title, 1);
+
+$url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/userlist.php");
+$PAGE->set_url($url);
 
 $hd = helpdesk::get_helpdesk();
 
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
-
 
 $ufiltering = new user_filtering(null, qualified_me());
 
@@ -97,9 +101,10 @@ if ($sort == "name") {
 }
 
 $extrasql = $ufiltering->get_sql_filter();
-$users = get_users_listing($sort, $dir, $page*$perpage, $perpage, '', '', '', $extrasql);
+list($esql, $eparams) = $extrasql;
+$users = get_users_listing($sort, $dir, $page, $perpage, '', '', '', $esql, $eparams);
 $usercount = get_users(false);
-$usersearchcount = get_users(false, '', true, "", "", '', '', '', '', '*', $extrasql);
+$usersearchcount = get_users(false, '', true, array(), "{$sort} ASC", '', '', $page, $perpage, '*', $esql, $eparams);
 
 if ($extrasql !== '') {
     print_heading("$usersearchcount / $usercount ".get_string('users'));
@@ -116,7 +121,7 @@ $thisurl->param('dir', $dir);
 $thisurl->param('perpage', $perpage);
 $thisurl = $thisurl->out() . '&';
 
-print_paging_bar($usercount, $page, $perpage, $thisurl);
+$OUTPUT->paging_bar($usercount, $page, $perpage, $thisurl, 'page');
 
 flush();
 

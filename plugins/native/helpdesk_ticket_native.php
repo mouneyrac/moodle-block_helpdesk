@@ -94,14 +94,15 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if (helpdesk_is_capable(HELPDESK_CAP_ANSWER) and !$readonly) {
             $headstr .= "<br /><a href=\"$editurl\">$editstr</a>";
         }
-        print_table_head($headstr);
 
         $table = new html_table();
-        $table->size = array('30%');
+        $table->size = array('15em', 'auto');
         $table->width = '95%';
 
-        $table->head = null;
-        $table->align = array('left', 'left');
+        $table->head = array($headstr);
+        $table->headspan = array(2);
+        $table->align = array('center', 'left');
+        $table->data = array();
 
         $row = array();
         $row[] = get_string('ticketid', 'block_helpdesk');
@@ -166,7 +167,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $row[] = $this->get_detail();
         $table->data[] = $row;
 
-        echo html_writer::table($table);
+        echo html_writer::table(clone $table);
         echo '<br />';
 
         // Assignments start here.
@@ -182,7 +183,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $string = get_string("assignuser", 'block_helpdesk');
             $thead .= "<br /><a href=\"$url\">$string</a>";
         }
-        print_table_head($thead);
+
+        $table->head = array($thead);
 
         $assigned = $this->get_assigned();
 
@@ -211,10 +213,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 $table->data[] = $row;
             }
         }
-        $table->size = array('70%');
-        echo html_writer::table($table);
+        echo html_writer::table(clone $table);
         echo '<br />';
-        $table->size = array('30%');
 
         // Assignments end here.
         // START TAGS DISPLAY
@@ -232,8 +232,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
             $thead .= "<br /><a href=\"$url\">$addtagstr</a>";
         }
-        print_table_head($thead);
 
+        $table->head = array($thead);
         $table->data = array();
         if (!$tags == null) {
             foreach($tags as $tag) {
@@ -260,7 +260,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         } else {
             $table->data = array(array(get_string('notags', 'block_helpdesk')));
         }
-        echo html_writer::table($table);
+        echo html_writer::table(clone $table);
 
         // END TAGS DISPLAY
 
@@ -280,9 +280,9 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if(!$readonly) {
             $thead .= "<br /><a href=\"$url\">$translated</a>";
         }
-        print_table_head($thead);
 
         // We're going to find out now if we are displaying these updates.
+        $table->head = array($thead);
         $table->data = array();
         $updateprinted = false;
         if (is_array($udata) or is_object($udata)) {
@@ -359,7 +359,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 $row[] = get_string('note', 'block_helpdesk');
                 $row[] = $update->notes;
                 $table->data[] = $row;
-                echo html_writer::table($table);
+                echo html_writer::table(clone $table);
                 echo '<br />';
             }
         }
@@ -367,7 +367,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $row = array();
             $row[] = get_string('noupdatestoview', 'block_helpdesk');
             $table->data[] = $row;
-            echo html_writer::table($table);
+            echo html_writer::table(clone $table);
         }
 
         echo '</div>';
