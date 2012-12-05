@@ -206,6 +206,39 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $result = $result && add_index($table, $index);
     }
 
+    // Rename all tables to the new name...
+    if ($oldversion < 2012120500) {
+        $table = new XMLDBTable('helpdesk');
+        $result = $result && rename_table($table, 'block_helpdesk');
+
+        $table = new XMLDBTable('helpdesk_ticket');
+        $result = $result && rename_table($table, 'block_helpdesk_ticket');
+
+        $table = new XMLDBTable('helpdesk_ticket_tag');
+        $result = $result && rename_table($table, 'block_helpdesk_ticket_tag');
+
+        $table = new XMLDBTable('helpdesk_ticket_update');
+        $result = $result && rename_table($table, 'block_helpdesk_ticket_update');
+
+        $table = new XMLDBTable('helpdesk_ticket_assign');
+        $result = $result && rename_table($table, 'block_helpdesk_ticket_assign');
+
+        $table = new XMLDBTable('helpdesk_ticket_group');
+        $result = $result && rename_table($table, 'block_helpdesk_ticket_group');
+
+        $table = new XMLDBTable('helpdesk_ticket_status');
+        $result = $result && rename_table($table, 'block_helpdesk_ticket_status');
+
+        $table = new XMLDBTable('helpdesk_ticket_status_path');
+        $result = $result && rename_table($table, 'block_helpdesk_ticket_status_path');
+
+        $table = new XMLDBTable('helpdesk_ticket_rule');
+        $result = $result && rename_table($table, 'block_helpdesk_ticket_rule');
+
+        $table = new XMLDBTable('helpdesk_ticket_rule_email');
+        $result = $result && rename_table($table, 'block_helpdesk_ticket_rule_email');
+    }
+
     return $result;
 }
 ?>

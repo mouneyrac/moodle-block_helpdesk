@@ -75,13 +75,13 @@ class helpdesk_native extends helpdesk {
 
         // Lets add all of our statuses.
         $rval = true;
-        $rval = $rval and $new->id = insert_record('helpdesk_status', $new, true);
-        $rval = $rval and $wip->id = insert_record('helpdesk_status', $wip, true);
-        $rval = $rval and $closed->id = insert_record('helpdesk_status', $closed, true);
-        $rval = $rval and $resolved->id = insert_record('helpdesk_status', $resolved, true);
-        $rval = $rval and $reopen->id = insert_record('helpdesk_status', $reopen, true);
-        $rval = $rval and $nmi->id = insert_record('helpdesk_status', $nmi, true);
-        $rval = $rval and $ip->id = insert_record('helpdesk_status', $ip, true);
+        $rval = $rval and $new->id = insert_record('block_helpdesk_status', $new, true);
+        $rval = $rval and $wip->id = insert_record('block_helpdesk_status', $wip, true);
+        $rval = $rval and $closed->id = insert_record('block_helpdesk_status', $closed, true);
+        $rval = $rval and $resolved->id = insert_record('block_helpdesk_status', $resolved, true);
+        $rval = $rval and $reopen->id = insert_record('block_helpdesk_status', $reopen, true);
+        $rval = $rval and $nmi->id = insert_record('block_helpdesk_status', $nmi, true);
+        $rval = $rval and $ip->id = insert_record('block_helpdesk_status', $ip, true);
 
         // If one failed, we're doomed.
         if (!$rval) {
@@ -178,7 +178,7 @@ class helpdesk_native extends helpdesk {
         $obj->fromstatusid = $from->id;
         $obj->tostatusid = $to->id;
         $obj->capabilityname = $capability;
-        return insert_record('helpdesk_status_path', $obj);
+        return insert_record('block_helpdesk_status_path', $obj);
     }
 
     /**
@@ -187,7 +187,7 @@ class helpdesk_native extends helpdesk {
      * @return object
      */
     function get_default_status() {
-        return get_record('helpdesk_status', 'ticketdefault', 1);
+        return get_record('block_helpdesk_status', 'ticketdefault', 1);
     }
 
     /**
@@ -277,7 +277,7 @@ class helpdesk_native extends helpdesk {
             $where .= " AND userid = $userid";
         }
 
-        $records = get_records_select('helpdesk_ticket', $where, 'timemodified DESC',
+        $records = get_records_select('block_helpdesk_ticket', $where, 'timemodified DESC',
                                       'id, status', $offset, $count);
         
         if (empty($records)) {
@@ -578,7 +578,7 @@ class helpdesk_native extends helpdesk {
             $search->submitter = $USER->id;
             break;
         case HELPDESK_NATIVE_REL_NEW:
-            $search->status[] = get_field('helpdesk_status', 'id', 'name', 'new');
+            $search->status[] = get_field('block_helpdesk_status', 'id', 'name', 'new');
             break;
         case HELPDESK_NATIVE_REL_UNASSIGNED:
             $currentuser = 0;
@@ -626,7 +626,7 @@ class helpdesk_native extends helpdesk {
         }
         $sql = "
             SELECT id, name
-            FROM {$CFG->prefix}helpdesk_status
+            FROM {$CFG->prefix}block_helpdesk_status
         ";
         if(!empty($where)) {
             $sql .= "WHERE {$where}";
@@ -726,15 +726,15 @@ class helpdesk_native extends helpdesk {
         if($data->answerer > 0) { $assignon .= " AND hta.userid = {$data->answerer}"; }
 
         $sqltickets = "
-            FROM {$CFG->prefix}helpdesk_ticket AS t
+            FROM {$CFG->prefix}block_helpdesk_ticket AS t
             JOIN {$CFG->prefix}user AS u ON t.userid = u.id
-            LEFT JOIN {$CFG->prefix}helpdesk_ticket_tag AS tt ON t.id = tt.ticketid
+            LEFT JOIN {$CFG->prefix}block_helpdesk_ticket_tag AS tt ON t.id = tt.ticketid
         ";
 
         if($data->answerer <= 0) {
             $sqltickets .= "LEFT ";
         }
-        $sqltickets    .= "JOIN {$CFG->prefix}helpdesk_ticket_assignments AS hta ON t.id = hta.ticketid";
+        $sqltickets    .= "JOIN {$CFG->prefix}block_helpdesk_ticket_assignments AS hta ON t.id = hta.ticketid";
         $sqltickets    .= $data->answerer > 0 ? " AND hta.userid = $data->answerer " : '';
 
         $wheretickets   = array('t.summary', 't.detail', 'tt.value', 'u.firstname', 'u.lastname');

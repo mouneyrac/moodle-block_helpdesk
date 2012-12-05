@@ -56,7 +56,7 @@ define('HELPDESK_NATIVE_REL_UNASSIGNED', 'unassignedtickets');
  * @return array
  */
 function get_ticket_statuses() {
-    $status = get_records('helpdesk_status', '', '', 'name ASC');
+    $status = get_records('block_helpdesk_status', '', '', 'name ASC');
     return $status;
 }
 
