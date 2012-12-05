@@ -48,7 +48,7 @@
         <INDEX NAME="idx_hd_tt_ticketid" UNIQUE="false" FIELDS="ticketid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="block_helpdesk_ticket_update" COMMENT="Every time a ticket is updated with a new status, it gets put here. This table will contain the full history of each ticket." PREVIOUS="block_helpdesk_ticket_tag" NEXT="block_helpdesk_ticket_assignments">
+    <TABLE NAME="block_helpdesk_ticket_update" COMMENT="Every time a ticket is updated with a new status, it gets put here. This table will contain the full history of each ticket." PREVIOUS="block_helpdesk_ticket_tag" NEXT="block_helpdesk_ticket_assign">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="ticketid"/>
         <FIELD NAME="ticketid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="The ticket ID of the ticket that this update belongs to." PREVIOUS="id" NEXT="notes"/>
@@ -65,7 +65,11 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
+<<<<<<< HEAD
     <TABLE NAME="block_helpdesk_ticket_assignments" COMMENT="Assignment relations to relate a user with id to be related to a ticket with id." PREVIOUS="block_helpdesk_ticket_update" NEXT="block_helpdesk_ticket_group">
+=======
+    <TABLE NAME="block_helpdesk_ticket_assign" COMMENT="Assignment relations to relate a user with id to be related to a ticket with id." PREVIOUS="block_helpdesk_ticket_update" NEXT="block_helpdesk_ticket_group">
+>>>>>>> 1dae2309aedc108335cb777d06d2d3d7dafefa16
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="ID of the user being assigned to a ticket." PREVIOUS="id" NEXT="ticketid"/>
@@ -80,7 +84,11 @@
         <INDEX NAME="idx_hd_ta_ticketid" UNIQUE="false" FIELDS="ticketid" PREVIOUS="idx_hd_ta_userid"/>
       </INDEXES>
     </TABLE>
+<<<<<<< HEAD
     <TABLE NAME="block_helpdesk_ticket_group" COMMENT="Ticket groupings table." PREVIOUS="block_helpdesk_ticket_assignments" NEXT="block_helpdesk_status">
+=======
+    <TABLE NAME="block_helpdesk_ticket_group" COMMENT="Ticket groupings table." PREVIOUS="block_helpdesk_ticket_assign" NEXT="block_helpdesk_status">
+>>>>>>> 1dae2309aedc108335cb777d06d2d3d7dafefa16
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="name"/>
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="Name of the group." PREVIOUS="id" NEXT="description"/>

@@ -38,7 +38,7 @@ class search_form extends moodleform {
         $answerers = get_records_sql("
             SELECT u.*
             FROM {$CFG->prefix}user AS u
-            LEFT JOIN {$CFG->prefix}helpdesk_ticket_assignments AS hta ON u.id = hta.userid
+            LEFT JOIN {$CFG->prefix}block_helpdesk_ticket_assignments AS hta ON u.id = hta.userid
             WHERE hta.ticketid IS NOT NULL
             ORDER BY u.lastname, u.firstname ASC
         ");
