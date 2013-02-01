@@ -74,8 +74,8 @@ class update_ticket_form extends moodleform {
         }
 
         $sql = "SELECT s.id, s.*
-                FROM {helpdesk_status} AS s
-                    JOIN {helpdesk_status_path} AS sp
+                FROM {block_helpdesk_status} AS s
+                    JOIN {block_helpdesk_status_path} AS sp
                         ON sp.tostatusid=s.id
                 WHERE sp.fromstatusid = ?
                     AND sp.capabilityname = ?

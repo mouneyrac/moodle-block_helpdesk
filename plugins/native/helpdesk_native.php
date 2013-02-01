@@ -76,13 +76,13 @@ class helpdesk_native extends helpdesk {
 
         // Lets add all of our statuses.
         $rval = true;
-        $rval = $rval and $new->id = $DB->insert_record('helpdesk_status', $new, true);
-        $rval = $rval and $wip->id = $DB->insert_record('helpdesk_status', $wip, true);
-        $rval = $rval and $closed->id = $DB->insert_record('helpdesk_status', $closed, true);
-        $rval = $rval and $resolved->id = $DB->insert_record('helpdesk_status', $resolved, true);
-        $rval = $rval and $reopen->id = $DB->insert_record('helpdesk_status', $reopen, true);
-        $rval = $rval and $nmi->id = $DB->insert_record('helpdesk_status', $nmi, true);
-        $rval = $rval and $ip->id = $DB->insert_record('helpdesk_status', $ip, true);
+        $rval = $rval and $new->id = $DB->insert_record('block_helpdesk_status', $new, true);
+        $rval = $rval and $wip->id = $DB->insert_record('block_helpdesk_status', $wip, true);
+        $rval = $rval and $closed->id = $DB->insert_record('block_helpdesk_status', $closed, true);
+        $rval = $rval and $resolved->id = $DB->insert_record('block_helpdesk_status', $resolved, true);
+        $rval = $rval and $reopen->id = $DB->insert_record('block_helpdesk_status', $reopen, true);
+        $rval = $rval and $nmi->id = $DB->insert_record('block_helpdesk_status', $nmi, true);
+        $rval = $rval and $ip->id = $DB->insert_record('block_helpdesk_status', $ip, true);
 
         // If one failed, we're doomed.
         if (!$rval) {
@@ -157,7 +157,7 @@ class helpdesk_native extends helpdesk {
 
     function is_installed() {
         global $DB;
-        return $DB->record_exists('helpdesk_status', array('core' => 1));
+        return $DB->record_exists('block_helpdesk_status', array('core' => 1));
     }
 
     /**
@@ -175,7 +175,7 @@ class helpdesk_native extends helpdesk {
         $obj->fromstatusid = $from->id;
         $obj->tostatusid = $to->id;
         $obj->capabilityname = $capability;
-        return $DB->insert_record('helpdesk_status_path', $obj);
+        return $DB->insert_record('block_helpdesk_status_path', $obj);
     }
 
     /**
@@ -185,7 +185,7 @@ class helpdesk_native extends helpdesk {
      */
     function get_default_status() {
         global $DB;
-        return $DB->get_record('helpdesk_status', array('ticketdefault'=>1));
+        return $DB->get_record('block_helpdesk_status', array('ticketdefault'=>1));
     }
 
     /**
@@ -276,7 +276,7 @@ class helpdesk_native extends helpdesk {
             $where .= " AND userid = $userid";
         }
 
-        $records = $DB->get_records_select('helpdesk_ticket', $where, 'timemodified DESC',
+        $records = $DB->get_records_select('block_helpdesk_ticket', $where, 'timemodified DESC',
                                           'id, status', $offset, $count);
         
         if (empty($records)) {
@@ -534,7 +534,7 @@ class helpdesk_native extends helpdesk {
         // Answer capability required.
         helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
 
-        $records = $DB->get_records('helpdesk_ticket', array('assigned_refs'=>0), 'timemodified DESC',
+        $records = $DB->get_records('block_helpdesk_ticket', array('assigned_refs'=>0), 'timemodified DESC',
                                     '*', $offset, $count);
 
         if (empty($records)) {
@@ -567,7 +567,7 @@ class helpdesk_native extends helpdesk {
         global $CFG, $DB;
 
         if (is_numeric($status)) {
-            $status = $DB->get_record('helpdesk_status', array('id'=>$status));
+            $status = $DB->get_record('block_helpdesk_status', array('id'=>$status));
         }
 
         if (!is_object($status)) {
@@ -576,8 +576,8 @@ class helpdesk_native extends helpdesk {
 
 //        $sqlas = sql_as();
         $sql = "SELECT t.*
-                FROM {helpdesk_ticket} t
-                    JOIN {helpdesk_status} s
+                FROM {block_helpdesk_ticket} t
+                    JOIN {block_helpdesk_status} s
                         ON t.status = s.id
                 WHERE s.id = ?";
 
@@ -610,10 +610,10 @@ class helpdesk_native extends helpdesk {
         global $CFG, $DB;
 //        $sqlas = sql_as();
         $sql = "SELECT t.*
-                FROM {helpdesk_ticket} t
-                    JOIN {helpdesk_status} s
+                FROM {block_helpdesk_ticket} t
+                    JOIN {block_helpdesk_status} s
                         ON t.status = s.id
-                    JOIN {helpdesk_ticket_assignments} a
+                    JOIN {block_helpdesk_ticket_assign} a
                         ON t.id = a.ticketid
                 WHERE s.active = 0";
         if (!empty($userid)) {
@@ -719,10 +719,10 @@ class helpdesk_native extends helpdesk {
         helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
 
         $sql = "SELECT t.id
-                FROM {helpdesk_ticket} t
-                    JOIN {helpdesk_ticket_assignments} a
+                FROM {block_helpdesk_ticket} t
+                    JOIN {block_helpdesk_ticket_assign} a
                         ON a.ticketid = t.id
-                    JOIN {helpdesk_status} s
+                    JOIN {block_helpdesk_status} s
                         ON t.status = s.id
                 WHERE a.userid = ? AND s.active = 1
                 ORDER BY t.timemodified DESC";
@@ -759,7 +759,7 @@ class helpdesk_native extends helpdesk {
             helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
         }
 
-        $records = $DB->get_records('helpdesk_ticket', array('userid'=>$userid),
+        $records = $DB->get_records('block_helpdesk_ticket', array('userid'=>$userid),
                                    'timemodified DESC', '*', $offset, $count);
         
         if (empty($records)) {
@@ -798,7 +798,7 @@ class helpdesk_native extends helpdesk {
             $tickets = $this->get_assigned_tickets($userid, $offset, $count);
             break;
         case HELPDESK_NATIVE_REL_NEW:
-            $status = $DB->get_field('helpdesk_status', 'id', array('name' => 'new'));
+            $status = $DB->get_field('block_helpdesk_status', 'id', array('name' => 'new'));
             $tickets = $this->get_status_tickets($status, $offset, $count);
             break;
         case HELPDESK_NATIVE_REL_CLOSED:
@@ -841,27 +841,27 @@ class helpdesk_native extends helpdesk {
 
         switch($rel) {
         case HELPDESK_NATIVE_REL_REPORTEDBY:
-            return $DB->count_records('helpdesk_ticket', array('userid'=>$userid));
+            return $DB->count_records('block_helpdesk_ticket', array('userid'=>$userid));
         case HELPDESK_NATIVE_REL_ASSIGNEDTO:
             $sql = "SELECT COUNT(t.id) as count
-                    FROM {helpdesk_ticket} t
-                        JOIN {helpdesk_ticket_assignments} a ON a.ticketid = t.id
-                        JOIN {helpdesk_status} s ON t.status = s.id
+                    FROM {block_helpdesk_ticket} t
+                        JOIN {block_helpdesk_ticket_assign} a ON a.ticketid = t.id
+                        JOIN {block_helpdesk_status} s ON t.status = s.id
                     WHERE a.userid = ? AND s.active = 1";
 
             $r = $DB->get_record_sql($sql, array($userid));
             return $r->count;
         case HELPDESK_NATIVE_REL_NEW:
             $sql = "SELECT COUNT(t.id) $as count
-                    FROM {helpdesk_ticket} t
-                        JOIN {helpdesk_status} s ON t.status = s.id
+                    FROM {block_helpdesk_ticket} t
+                        JOIN {block_helpdesk_status} s ON t.status = s.id
                     WHERE s.name = 'new'";
             $r = $DB->get_record_sql($sql);
             return $r->count;
         case HELPDESK_NATIVE_REL_UNASSIGNED:
-            return $DB->count_records('helpdesk_ticket', array('assigned_refs'=>'0'));
+            return $DB->count_records('block_helpdesk_ticket', array('assigned_refs'=>'0'));
         case HELPDESK_NATIVE_REL_ALL:
-            return $DB->count_records('helpdesk_ticket');
+            return $DB->count_records('block_helpdesk_ticket');
         default:
             return false;
         }
@@ -929,21 +929,21 @@ class helpdesk_native extends helpdesk {
 
         $colwhere = str_replace($cname, 'summary', $where) . ' OR ' .
                                 str_replace($cname, 'detail', $where);
-        if (($rval = $DB->get_records_select('helpdesk_ticket', $colwhere, null, 'id')) !== false) {
+        if (($rval = $DB->get_records_select('block_helpdesk_ticket', $colwhere, null, 'id')) !== false) {
             foreach($rval as $row) {
                 $totalrecordsfound[] = $row->id;
             }
         }
 
         $colwhere = str_replace($cname, 'value', $where);
-        if (($rval = $DB->get_records_select('helpdesk_ticket_tag', $colwhere, null, 'ticketid')) !== false) {
+        if (($rval = $DB->get_records_select('block_helpdesk_ticket_tag', $colwhere, null, 'ticketid')) !== false) {
             foreach($rval as $row) {
                 $totalrecordsfound[] = $row->ticketid;
             }
         }
 
         $colwhere = str_replace($cname, 'notes', $where);
-        if (($rval = $DB->get_records_select('helpdesk_ticket_update', $colwhere, null, 'ticketid')) !== false) {
+        if (($rval = $DB->get_records_select('block_helpdesk_ticket_update', $colwhere, null, 'ticketid')) !== false) {
             foreach($rval as $row) {
                 $totalrecordsfound[] = $row->ticketid;
             }
@@ -1071,7 +1071,7 @@ class helpdesk_native extends helpdesk {
      */
     function get_all_tickets($offset, $count) {
         global $DB;
-        $records = $DB->get_records('helpdesk_ticket', null, 'timemodified DESC', '*',
+        $records = $DB->get_records('block_helpdesk_ticket', null, 'timemodified DESC', '*',
                                    $offset, $count);
         return $this->parse_db_tickets($records);
     }

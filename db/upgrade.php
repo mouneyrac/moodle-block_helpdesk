@@ -174,6 +174,10 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $result = $result && add_field($table, $field);
     } 
 
+    if ($oldversion < 2012120500) {
+
+    }
+
     return $result;
 }
 ?>
