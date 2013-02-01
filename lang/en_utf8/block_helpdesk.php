@@ -58,7 +58,7 @@ $string['newticketform']        = 'New Question';
 $string['newticketmsg']         = 'Your question has been successfully submitted.';
 $string['newticket']            = 'New Question';
 $string['viewalltickets']       = 'View all Questions';
-$string['submitnewticket']      = 'Submit a new question';
+$string['submitnewticket']      = 'Submit a new technical question';
 $string['mytickets']            = 'My Submitted Questions';
 $string['status_new']           = 'New';
 $string['reopened']             = 'Reopened';
@@ -235,6 +235,10 @@ $string['showfirstcontact']     = 'Show First Contact';
 $string['showfirstcontactdesc'] = 'Displays the first helper that replied to the question when viewing the ticket.';
 $string['includeagent']         = 'Include HTTP agent string';
 $string['includeagentdesc']     = 'This includes the submitters HTTP agent string and operating system as tags when a ticket is submitted.';
+$string['generalsettings']      = 'General help desk block settings';
+$string['generalsettingsdesc']  = 'Settings shared between all help desk plugins.';
+$string['customblockname']      = 'Custom block name';
+$string['customblocknamedesc']  = 'Set a user specified block name for the help desk block.';
 
 // Email defaults
 $string['emaildefaultmsgtext']  = <<<EOF

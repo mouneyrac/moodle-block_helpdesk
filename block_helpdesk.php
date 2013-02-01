@@ -36,8 +36,13 @@ class block_helpdesk extends block_base {
      * @return null
      */
     function init() {
+        // Title should depend on block settings.
         $this->title = get_string('helpdesk', 'block_helpdesk');
-        $this->version = 2011112900;
+        $alt_block_name = get_config(null, 'block_helpdesk_customblockname');
+        if($alt_block_name) {
+            $this->title = $alt_block_name;
+        }
+        $this->version = 2012071600;
         $this->cron = 1;
     }
 
