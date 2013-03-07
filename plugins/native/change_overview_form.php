@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Update form. This handles updates to a ticket, not updating the ticket 
+ * Update form. This handles updates to a ticket, not updating the ticket
  * itself. Extends moodleform.
  *
  * @package     block_helpdesk

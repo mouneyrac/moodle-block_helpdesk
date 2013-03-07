@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is a preferences script. This allows the user to change settings that 
+ * This is a preferences script. This allows the user to change settings that
  * may alter how the helpdesk is viewed.
  *
  * @package     block_helpdesk

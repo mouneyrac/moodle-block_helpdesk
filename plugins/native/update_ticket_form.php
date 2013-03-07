@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Update form. This handles updates to a ticket, not updating the ticket 
+ * Update form. This handles updates to a ticket, not updating the ticket
  * itself. Extends moodleform.
  *
  * @package     block_helpdesk
@@ -65,7 +65,7 @@ class update_ticket_form extends moodleform {
 
         $status = $ticket->get_status();
 
-        // Okay! New statuses so we have to to figure out status paths for 
+        // Okay! New statuses so we have to to figure out status paths for
         // a given capability. (This sounds worse than it really is.)
         $cap = helpdesk_is_capable();
 

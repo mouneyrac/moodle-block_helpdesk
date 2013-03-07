@@ -17,7 +17,7 @@
 /**
  * Help Desk Ticket, Native
  *
- * Help desk ticket native is the ticket class that handles all 
+ * Help desk ticket native is the ticket class that handles all
  * operations to an individual ticket.
  *
  * @package     block_helpdesk
@@ -56,11 +56,11 @@ class helpdesk_ticket_native extends helpdesk_ticket {
     }
 
     /**
-     * Display ticket method that was recently moved to the plugin level. This 
-     * will allow plugins to customize how tickets are view depending on the 
+     * Display ticket method that was recently moved to the plugin level. This
+     * will allow plugins to customize how tickets are view depending on the
      * features for each plugin.
      *
-     * @param object    $ticket is an already fetched ticket object with a valid 
+     * @param object    $ticket is an already fetched ticket object with a valid
      *                  id.
      * @return bool
      */
@@ -122,7 +122,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $row[] = $str;
         $row[] = "<a href=\"$url\">" . fullname($user) . '</a>';
         $table->data[] = $row;
-        
+
         if ($this->firstcontact != null and $showfirstcontact != false) {
             $url = new moodle_url("$CFG->wwwroot/user/view.php");
             $url->param('id', $this->firstcontact->id);
@@ -559,7 +559,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return mixed
      */
     function get_status_string($status=null) {
-        // Matt thinks this is evil. Now that we're moving statuses to the 
+        // Matt thinks this is evil. Now that we're moving statuses to the
         // database, we need this to do some pre-processing of statuses.
         if ($status != null and !is_object($status)) {
             error('non-object ('.gettype($status).') passed to get_status_string()');
@@ -824,7 +824,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if (isset($data->timemodified)) {
             $this->timemodified = $data->timemodified;
         } else {
-            $this->timemodified = time();   
+            $this->timemodified = time();
         }
         return true;
 
@@ -900,7 +900,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         }
 
         if ( $DB->insert_record('block_helpdesk_ticket_update', $dat) ) {
-            
+
             $usefirstcontact = get_config(null, 'block_helpdesk_firstcontact');
             $isanswerer = helpdesk_is_capable(HELPDESK_CAP_ANSWER);
             if ($usefirstcontact and $isanswerer and $this->firstcontact == true) {
@@ -915,9 +915,9 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             // Lets not fetch, this is quicker.
             $this->updates[] = $dat;
 
-            // We also want to call the email update method in case email 
+            // We also want to call the email update method in case email
             // notifications are turned on.
-            // NOTE: This method will automatically check to see if we can send 
+            // NOTE: This method will automatically check to see if we can send
             // emails out, don't worry about checking that here.
             if($dat->type == HELPDESK_UPDATE_TYPE_USER) {
                 $rval = $hd->email_update($this);
@@ -930,7 +930,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
     private function process_update($update) {
         global $DB;
-        // This allows us to change the status of a ticket at the same time as 
+        // This allows us to change the status of a ticket at the same time as
         // we add an update.
 
         // New Method
@@ -1098,7 +1098,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
     }
 
     /**
-     * This is calld when an already existing ticket is edited. This allows us 
+     * This is calld when an already existing ticket is edited. This allows us
      * to make an updated associated with this edit.
      *
      * @param string    $msg is a message to leave in the update.

@@ -76,7 +76,7 @@ function helpdesk_get_date_string($date) {
 }
 
 /**
- * This needs to be deprecated. We might be able to do what we want with HTML 
+ * This needs to be deprecated. We might be able to do what we want with HTML
  * tables in Moodle now. I have to look into this. --jdoane (20121102.00)
  */
 function print_table_head($string, $width='95%') {
@@ -212,7 +212,7 @@ function helpdesk_simple_helpbutton($title, $name, $return=true) {
  * @return null
  */
 function helpdesk_print_header($nav, $title) {
-    // TODO: This function is deprecated. Please use static help desk methods to 
+    // TODO: This function is deprecated. Please use static help desk methods to
     // do this. Example: helpdesk::page_header(); helpdesk::page_footer(); and
     // helpdesk::page_init($title, $nav);
     // --jdoane 20121105

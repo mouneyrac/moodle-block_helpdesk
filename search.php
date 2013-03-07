@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is the core helpdesk library. This contains the building blocks of the 
+ * This is the core helpdesk library. This contains the building blocks of the
  * entire helpdesk.
  *
  * @package     block_helpdesk
@@ -59,14 +59,14 @@ $form->display();
 // Lets construct our helpdesk.
 if ($form->is_validated()) {
     $tickets = $hd->search($data->searchstring);
-    echo '<h3>' . get_string('searchresults') . ": 
+    echo '<h3>' . get_string('searchresults') . ":
               <small>$data->searchstring</small>
           </h3>";
 
     if ($tickets == false) {
         notify(get_string('noticketstodisplay', 'block_helpdesk'));
     } else {
-        // This is a table that will display generic information that any help 
+        // This is a table that will display generic information that any help
         // desk should have.
         $ticketnamestr = get_string('summary', 'block_helpdesk');
         $ticketstatusstr = get_string('status', 'block_helpdesk');

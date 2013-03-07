@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Make sure that direct browsing to the helpdesk block directory does something 
+ * Make sure that direct browsing to the helpdesk block directory does something
  * helpful.
  *
  * @package     block_helpdesk

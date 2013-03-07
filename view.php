@@ -15,8 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is the view script. It handles the UI and entry level function calls for 
- * displaying a respective ticket. If no parameters are passed through post or 
+ * This is the view script. It handles the UI and entry level function calls for
+ * displaying a respective ticket. If no parameters are passed through post or
  * get, it will display a ticket listing for whatever user is logged on.
  *
  * @package     block_helpdesk
@@ -70,7 +70,7 @@ if (!empty($id)) {
     $hd->display_ticket($ticket);
 } else {
     // Otherwise, we want to display a listing of tickets.
-    // At this point, we don't have a specific ticket. However we may know what 
+    // At this point, we don't have a specific ticket. However we may know what
     // the user wants to see a list of.
     if (empty($count)) {
         $count = 10;
@@ -91,10 +91,10 @@ if (!empty($id)) {
         $rel = $hd->get_default_relation($cap);
     }
 
-    // At this point we have an $options with all the available ticket relation 
-    // views available for the user's capability. We may want to write 
-    // a function to handle this automatically incase we want these options to 
-    // be dynamic. So we must view the options to the user, except for the 
+    // At this point we have an $options with all the available ticket relation
+    // views available for the user's capability. We may want to write
+    // a function to handle this automatically incase we want these options to
+    // be dynamic. So we must view the options to the user, except for the
     // current one. (which is already stored in $rel)
 
     // We want to have links for all relations except for the current one.
@@ -132,8 +132,8 @@ if (!empty($id)) {
         $count = 10;
     }
 
-    // If your not looking for a specific user's tickets. You don't need to be 
-    // an Answerer (if $uid is empty) otherwise we have to check and make it 
+    // If your not looking for a specific user's tickets. You don't need to be
+    // an Answerer (if $uid is empty) otherwise we have to check and make it
     // required, only if uid is not the user's id.
     if (!is_numeric($uid)) {
         $uid = $USER->id;
@@ -145,12 +145,12 @@ if (!empty($id)) {
     $relstring = $hd->get_relation_string($rel);
     echo "<h3>$relstring</h3>";
 
-    // If a user is an answerer, we want the user to view tickets by a specific 
-    // user id. This could prove to be hard without a form. We will do this 
+    // If a user is an answerer, we want the user to view tickets by a specific
+    // user id. This could prove to be hard without a form. We will do this
     // later. TODO!
 
-    // If we don't have a relation, we want to display the user's tickets and 
-    // give the user options on what they can view. This will depend on the 
+    // If we don't have a relation, we want to display the user's tickets and
+    // give the user options on what they can view. This will depend on the
     // capabilities of the user. Answerers will be able to view everything.
     // This is all handled by the help desk's get_tickets() method.
     $offset = ($page) * $count;
@@ -164,7 +164,7 @@ if (!empty($id)) {
         // Handle no tickets.
         notify(get_string('noticketstodisplay', 'block_helpdesk'));
     } else {
-        // This is a table that will display generic information that any help 
+        // This is a table that will display generic information that any help
         // desk should have.
         $table = new html_table();
         $head = array();

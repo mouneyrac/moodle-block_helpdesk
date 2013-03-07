@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script is for creating new tickets and handling the UI and entry level 
+ * This script is for creating new tickets and handling the UI and entry level
  * functions of this task.
  *
  * @package     block_helpdesk
@@ -37,7 +37,7 @@ require_once($CFG->dirroot . '/blocks/helpdesk/lib.php');
 require_login(0, false);
 
 // User should be logged in, no guests.
- 
+
 // We may have some special tags included in GET.
 $tags = optional_param('tags', null, PARAM_TAGLIST);
 $tagslist = array();
@@ -62,13 +62,9 @@ $PAGE->set_url($url);
 $nav = array (
     array ('name' => get_string('helpdesk', 'block_helpdesk'), 'link'=>null),
     array ('name' => get_string('newticket', 'block_helpdesk'), 'link'=>$url)
-    );
-
-
+);
 $title = get_string('newticket', 'block_helpdesk');
-//helpdesk_print_header(build_navigation($nav), $title);
-//print_heading(get_string('helpdesk', 'block_helpdesk'));
-helpdesk_print_header($nav, $title);
+helpdesk::page_init($title, $nav);
 
 // Meat and potatoes of the new ticket.
 // Get plugin helpdesk.
@@ -83,6 +79,7 @@ if (!empty($taglist)) {
 
 // If the form is submitted (or not) we gotta do stuff.
 if (!$form->is_submitted() or !($data = $form->get_data())) {
+    helpdesk::page_header();
     $form->display();
 //    print_footer();
     echo $OUTPUT->footer();
@@ -109,7 +106,7 @@ if (!empty($data->tags)) {
             $taglist[$tag] = $rval;
         }
     }
-    
+
     foreach($taglist as $key => $value) {
         $tagobject = new stdClass;
         $tagobject->ticketid = $id;

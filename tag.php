@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is the tag script. It handles all the UI and entry level functions to 
+ * This is the tag script. It handles all the UI and entry level functions to
  * carry out this task.
  *
  * @package     block_helpdesk

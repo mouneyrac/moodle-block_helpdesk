@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is the english translation file for get_string() for all translatable 
+ * This is the english translation file for get_string() for all translatable
  * text in the help desk block.
  *
  * @package     block_helpdesk

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script handles the updating of tickets by managing the UI and entry 
+ * This script handles the updating of tickets by managing the UI and entry
  * level functions for the task.
  *
  * @package     block_helpdesk
@@ -132,7 +132,7 @@ foreach($users as $user) {
     $url = new moodle_url($returnurl);
     $url->param($paramname, $user->id);
 
-    $changelink = fullname($user) . ' <small>(<a href="' . $url->out() . '">' . 
+    $changelink = fullname($user) . ' <small>(<a href="' . $url->out() . '">' .
             get_string('selectuser', 'block_helpdesk') . '</a>)</small>';
     $table->data[] = array(
         $changelink,

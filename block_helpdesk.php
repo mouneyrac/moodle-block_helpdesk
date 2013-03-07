@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script extends a moodle block_base and is the entry point for all 
+ * This script extends a moodle block_base and is the entry point for all
  * helpdesk  ability.
  *
  * @package     block_helpdesk
@@ -30,7 +30,7 @@ require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 class block_helpdesk extends block_base {
     var $hd;
     /**
-     * Overridden block_base method. All this method does is sets the block's 
+     * Overridden block_base method. All this method does is sets the block's
      * title and version.
      *
      * @return null
@@ -42,7 +42,7 @@ class block_helpdesk extends block_base {
     }
 
     /**
-     * Overridden method that gets called every time. This is the only place to 
+     * Overridden method that gets called every time. This is the only place to
      * make sure the help desk gets installed.
      *
      * @return null
@@ -58,7 +58,7 @@ class block_helpdesk extends block_base {
     }
 
     /**
-     * Overridden block_base method. This generates the content in the body of 
+     * Overridden block_base method. This generates the content in the body of
      * the block and returns it.
      *
      * @return string
@@ -69,7 +69,7 @@ class block_helpdesk extends block_base {
 
         $this->content = new stdClass;
 
-        // First thing is first, user must have some form of capbility on the 
+        // First thing is first, user must have some form of capbility on the
         // helpdesk. Otherwise they shouldn't be able to access it.
         $cap = helpdesk_is_capable();
         $this->content->text = '';
@@ -110,7 +110,7 @@ class block_helpdesk extends block_base {
             }
         }
 
-        // Print my tickets title. Block itself just displays first 5 user 
+        // Print my tickets title. Block itself just displays first 5 user
         // tickets. Other tickets are found in ticket listing.
         $this->content->text .= '<h3>' . get_string('mytickets', 'block_helpdesk') . '</h3>';
 
@@ -158,7 +158,7 @@ class block_helpdesk extends block_base {
     }
 
     /**
-     * This is an overriden method. This method is called when Moodle's cron 
+     * This is an overriden method. This method is called when Moodle's cron
      * runs. Currently this method does nothing and returns nothing.
      *
      * @return null

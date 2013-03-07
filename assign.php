@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is the answerer assignmennt script. Handles all direct assignment 
+ * This is the answerer assignmennt script. Handles all direct assignment
  * operations.
  *
  * @package     block_helpdesk

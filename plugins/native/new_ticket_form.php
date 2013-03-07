@@ -49,13 +49,13 @@ class new_ticket_form extends moodleform {
     }
 
     function validation($data, $files) {
-        // At some point we could do custom validation, but moodleform defaults 
+        // At some point we could do custom validation, but moodleform defaults
         // do just fine.
         return array();
     }
 
     /**
-     * This is a workaround to allow us to add hidden values to a form. Forms 
+     * This is a workaround to allow us to add hidden values to a form. Forms
      * appears to butcher moodle_urls or url strings with gets as an action.
      *
      * @param string    $name is the name of the hidden element.

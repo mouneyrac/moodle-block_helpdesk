@@ -163,7 +163,7 @@ class helpdesk_native extends helpdesk {
     /**
      * This creates a path from one status to another based on capability.
      *
-     * @param object    $from is a status record. This defines the inital 
+     * @param object    $from is a status record. This defines the inital
      *                  status.
      * @param object    $to is a status record of the possible next status.
      * @param string    $capability is a capability string to check users by.
@@ -189,8 +189,8 @@ class helpdesk_native extends helpdesk {
     }
 
     /**
-     * This method gets the possible status changes from a given status. Can 
-     * also manually specify a specific capability. User's capability will be 
+     * This method gets the possible status changes from a given status. Can
+     * also manually specify a specific capability. User's capability will be
      * used if $cap is null.
      *
      * @param mixed     $status is a status id or status object.
@@ -210,7 +210,7 @@ class helpdesk_native extends helpdesk {
         if (is_null($cap)) {
             $cap = helpdesk_is_capable();
         }
-        
+
         $capid = get_field('capabilities', 'id', 'name', $cap);
     }
 
@@ -271,14 +271,14 @@ class helpdesk_native extends helpdesk {
         $before = $now - (3600 * $duration);
 
         $where = "timemodified <= $before";
-        
+
         if ($userid != null) {
             $where .= " AND userid = $userid";
         }
 
         $records = $DB->get_records_select('block_helpdesk_ticket', $where, 'timemodified DESC',
                                           'id, status', $offset, $count);
-        
+
         if (empty($records)) {
             return false;
         }
@@ -292,7 +292,7 @@ class helpdesk_native extends helpdesk {
             $tickets[] = $ticket;
         }
         return $tickets;
-    }  
+    }
 
     /**
      * Checks to see if an update is hidden or not.
@@ -438,7 +438,7 @@ class helpdesk_native extends helpdesk {
             $emailhtml = str_replace('!supportname!', $supportuser->firstname, $emailhtml);
             $emailtext = str_replace('!updatetime!', helpdesk_get_date_string(time()), $emailtext);
             $emailhtml = str_replace('!updatetime!', helpdesk_get_date_string(time()), $emailhtml);
-            
+
             $rval = email_to_user($user, $supportuser, $emailsubject, $emailtext, $emailhtml);
             if ($rval === false) {
                 notify(get_string('failedtosendemail', 'block_helpdesk'));
@@ -449,10 +449,10 @@ class helpdesk_native extends helpdesk {
     }
 
     /**
-     * This provides extra fields for the block configuration that are specific 
+     * This provides extra fields for the block configuration that are specific
      * to the plugin.
      *
-     * @param object    $settings is a reference to the settings variable in the 
+     * @param object    $settings is a reference to the settings variable in the
      *                  help desk settings.php file.
      * @return bool
      */
@@ -467,7 +467,7 @@ class helpdesk_native extends helpdesk {
                                                         get_string('showfirstcontact', 'block_helpdesk'),
                                                         get_string('showfirstcontactdesc', 'block_helpdesk'),
                                                         '0', '1', '0'));
-        
+
         $settings->add(new admin_setting_configcheckbox('block_helpdesk_send_update_email',
                                                         get_string('sendemailupdate', 'block_helpdesk'),
                                                         get_string('sendemailupdatedesc', 'block_helpdesk'),
@@ -511,7 +511,7 @@ class helpdesk_native extends helpdesk {
                                   get_string('emailrtfcontentdesc', 'block_helpdesk'),
                                   '', PARAM_RAW));
 
-        
+
         //$settings->add(new admin_setting_configtext('block_helpdesk_ticket_idle_dur',
         //                                            get_string('emailidlewait', 'block_helpdesk'),
         //                                            get_string('emailidlewaitdesc', 'block_helpdesk'),
@@ -594,14 +594,14 @@ class helpdesk_native extends helpdesk {
     }
 
     /**
-     * This method gets inactive tickets along with other searchable criteria 
-     * for future use. This will get tickets with statuses that are marked as 
+     * This method gets inactive tickets along with other searchable criteria
+     * for future use. This will get tickets with statuses that are marked as
      * inactive. This always includes "closed" and "resolved" tickets.
      *
      * @param int       $offset is the offset of the sql query, used for paging.
      * @param int       $count number of records to get.
      * @param int       $userid specifies whos tickets we're getting.
-     * @param int       $assigneduserid specifies tickets we're getting and who 
+     * @param int       $assigneduserid specifies tickets we're getting and who
      *                  they're assigned to.
      * @return mixed
      */
@@ -694,7 +694,7 @@ class helpdesk_native extends helpdesk {
     }
 
     /**
-     * This is simple for the native plugin, but may be more complex for 
+     * This is simple for the native plugin, but may be more complex for
      * other back-ends.
      *
      * @param mixed     $rel Relation to get the string for.
@@ -705,7 +705,7 @@ class helpdesk_native extends helpdesk {
     }
 
     /**
-     * Retrieve a list of user assigned tickets. Returns either an array 
+     * Retrieve a list of user assigned tickets. Returns either an array
      * of records, or false if no records exist.
      *
      * @param int       $userid ID of a user to get assigned tickets from.
@@ -728,7 +728,7 @@ class helpdesk_native extends helpdesk {
                 ORDER BY t.timemodified DESC";
 
         $recordset = $DB->get_records_sql($sql, array($userid), $offset, $count);
-        
+
         foreach ($recordset as $record) {
             $ticket = $this->new_ticket();
             $ticket->set_idstring($record->id);
@@ -761,7 +761,7 @@ class helpdesk_native extends helpdesk {
 
         $records = $DB->get_records('block_helpdesk_ticket', array('userid'=>$userid),
                                    'timemodified DESC', '*', $offset, $count);
-        
+
         if (empty($records)) {
             return false;
         }
@@ -897,7 +897,7 @@ class helpdesk_native extends helpdesk {
      * together and checking a bunch of stuff. We will get a mixed result, false
      * if unsucessful, or an array of tickets if we find matches.
      *
-     * MOODLE 2.x NOTE: -- Search needs to be refactored. This is used for 
+     * MOODLE 2.x NOTE: -- Search needs to be refactored. This is used for
      * browsing any ticket in the help desk system. --jdoane 20121031
      *
      * @return mixed
@@ -922,7 +922,7 @@ class helpdesk_native extends helpdesk {
             $where[] = "$cname $like '%$word%'";
         }
         $where = '(' . implode(' AND ', $where) . ')';
-        
+
         // The searching begins here. From here we're going to be querying
         // a number of tables to try and find what the user wants.
         $totalrecordsfound = array();
