@@ -34,19 +34,15 @@ require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 require_once("$CFG->dirroot/blocks/helpdesk/pref_form.php");
 
 require_login(0, false);
+
 $baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
-
 $nav = array (
-    array (
-        'name' => get_string('helpdesk', 'block_helpdesk'),
-        'link' => $baseurl->out()
-          ),
-    array (
-        'name' => get_string('preferences')
-          )
-    );
+    array ('name' => get_string('helpdesk', 'block_helpdesk'), 'link' => $baseurl->out()),
+    array ('name' => get_string('preferences')),
+);
+helpdesk::page_init(get_string('helpdeskpreferences', 'block_helpdesk'), $nav);
+helpdesk::page_header();
 
-helpdesk_print_header($nav, get_string('preferences', 'block_helpdesk'));
 require_login();
 
 if(!helpdesk_is_capable()) {
@@ -54,8 +50,10 @@ if(!helpdesk_is_capable()) {
 }
 
 // By default, these are disabled (false).
-$preferences->showsystemupdates = (bool)helpdesk_get_session_var('showsystemupdates');
-$preferences->showdetailedupdates = (bool)helpdesk_get_session_var('showdetailedupdates');
+$preferences = (object) array(
+    'showsystemupdates'     => (bool) helpdesk_get_session_var('showsystemupdates'),
+    'showdetailedupdates'   => (bool) helpdesk_get_session_var('showdetailedupdates'),
+);
 
 $form = new helpdesk_pref_form(qualified_me(), null, 'post');
 
@@ -63,7 +61,7 @@ $form = new helpdesk_pref_form(qualified_me(), null, 'post');
 if (!$form->is_submitted()) {
     $form->set_data($preferences);
     $form->display();
-    print_footer();
+    helpdesk::page_footer();
     exit;
 }
 
@@ -75,5 +73,5 @@ foreach($data as $key => $value) {
 }
 
 redirect($CFG->wwwroot, get_string('preferencesupdated', 'block_helpdesk'));
-print_footer();
+helpdesk::page_footer();
 ?>

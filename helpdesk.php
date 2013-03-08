@@ -15,14 +15,14 @@ abstract class helpdesk {
      * because there could be redirections that will rely on the set URL in this
      * method. --jdoane 20121105
      */
-    public static function page_init($title, $nav=array()) {
+    public static function page_init($title, $nav=array(), $url=null) {
         global $PAGE;
         // Set up the page
         $PAGE->set_context(get_context_instance(CONTEXT_SYSTEM));
         $PAGE->set_heading($title);
         $PAGE->set_title($title);
         $PAGE->set_pagelayout('standard');
-        $PAGE->set_url(qualified_me());
+        $PAGE->set_url(isset($url) ? $url : qualified_me());
 
         // Set up navigation, there are a couple different things we can do
         // here. :)

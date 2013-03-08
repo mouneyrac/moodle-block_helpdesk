@@ -54,17 +54,17 @@ if (!empty($tags)) {
 // Require a minimum of asker capability on the current user.
 helpdesk_is_capable(HELPDESK_CAP_ASK, true);
 
+$baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
 $url = new moodle_url("/blocks/helpdesk/new.php");
 if ($tags) {
     $url->param('tags', $tags);
 }
-$PAGE->set_url($url);
 $nav = array (
-    array ('name' => get_string('helpdesk', 'block_helpdesk'), 'link'=>null),
-    array ('name' => get_string('newticket', 'block_helpdesk'), 'link'=>$url)
+    array ('name' => get_string('helpdesk', 'block_helpdesk'), 'link' => $baseurl->out()),
+    array ('name' => get_string('newticket', 'block_helpdesk')),
 );
-$title = get_string('newticket', 'block_helpdesk');
-helpdesk::page_init($title, $nav);
+$title = get_string('helpdesknewticket', 'block_helpdesk');
+helpdesk::page_init($title, $nav, $url);
 
 // Meat and potatoes of the new ticket.
 // Get plugin helpdesk.
@@ -81,8 +81,7 @@ if (!empty($taglist)) {
 if (!$form->is_submitted() or !($data = $form->get_data())) {
     helpdesk::page_header();
     $form->display();
-//    print_footer();
-    echo $OUTPUT->footer();
+    helpdesk::page_footer();
     exit;
 }
 

@@ -174,6 +174,8 @@ $string['helpdesktagticket']    = 'Help Desk: Tagging';
 $string['helpdeskupdateticket'] = 'Help Desk: Update question';
 $string['helpdeskassignuser']   = 'Help Desk: Assign user to question';
 $string['helpdesksearch']       = 'Help Desk: Search questions';
+$string['helpdeskpreferences']  = 'Help Desk: Preferences';
+$string['helpdesknewticket']    = 'Help Desk: New Question';
 
 /**
  * These are settings.php strings.
