@@ -59,7 +59,7 @@ if (is_numeric($ticketid)) {
     $nav[] = array (
         'name' => get_string('ticketview', 'block_helpdesk'),
         'link' => $ticketreturn->out()
-        );
+    );
 }
 $nav[] = array (
     'name' => get_string('updateticketoverview', 'block_helpdesk'),
@@ -68,23 +68,19 @@ $nav[] = array (
 $nav[] = array (
     'name' => get_string('selectauser', 'block_helpdesk'),
 );
-
-$title = get_string('changeuser', 'block_helpdesk');
-helpdesk::page_init($title, $nav);
-helpdesk::page_header();
-$OUTPUT->heading($title, 1);
-
 $url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/userlist.php");
-$PAGE->set_url($url);
+$title = get_string('changeuser', 'block_helpdesk');
+helpdesk::page_init($title, $nav, $url);
+helpdesk::page_header();
 
 $hd = helpdesk::get_helpdesk();
 
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
 
-$ufiltering = new user_filtering(null, qualified_me());
+$ufiltering = new user_filtering(null, $FULLME);
 
 $columns = array ('fullname', 'email');
-$table = new stdClass;
+$table = new html_table();
 $table->head = array();
 $table->data = array();
 
@@ -102,26 +98,23 @@ if ($sort == "name") {
 
 $extrasql = $ufiltering->get_sql_filter();
 list($esql, $eparams) = $extrasql;
-$users = get_users_listing($sort, $dir, $page, $perpage, '', '', '', $esql, $eparams);
+$users = get_users(true, '', true, array(), "$sort $dir", '', '', $page, $perpage, '*', $esql, $eparams);
 $usercount = get_users(false);
 $usersearchcount = get_users(false, '', true, array(), "{$sort} ASC", '', '', $page, $perpage, '*', $esql, $eparams);
 
 if ($extrasql !== '') {
-    print_heading("$usersearchcount / $usercount ".get_string('users'));
+    echo $OUTPUT->heading("$usersearchcount / $usercount ".get_string('users'));
     $usercount = $usersearchcount;
 } else {
-    print_heading("$usercount ".get_string('users'));
+    echo $OUTPUT->heading("$usercount ".get_string('users'));
 }
-
-$alphabet = explode(',', get_string('alphabet'));
-$strall = get_string('all');
 
 $thisurl->param('sort', $sort);
 $thisurl->param('dir', $dir);
 $thisurl->param('perpage', $perpage);
 $thisurl = $thisurl->out() . '&';
 
-$OUTPUT->paging_bar($usercount, $page, $perpage, $thisurl, 'page');
+echo $OUTPUT->paging_bar($usercount, $page, $perpage, $thisurl);
 
 flush();
 
@@ -137,12 +130,12 @@ foreach($users as $user) {
     $table->data[] = array(
         $changelink,
         $user->email
-        );
+    );
 }
 $ufiltering->display_add();
 $ufiltering->display_active();
-print_table($table);
-print_paging_bar($usercount, $page, $perpage, $thisurl);
+echo html_writer::table($table);
+echo $OUTPUT->paging_bar($usercount, $page, $perpage, $thisurl);
 
-print_footer();
+echo $OUTPUT->footer();
 ?>

@@ -58,11 +58,11 @@ $nav = array (
     array (
         'name' => get_string('ticketview', 'block_helpdesk'),
         'link' => $qurl->out()
-        ),
+    ),
     array (
         'name' => get_string('assignments', 'block_helpdesk')
-          )
-    );
+    )
+);
 
 $title = get_string('helpdeskassignuser', 'block_helpdesk');
 helpdesk::page_init($title, $nav);
@@ -129,14 +129,13 @@ $OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
 
 // We are starting from scratch here!
 $offset = $page * $count;
-$assignables = get_users_by_capability($context, HELPDESK_CAP_ANSWER, 'u.*',
-                                       'u.lastname ASC', $offset, $count);
+$assignables = get_users_by_capability($context, HELPDESK_CAP_ANSWER, 'u.*', 'u.lastname ASC', $offset, $count);
 $table = new html_table();
 $table->head = array (
     get_string('name'),
     get_string('email'),
     ''
-    );
+);
 $table->data = array();
 foreach($assignables as $user) {
     $userurl = new moodle_url("$CFG->wwwroot/user/view.php");
@@ -159,11 +158,10 @@ echo html_writer::table($table);
 
 // This makes the paging bar.
 $countfield = 'u.id';
-$total = get_users_by_capability($context, HELPDESK_CAP_ANSWER,
-                                 $countfield);
+$total = get_users_by_capability($context, HELPDESK_CAP_ANSWER, $countfield);
 $total = count($total);
 $url = new moodle_url(qualified_me());
-$OUTPUT->paging_bar($total, $page, $count, $url, 'page');
+echo $OUTPUT->paging_bar($total, $page, $count, $url);
 
 helpdesk::page_footer();
 ?>

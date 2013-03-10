@@ -40,7 +40,7 @@ $nav = array (
     array (
         'name' => get_string('helpdesk', 'block_helpdesk'),
         'link' => $baseurl->out()
-          ),
+    ),
     array (
         'name' => get_string('ticketview', 'block_helpdesk'),
         'link' => $url->out()
@@ -48,8 +48,8 @@ $nav = array (
     array (
         'name' => get_string('updateticketoverview', 'block_helpdesk'),
         'link' => ''
-        )
-    );
+    )
+);
 $title = get_string('helpdeskeditticket', 'block_helpdesk');
 
 helpdesk::page_init($title, $nav);
