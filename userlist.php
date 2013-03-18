@@ -25,7 +25,6 @@
  */
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-global $CFG;
 
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 require_once("$CFG->dirroot/user/filters/lib.php");
@@ -40,6 +39,10 @@ $page           = optional_param('page', 0, PARAM_INT);
 $perpage        = optional_param('perpage', 20, PARAM_INT);
 $sort           = optional_param('sort', 'name', PARAM_ALPHA);
 $dir            = optional_param('dir', 'ASC', PARAM_ALPHA);
+
+if ($sort == "name") {
+    $sort = "firstname";
+}
 
 $baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
 $thisurl = new moodle_url(me());
@@ -57,14 +60,10 @@ if (is_numeric($ticketid)) {
     $ticketreturn = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
     $ticketreturn->param('id', $ticketid);
     $nav[] = array (
-        'name' => get_string('ticketview', 'block_helpdesk'),
+        'name' => get_string('ticketviewer', 'block_helpdesk'),
         'link' => $ticketreturn->out()
     );
 }
-$nav[] = array (
-    'name' => get_string('updateticketoverview', 'block_helpdesk'),
-    'link' => $returnurl
-);
 $nav[] = array (
     'name' => get_string('selectauser', 'block_helpdesk'),
 );
@@ -92,10 +91,6 @@ foreach ($columns as $column) {
     $table->head[$column] = get_string("$column");
 }
 
-if ($sort == "name") {
-    $sort = "firstname";
-}
-
 $extrasql = $ufiltering->get_sql_filter();
 list($esql, $eparams) = $extrasql;
 $users = get_users(true, '', true, array(), "$sort $dir", '', '', $page, $perpage, '*', $esql, $eparams);
@@ -119,9 +114,6 @@ echo $OUTPUT->paging_bar($usercount, $page, $perpage, $thisurl);
 flush();
 
 foreach($users as $user) {
-    if ($user->username == 'guest') {
-        continue;
-    }
     $url = new moodle_url($returnurl);
     $url->param($paramname, $user->id);
 

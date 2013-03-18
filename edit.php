@@ -34,12 +34,13 @@ require_login(0, false);
 $id = required_param('id', PARAM_INT);
 $newuser = optional_param('newuser', null, PARAM_INT);
 $baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$searchurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $url = clone $baseurl;
 $url->param('id', $id);
 $nav = array (
     array (
         'name' => get_string('helpdesk', 'block_helpdesk'),
-        'link' => $baseurl->out()
+        'link' => $searchurl->out()
     ),
     array (
         'name' => get_string('ticketview', 'block_helpdesk'),
@@ -51,7 +52,6 @@ $nav = array (
     )
 );
 $title = get_string('helpdeskeditticket', 'block_helpdesk');
-
 helpdesk::page_init($title, $nav);
 
 $hd = helpdesk::get_helpdesk();

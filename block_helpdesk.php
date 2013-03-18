@@ -37,7 +37,6 @@ class block_helpdesk extends block_base {
      */
     function init() {
         $this->title = get_string('helpdesk', 'block_helpdesk');
-        $this->version = 2010091400;
         $this->cron = 1;
     }
 
@@ -87,10 +86,13 @@ class block_helpdesk extends block_base {
             $title = '<h3>' . get_string('myassignedtickets', 'block_helpdesk') . '</h3>';
             $this->content->text .= $title;
 
-            $tickets = $hd->get_tickets($USER->id, $hd->get_default_relation(HELPDESK_CAP_ANSWER), 0, 5);
-            if (is_array($tickets)) {
+            $tickets = $hd->search(
+                $hd->get_ticket_relation_search($hd->get_default_relation(HELPDESK_CAP_ANSWER)),
+                5, 0
+            );
+            if (!empty($tickets->count)) {
                 $this->content->text .= "<ul>";
-                foreach($tickets as $ticket) {
+                foreach($tickets->results as $ticket) {
                     $summary = $ticket->get_summary();
                     if(strlen($summary) > 12) {
                         $summary = substr($summary, 0, 12) . '...';
@@ -115,10 +117,13 @@ class block_helpdesk extends block_base {
         $this->content->text .= '<h3>' . get_string('mytickets', 'block_helpdesk') . '</h3>';
 
         // Grab the tickets to display and add to the content.
-        $tickets = $hd->get_tickets($USER->id, $hd->get_default_relation(), 0, 5);
-        if (is_array($tickets)) {
+        $so = $hd->new_search_obj();
+        $so->submitter = $USER->id;
+        $so->status = $hd->get_status_ids(true, false);
+        $tickets = $hd->search($so, 5, 0);
+        if (!empty($tickets->count)) {
             $this->content->text .= '<ul>';
-            foreach($tickets as $ticket) {
+            foreach($tickets->results as $ticket) {
                 $summary = $ticket->get_summary();
                 if(strlen($summary) > 12) {
                     $summary = substr($summary, 0, 12) . '...';
@@ -138,7 +143,7 @@ class block_helpdesk extends block_base {
         }
 
         // Link for viewing all kinds of tickets.
-        $url = "$CFG->wwwroot/blocks/helpdesk/view.php";
+        $url = "$CFG->wwwroot/blocks/helpdesk/search.php";
         $text = get_string('viewalltickets', 'block_helpdesk');
         $this->content->text .= "<a href=\"$url\">$text</a><br />";
 

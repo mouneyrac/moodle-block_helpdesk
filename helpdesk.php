@@ -89,24 +89,6 @@ abstract class helpdesk {
     abstract function is_update_hidden($update);
 
     /**
-     * Returns the tickets for a sepcific user by id with a specific relation.
-     *
-     * @return mixed
-     */
-    abstract function get_tickets($userid, $rel, $offset=0, $count=10);
-
-    /**
-     * Returns the number of tickets instead of the rows.
-     * It is the same as get_tickets but COUNT(*)s. Will return int if successful
-     * or false (not zero) if failed.
-     *
-     * @param string    $userid User id if relation calls for it.
-     * @param int       $relation Relation id that dictates which tickets to get.
-     * @return mixed
-     */
-    abstract function get_tickets_count($userid, $rel);
-
-    /**
      * returns a new ticket object.
      *
      * @return object
@@ -220,6 +202,12 @@ abstract class helpdesk {
     abstract function get_default_relation($cap=null);
 
     /**
+     * Gets the search parameters for a legacy relation.
+     * TODO: Replace relation system all togther.
+     */
+    abstract function get_ticket_relation_search($rel);
+
+    /**
      * Gets a language string from a relation string.
      *
      * @param string    $rel ation string to convert to a human readable string.
@@ -237,6 +225,27 @@ abstract class helpdesk {
      * @return object
      */
     abstract function default_submit_url();
+
+    /**
+     * Gets status ids for the given parameters.
+     *
+     * @return array
+     */
+    abstract function get_status_ids($active=true, $inactive=true, $core=false);
+
+    /**
+     * Creates a new stdClass object with the approriate attributes.
+     *
+     * @return object
+     */
+    function new_search_obj() {
+        return (object)array(
+            'searchstring' => '',
+            'answerer' => -1,
+            'status' => array(),
+            'submitter' => 0
+        );
+    }
 }
 
 ?>

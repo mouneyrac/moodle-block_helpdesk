@@ -161,6 +161,16 @@ class helpdesk_native extends helpdesk {
     }
 
     /**
+     * Gets language string associated with a relation.
+     *
+     * @param string    $rel is the basic string of the relation.
+     * @return string
+     */
+    function get_relation_string($rel) {
+        return get_string($rel, 'block_helpdesk');
+    }
+
+    /**
      * This creates a path from one status to another based on capability.
      *
      * @param object    $from is a status record. This defines the inital
@@ -472,6 +482,10 @@ class helpdesk_native extends helpdesk {
                                                         get_string('sendemailupdate', 'block_helpdesk'),
                                                         get_string('sendemailupdatedesc', 'block_helpdesk'),
                                                         '0', '1', '0'));
+        $settings->add(new admin_setting_configcheckbox('block_helpdesk_includeagent',
+                                                        get_string('includeagent', 'block_helpdesk'),
+                                                        get_string('includeagentdesc', 'block_helpdesk'),
+                                                        '0', '1', '0'));
 
         //$settings->add(new admin_setting_configcheckbox('block_helpdesk_get_email_tickets',
         //                                                get_string('getemailtickets', 'block_helpdesk'),
@@ -520,127 +534,6 @@ class helpdesk_native extends helpdesk {
     }
 
     /**
-     * This retrieves a series of unassigned tickets in the form of
-     * a list that could be put into "pages." This is called primarily
-     * by $this->get_tickets(). This method will either return an array
-     * of records, or a false if no records exist.
-     *
-     * @param int       $offset Which record for the set to begin at.
-     * @param int       @count Number of records to get.
-     * @return mixed
-     */
-    private function get_unassigned_tickets($offset, $count) {
-        global $DB;
-        // Answer capability required.
-        helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
-
-        $records = $DB->get_records('block_helpdesk_ticket', array('assigned_refs'=>0), 'timemodified DESC',
-                                    '*', $offset, $count);
-
-        if (empty($records)) {
-            return false;
-        }
-
-        foreach($records as $record) {
-            $ticket = $this->new_ticket();
-            $ticket->set_idstring($record->id);
-            $ticket->fetch();
-            $tickets[] = $ticket;
-        }
-
-        return $tickets;
-    }
-
-    /**
-     * This is a unique function to this class. This is a method for retrieving
-     * a series of status-specific tickets in the form of a list that could be put
-     * into "pages." This is called primarily by $this->get_tickets(). This
-     * method will either return an array of records, or a false if no records
-     * exists.
-     *
-     * @param int       $status Numerical representation of a specific status.
-     * @param int       $offset Which record for the set to begin at.
-     * @param int       @count Number of records to get.
-     * @return mixed
-     */
-    private function get_status_tickets($status, $offset='', $count='') {
-        global $CFG, $DB;
-
-        if (is_numeric($status)) {
-            $status = $DB->get_record('block_helpdesk_status', array('id'=>$status));
-        }
-
-        if (!is_object($status)) {
-            error('Invalid status passed to get_status_tickets().');
-        }
-
-//        $sqlas = sql_as();
-        $sql = "SELECT t.*
-                FROM {block_helpdesk_ticket} t
-                    JOIN {block_helpdesk_status} s
-                        ON t.status = s.id
-                WHERE s.id = ?";
-
-        $records = $DB->get_records_sql($sql, array($status->id), $offset, $count);
-
-        foreach($records as $record) {
-            $ticket = $this->new_ticket();
-            $ticket->set_idstring($record->id);
-            $ticket->fetch();
-            $tickets[] = $ticket;
-        }
-
-        return $tickets;
-    }
-
-    /**
-     * This method gets inactive tickets along with other searchable criteria
-     * for future use. This will get tickets with statuses that are marked as
-     * inactive. This always includes "closed" and "resolved" tickets.
-     *
-     * @param int       $offset is the offset of the sql query, used for paging.
-     * @param int       $count number of records to get.
-     * @param int       $userid specifies whos tickets we're getting.
-     * @param int       $assigneduserid specifies tickets we're getting and who
-     *                  they're assigned to.
-     * @return mixed
-     */
-    private function get_inactive_tickets($offset='', $count='', $userid=null,
-                                          $assigneduserid=null) {
-        global $CFG, $DB;
-//        $sqlas = sql_as();
-        $sql = "SELECT t.*
-                FROM {block_helpdesk_ticket} t
-                    JOIN {block_helpdesk_status} s
-                        ON t.status = s.id
-                    JOIN {block_helpdesk_ticket_assign} a
-                        ON t.id = a.ticketid
-                WHERE s.active = 0";
-        if (!empty($userid)) {
-            $sql .= " AND t.userid = $userid";
-        }
-
-        if (!empty($assigneduserid)) {
-            $sql .= " AND a.userid = $assigneduserid";
-        }
-
-        $records = $DB->get_records_sql($sql, null, $offset, $count);
-
-        if (empty($records)) {
-            return false;
-        }
-
-        foreach($records as $record) {
-            $ticket = $this->new_ticket();
-            $ticket->set_idstring($record->id);
-            $ticket->fetch();
-            $tickets[] = $ticket;
-        }
-
-        return $tickets;
-    }
-
-    /**
      * This is nice and all and will provide us with a method to get all the
      * useable relations. A $cap is required to get the right list. We don't
      * want users who can't be assigned to look at assigned tickets, that kind
@@ -659,6 +552,10 @@ class helpdesk_native extends helpdesk {
         // Since we only have askers and answerers and answers have all the caps
         // that an asker has, we'll add these now.
         $relations = array(HELPDESK_NATIVE_REL_REPORTEDBY);
+        $relations[] = HELPDESK_NATIVE_REL_ALL;
+        $relations[] = HELPDESK_NATIVE_REL_NEW;
+        $relations[] = HELPDESK_NATIVE_REL_CLOSED;
+        $relations[] = HELPDESK_NATIVE_REL_UNASSIGNED;
         if ($cap == HELPDESK_CAP_ASK) {
             return $relations;
         }
@@ -669,12 +566,88 @@ class helpdesk_native extends helpdesk {
             error(get_string('unexpectedcapability', 'block_helpdesk'));
         }
 
-        $relations[] = HELPDESK_NATIVE_REL_ALL;
         $relations[] = HELPDESK_NATIVE_REL_ASSIGNEDTO;
-        $relations[] = HELPDESK_NATIVE_REL_NEW;
-        $relations[] = HELPDESK_NATIVE_REL_CLOSED;
-        $relations[] = HELPDESK_NATIVE_REL_UNASSIGNED;
         return $relations;
+    }
+
+    /**
+     * Specialized method to convert a relation into a set of search parameters.
+     * This is the roadmap to being able to create custom search presets.
+     *
+     * @param int       $rel is a relation id.
+     * @return object
+     */
+    function get_ticket_relation_search($rel) {
+        global $DB, $USER;
+        // Setup base search criteria. We may want to make this a static method.
+        $search = $this->new_search_obj();
+
+        $currentuser = $USER->id;
+        switch($rel) {
+        case HELPDESK_NATIVE_REL_REPORTEDBY:
+            $search->status = $this->get_status_ids(true, false, false);
+            $search->submitter = $USER->id;
+            break;
+        case HELPDESK_NATIVE_REL_NEW:
+            $search->status[] = $DB->get_field('block_helpdesk_status', 'id', array('name' => 'new'));
+            break;
+        case HELPDESK_NATIVE_REL_UNASSIGNED:
+            $currentuser = 0;
+        case HELPDESK_NATIVE_REL_ASSIGNEDTO:
+            $search->status = $this->get_status_ids(true, false, false);
+            $search->answerer = $currentuser;
+            break;
+        case HELPDESK_NATIVE_REL_CLOSED:
+            $search->status = $this->get_status_ids(false, true, false);
+            break;
+        case HELPDESK_NATIVE_REL_ALL:
+            $search->status = $this->get_status_ids(true, true, false);
+            break;
+        default:
+            return false;
+        }
+
+        return $search;
+    }
+
+    /**
+     * Get status ids based on criteria.
+     *
+     * @param bool      $active flag, get active statuses. default true.
+     * @param bool      $inactive flag, opposite as active, default true.
+     * @param bool      $core flag, get core statuses only, default false.
+     * @return array
+     */
+    function get_status_ids($active=true, $inactive=true, $core=false) {
+        global $DB, $CFG;
+        // not active and not inactive is nothing.
+        $where = '';
+        if($active == $inactive and $active == false) {
+            return false;
+        }
+        if($active and !$inactive) {
+            $where .= 'active = 1';
+        }
+        if(!$active and $inactive) {
+            $where .= 'active = 0';
+        }
+        if($core) {
+            $where .= !empty($where) ? ' ' : '';
+            $where .= 'core = 1';
+        }
+        $sql = "
+            SELECT id, name
+            FROM {block_helpdesk_status}
+        ";
+        if(!empty($where)) {
+            $sql .= "WHERE {$where}";
+        }
+        $stat = $DB->get_records_sql($sql);
+        $ids = array();
+        foreach($stat as $s) {
+            $ids[] = $s->id;
+        }
+        return $ids;
     }
 
     /**
@@ -691,180 +664,6 @@ class helpdesk_native extends helpdesk {
             return HELPDESK_NATIVE_REL_REPORTEDBY;
         }
         return HELPDESK_NATIVE_REL_REPORTEDBY;
-    }
-
-    /**
-     * This is simple for the native plugin, but may be more complex for
-     * other back-ends.
-     *
-     * @param mixed     $rel Relation to get the string for.
-     * @return string
-     */
-    function get_relation_string($rel) {
-        return get_string($rel, 'block_helpdesk');
-    }
-
-    /**
-     * Retrieve a list of user assigned tickets. Returns either an array
-     * of records, or false if no records exist.
-     *
-     * @param int       $userid ID of a user to get assigned tickets from.
-     * @param int       $offset Which record for the set to begin at.
-     * @param int       @count Number of records to get.
-     * @return mixed
-     */
-    private function get_assigned_tickets($userid, $offset, $count) {
-        global $DB;
-        // Only answerers can be 'assigned', which is different from watching.
-        helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
-
-        $sql = "SELECT t.id
-                FROM {block_helpdesk_ticket} t
-                    JOIN {block_helpdesk_ticket_assign} a
-                        ON a.ticketid = t.id
-                    JOIN {block_helpdesk_status} s
-                        ON t.status = s.id
-                WHERE a.userid = ? AND s.active = 1
-                ORDER BY t.timemodified DESC";
-
-        $recordset = $DB->get_records_sql($sql, array($userid), $offset, $count);
-
-        foreach ($recordset as $record) {
-            $ticket = $this->new_ticket();
-            $ticket->set_idstring($record->id);
-            $ticket->fetch();
-            $tickets[] = $ticket;
-        }
-        if (empty($tickets)) {
-            return false;
-        }
-        return $tickets;
-    }
-
-    /**
-     * Retrieve a list of user-specific tickets. This method will either
-     * return an array of records, or false if no records exist.
-     *
-     * @param int       $userid ID of a user to get assigned tickets from.
-     * @param int       $offset Which record for the set to begin at.
-     * @param int       @count Number of records to get.
-     * @return mixed
-     */
-    private function get_user_tickets($userid, $offset, $count) {
-        global $USER, $DB;
-        // Askers can get their own tickets only.
-        if ($userid == $USER->id) {
-            helpdesk_is_capable(HELPDESK_CAP_ASK, true);
-        } else {
-            helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
-        }
-
-        $records = $DB->get_records('block_helpdesk_ticket', array('userid'=>$userid),
-                                   'timemodified DESC', '*', $offset, $count);
-
-        if (empty($records)) {
-            return false;
-        }
-
-        foreach($records as $record) {
-            $ticket = $this->new_ticket();
-            $ticket->get_ticket($record->id);
-            $tickets[] = $ticket;
-        }
-        return $tickets;
-    }
-
-    /**
-     * Get tickets with a $userid when applicable, a specified relation,
-     * an offset and count for page-like viewing. Generally speaking,
-     * this calls the other get methods, this method itself just
-     * switches the relation. Will return an array of ticket objects or
-     * false if no tickets were found.
-     *
-     * @param int       $userid id of a user if applicable.
-     * @param string    $rel is a relation string that describes a users
-     * relation to a series of tickets.
-     * @param int       $offset is where the records begin.
-     * @param int       $count is how many records (max) to return.
-     * @return mixed
-     */
-    function get_tickets($userid, $rel, $offset=0, $count=10) {
-        global $DB;
-        switch($rel) {
-        case HELPDESK_NATIVE_REL_REPORTEDBY:
-            $tickets = $this->get_user_tickets($userid, $offset, $count);
-            break;
-        case HELPDESK_NATIVE_REL_ASSIGNEDTO:
-            $tickets = $this->get_assigned_tickets($userid, $offset, $count);
-            break;
-        case HELPDESK_NATIVE_REL_NEW:
-            $status = $DB->get_field('block_helpdesk_status', 'id', array('name' => 'new'));
-            $tickets = $this->get_status_tickets($status, $offset, $count);
-            break;
-        case HELPDESK_NATIVE_REL_CLOSED:
-            $tickets = $this->get_inactive_tickets($offset, $count);
-            break;
-        case HELPDESK_NATIVE_REL_UNASSIGNED:
-            $tickets = $this->get_unassigned_tickets($offset, $count);
-            break;
-        case HELPDESK_NATIVE_REL_ALL:
-            $tickets = $this->get_all_tickets($offset, $count);
-            break;
-        default:
-            return false;
-        }
-        if (empty($tickets)) {
-            return false;
-        }
-        return $tickets;
-    }
-
-    /**
-     * Counts the records for a given type of ticket set. This count the number
-     * of records instead of returning tickets like get_tickets(). Returns an
-     * int, or false (not zero) if it failed.
-     *
-     * @param string    $userid User id if relation calls for it.
-     * @param int       $rel relation id to get tickets by.
-     * @return mixed
-     */
-    function get_tickets_count($userid, $rel) {
-        global $CFG, $DB;
-        if (!isset($userid)) {
-            error(__FUNCTION__ . ': Invalid userid.');
-        }
-        if (!isset($rel)) {
-            error(__FUNCTION__ . ': Invalid relation.');
-        }
-        //$as = $DB->sql_as();
-        $as = 'AS';
-
-        switch($rel) {
-        case HELPDESK_NATIVE_REL_REPORTEDBY:
-            return $DB->count_records('block_helpdesk_ticket', array('userid'=>$userid));
-        case HELPDESK_NATIVE_REL_ASSIGNEDTO:
-            $sql = "SELECT COUNT(t.id) as count
-                    FROM {block_helpdesk_ticket} t
-                        JOIN {block_helpdesk_ticket_assign} a ON a.ticketid = t.id
-                        JOIN {block_helpdesk_status} s ON t.status = s.id
-                    WHERE a.userid = ? AND s.active = 1";
-
-            $r = $DB->get_record_sql($sql, array($userid));
-            return $r->count;
-        case HELPDESK_NATIVE_REL_NEW:
-            $sql = "SELECT COUNT(t.id) $as count
-                    FROM {block_helpdesk_ticket} t
-                        JOIN {block_helpdesk_status} s ON t.status = s.id
-                    WHERE s.name = 'new'";
-            $r = $DB->get_record_sql($sql);
-            return $r->count;
-        case HELPDESK_NATIVE_REL_UNASSIGNED:
-            return $DB->count_records('block_helpdesk_ticket', array('assigned_refs'=>'0'));
-        case HELPDESK_NATIVE_REL_ALL:
-            return $DB->count_records('block_helpdesk_ticket');
-        default:
-            return false;
-        }
     }
 
     /**
@@ -900,70 +699,120 @@ class helpdesk_native extends helpdesk {
      * MOODLE 2.x NOTE: -- Search needs to be refactored. This is used for
      * browsing any ticket in the help desk system. --jdoane 20121031
      *
-     * @return mixed
+     * @param object    $data is an object with search attributes.
+     * @return object   contains 3 attributes, results, count, and httpdata (or
+     *                  false for no failed search.)
      */
-    function search($string) {
-        global $DB;
+    function search($data, $count=10, $page=0) {
+        global $DB, $CFG;
+        if(is_string($data)) {
+            error('deprecated search call parameter. I want an object, not a string. ROAR!');
+        }
+
+        if(!is_object($data)) {
+            error(get_string('searchobjectexpected', 'block_helpdesk'));
+            return false;
+        }
+
+        $tmp                    = new stdClass;
+        $tmp->searchstring      = $data->searchstring;
+        $tmp->answerer          = $data->answerer;
+        $tmp->status            = $data->status;
+        $tmp->submitter         = $data->submitter;
+        $data                   = $tmp;
+
         // We need to search tickets and related values for the anded values of
         // these 'words'. We're going to pull it apart based on word.
-        $like = sql_ilike();
-        $cname = '[' . sha1(rand()) . md5(rand()) . ']';
+        $cname          = '[' . sha1(rand()) . ']';
 
-        $words = explode(' ', $string);
+        $words          = explode(' ', $data->searchstring);
         if (!$words) {
             notify(get_string('nosearchstring', 'block_helpdesk'));
             return false;
         }
 
-        $where = array();
+        $selectsearch   = 'SELECT DISTINCT t.id, t.summary, t.detail, t.timemodified';
+        $selectcount    = 'SELECT COUNT(DISTINCT t.*)';
+        $selectusers    = 'SELECT u.id, u.firstname, u.lastname, u.email';
+        $assignon       = 't.id = hta.ticketid';
+
+        if($data->answerer > 0) { $assignon .= " AND hta.userid = {$data->answerer}"; }
+
+        $sqltickets = '
+            FROM {block_helpdesk_ticket} AS t
+            JOIN {user} AS u ON t.userid = u.id
+            LEFT JOIN {block_helpdesk_ticket_tag} AS tt ON t.id = tt.ticketid
+        ';
+
+        if($data->answerer <= 0) {
+            $sqltickets .= "LEFT ";
+        }
+        $sqltickets    .= "JOIN {block_helpdesk_ticket_assign} AS hta ON t.id = hta.ticketid";
+        $sqltickets    .= $data->answerer > 0 ? " AND hta.userid = $data->answerer " : '';
+
+        $wheretickets   = array('t.summary', 't.detail', 'tt.value', 'u.firstname', 'u.lastname');
+
+        $params = array();
+        $ticketsearchgroups = array();
         foreach($words as $word) {
-            // We're going to be replacing column spot and we need something so
-            // unique that it will never show up as a word.
-            $where[] = "$cname $like '%$word%'";
+            if(empty($word)) {
+                continue;
+            }
+            $ticketsubwhere = array();
+            foreach($wheretickets as $column) {
+                $ticketsubwhere[] = $DB->sql_like($column, '?', false);
+                $params[] = "%{$word}%";
+            }
+            if(is_numeric($word)) {
+                $ticketsubwhere[] = "t.id = $word";
+            }
+            $ticketsearchgroups[] = implode(' OR ', $ticketsubwhere);
         }
-        $where = '(' . implode(' AND ', $where) . ')';
 
-        // The searching begins here. From here we're going to be querying
-        // a number of tables to try and find what the user wants.
-        $totalrecordsfound = array();
+        // Now lets finish our search query.
+        // START BEWARE - The order of these checks is critical to performance.
+        $andwhere = array();
 
-        $colwhere = str_replace($cname, 'summary', $where) . ' OR ' .
-                                str_replace($cname, 'detail', $where);
-        if (($rval = $DB->get_records_select('block_helpdesk_ticket', $colwhere, null, 'id')) !== false) {
-            foreach($rval as $row) {
-                $totalrecordsfound[] = $row->id;
+        if(!empty($data->submitter)) {
+            $andwhere[] = "t.userid = $data->submitter";
+        }
+        $andwhere[] = 't.status IN ('.implode(', ', $data->status).')';
+
+        if($data->answerer == 0) {
+            $andwhere[] = "hta.ticketid IS NULL";
+        }
+
+        if(!empty($ticketsearchgroups)) {
+            $andwhere[] = '(' . implode(') AND (', $ticketsearchgroups) . ')';
+        }
+
+        $ticketwheresql = 'WHERE ' . implode(' AND ', $andwhere);
+        // END BEWARE
+
+        $orderby        = "ORDER BY timemodified DESC";
+        $searchquery    = "SELECT * FROM ({$selectsearch} {$sqltickets} {$ticketwheresql}) AS foo {$orderby}";
+        $countquery     = "{$selectcount} {$sqltickets} {$ticketwheresql}";
+
+        $tidbitcount    = $DB->count_records_sql($countquery);
+        $offset         = $page * $count;
+        $tidbits        = $DB->get_records_sql($searchquery, null, $offset, $count);
+
+        $bigtickets     = array();
+        if(!empty($tidbits)) {
+            foreach($tidbits as $small_ticket) {
+                $ticketobj = $this->new_ticket();
+                $ticketobj->set_idstring($small_ticket->id);
+                $ticketobj->fetch();
+                $bigtickets[] = $ticketobj;
             }
         }
 
-        $colwhere = str_replace($cname, 'value', $where);
-        if (($rval = $DB->get_records_select('block_helpdesk_ticket_tag', $colwhere, null, 'ticketid')) !== false) {
-            foreach($rval as $row) {
-                $totalrecordsfound[] = $row->ticketid;
-            }
-        }
+        $result                 = new stdClass;
+        $result->results        = $bigtickets;
+        $result->count          = $tidbitcount;
+        $result->httpdata       = base64_encode(serialize($data));
 
-        $colwhere = str_replace($cname, 'notes', $where);
-        if (($rval = $DB->get_records_select('block_helpdesk_ticket_update', $colwhere, null, 'ticketid')) !== false) {
-            foreach($rval as $row) {
-                $totalrecordsfound[] = $row->ticketid;
-            }
-        }
-
-        if (count($totalrecordsfound) == 0) {
-            return false;
-        }
-
-        $totalrecordsfound = array_unique($totalrecordsfound, SORT_NUMERIC);
-        $tickets = array();
-        foreach($totalrecordsfound as $id) {
-            $ticket = $this->new_ticket();
-            $ticket->set_idstring($id);
-            if ($ticket->fetch(false)) {
-                $tickets[] = $ticket;
-            }
-        }
-
-        return $tickets;
+        return $result;
     }
 
     function change_overview_form($ticket) {
@@ -1060,20 +909,6 @@ class helpdesk_native extends helpdesk {
         $url->param('tid', $ticketid);
         $form = new tag_ticket_form($url->out(), null, 'post');
         return $form;
-    }
-
-    /**
-     * Get all the tickets in the help desk system.
-     *
-     * @param int       $offset determines where to start getting records.
-     * @param int       $count determines the maxiumum records to return.
-     * @return mixed
-     */
-    function get_all_tickets($offset, $count) {
-        global $DB;
-        $records = $DB->get_records('block_helpdesk_ticket', null, 'timemodified DESC', '*',
-                                   $offset, $count);
-        return $this->parse_db_tickets($records);
     }
 
     /**

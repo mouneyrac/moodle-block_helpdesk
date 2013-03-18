@@ -32,7 +32,6 @@ require_once($CFG->libdir . '/weblib.php');
 // We are also Helpdesk, so we shall also become a helpdesk.
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
-
 require_login(null, false);
 
 // Grab optional params.
@@ -46,7 +45,7 @@ $page   = ($page == null ? 0 : $page);
 
 $context = get_context_instance(CONTEXT_SYSTEM);
 
-$viewurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$viewurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $qurl = clone $viewurl;
 $qurl->param('id', $tid);
 
