@@ -24,6 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
+
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
 require_login(0, false);
@@ -53,11 +54,13 @@ $form           = $hd->search_form();
 $data           = $form->get_data();
 
 if(!helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
+    if (!isset($data)) { $data = new stdClass; }
     $data->submitter = $USER->id;
 }
 
 helpdesk::page_header();
-echo $OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
+//echo $OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
+
 // Do we have a relation to use? Lets us it!
 if(!$form->is_submitted() and empty($httpdata)) {
     // TODO: Use search preset from database.
@@ -217,4 +220,3 @@ if ($form->is_validated() or !empty($httpdata) or $rel !== null) {
 }
 
 helpdesk::page_footer();
-?>

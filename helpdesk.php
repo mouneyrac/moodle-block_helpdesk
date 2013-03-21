@@ -8,7 +8,6 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class helpdesk {
-
     /**
      * Unique to Moodle 2.x. This is one of the first things we do on any page
      * and that is configure the $PAGE. We don't want to output the header yet
@@ -247,5 +246,3 @@ abstract class helpdesk {
         );
     }
 }
-
-?>

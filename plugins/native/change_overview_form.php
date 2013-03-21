@@ -24,10 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-global $CFG;
-
 class change_overview_form extends moodleform {
-
     private $ticket;
 
     function change_overview_form($action=null, $customdata=null, $method='post',
@@ -37,6 +34,7 @@ class change_overview_form extends moodleform {
         parent::moodleform($action, $customdata, $method, $target, $attributes,
                             $editable);
     }
+
     function definition() {
         $mform =& $this->_form;
 
@@ -96,6 +94,4 @@ class change_overview_form extends moodleform {
         // Maybe at some point. Defaults work well already.
         return array();
     }
-
 }
-?>

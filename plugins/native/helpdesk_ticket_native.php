@@ -167,6 +167,24 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $row[] = $this->get_detail();
         $table->data[] = $row;
 
+        /**
+         * TODO: Expand on this.
+         * If we want a series of tool we will want to put them here.
+         */
+        if(empty($this->firstcontact) and helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
+            $row = array();
+            $row[] = get_string('answerertools', 'block_helpdesk');
+            $url = "{$CFG->wwwroot}/blocks/helpdesk/plugins/native/action/grab.php";
+            $grab_help = helpdesk_simple_helpbutton(get_string('grabquestion', 'block_helpdesk'), 'grab');
+            $row[] = "<form action=\"{$url}\" method=\"get\">"
+                . '<input type="hidden" name="id" value="'
+                . $this->get_idstring() . '" />'
+                . '<input type="submit" value="'
+                . get_string('grabquestion', 'block_helpdesk')
+                . "\" />{$grab_help}</form>";
+            $table->data[] = $row;
+        }
+
         echo html_writer::table(clone $table);
         echo '<br />';
 
@@ -286,7 +304,6 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $table->data = array();
         $updateprinted = false;
         if (is_array($udata) or is_object($udata)) {
-
             // If we have system or detailed updates, display them.
             $showdetailed = helpdesk_get_session_var('showdetailedupdates');
             $showsystem = helpdesk_get_session_var('showsystemupdates');
@@ -308,9 +325,25 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                     $str = get_string($update->type, 'block_helpdesk');
                     $row[] = $str;
                     if ($hd->is_update_hidden($update)) {
-                        $row[] = get_string('thisupdateishidden', 'block_helpdesk');
+                        $url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/plugins/native/action/showupdate.php");
+                        $str = get_string('showupdate', 'block_helpdesk');
                     } else {
-                        $row[] = '';
+                        $url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/plugins/native/action/hideupdate.php");
+                        $str = get_string('hideupdate', 'block_helpdesk');
+                    }
+                    $url = $url->out();
+                    if($isanswerer) {
+                    $hideshowbutton = "<form name=\"updatehideshow\"action=\"{$url}\" method=\"get\">" .
+                        "<input type=\"submit\" value=\"{$str}\" />" .
+                        "<input type=\"hidden\" name=\"id\" value=\"{$update->id}\" /></form>";
+                    } else {
+                        $hideshowbutton = '';
+                    }
+                    if ($hd->is_update_hidden($update)) {
+                        $row[] = get_string('thisupdateishidden', 'block_helpdesk') . '<br />'
+                            . $hideshowbutton;
+                    } else {
+                        $row[] = $hideshowbutton;
                     }
                     $table->head = $row;
                 }
@@ -733,7 +766,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $dataobject->status         = $this->status->id;
 
         if (is_numeric($this->firstcontact)) {
-            if($DB->record_exists('user', array('id' => $this->firstcontact))) {
+            if(!$DB->record_exists('user', array('id' => $this->firstcontact))) {
                 error('Invalid first contact user id.');
             }
             $this->firstcontact = helpdesk_get_user($this->firstcontact);
@@ -765,6 +798,20 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $result = $DB->insert_record('block_helpdesk_ticket', $dataobject, true);
             if ($result) {
                 $this->id = $result;
+            } else {
+                error(get_string('error_insertquestion', 'block_helpdesk'));
+            }
+            if(get_config(null, 'block_helpdesk_includeagent') == true) {
+                $tag = new stdClass;
+                $tag->name = get_string('useragent', 'block_helpdesk');
+                $tag->value = $_SERVER['HTTP_USER_AGENT'];
+                $tag->ticketid = $this->get_idstring();
+                $this->add_tag($tag);
+                $tag = new stdClass;
+                $tag->ticketid = $this->get_idstring();
+                $tag->name = addslashes(get_string('useroperatingsystem', 'block_helpdesk'));
+                $tag->value = addslashes($this->get_os($_SERVER['HTTP_USER_AGENT']));
+                $this->add_tag($tag);
             }
         }
         if (is_numeric($result) or $result == true) {
@@ -900,7 +947,6 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         }
 
         if ( $DB->insert_record('block_helpdesk_ticket_update', $dat) ) {
-
             $usefirstcontact = get_config(null, 'block_helpdesk_firstcontact');
             $isanswerer = helpdesk_is_capable(HELPDESK_CAP_ANSWER);
             if ($usefirstcontact and $isanswerer and $this->firstcontact == true) {
@@ -977,7 +1023,6 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         }
         if (!isset($tag->name) or
             !isset($tag->value) or
-            !isset($tag->ticketid) or
             isset($tag->id)){
 
             return false;
@@ -1119,5 +1164,71 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         return true;
     }
 
+    private function get_os($agent=false) {
+        // the order of this array is important
+        $oses = array(
+            'Windows 3.11' => 'Win16',
+            'Windows 95' => '(Windows 95)|(Win95)|(Windows_95)',
+            'Windows ME' => '(Windows 98)|(Win 9x 4.90)|(Windows ME)',
+            'Windows 98' => '(Windows 98)|(Win98)',
+            'Windows 2000' => '(Windows NT 5.0)|(Windows 2000)',
+            'Windows XP' => '(Windows NT 5.1)|(Windows XP)',
+            'Windows Server 2003' => '(Windows NT 5.2)',
+            'Windows Vista' => '(Windows NT 6.0)',
+            'Windows 7' => '(Windows NT 6.1)',
+            'Windows NT' => '(Windows NT 4.0)|(WinNT4.0)|(WinNT)|(Windows NT)',
+            'OpenBSD' => 'OpenBSD',
+            'SunOS' => 'SunOS',
+            'Linux' => '(Linux)|(X11)',
+            'MacOS' => '(Mac_PowerPC)|(Macintosh)',
+            'QNX' => 'QNX',
+            'BeOS' => 'BeOS',
+            'OS2' => 'OS/2',
+            'SearchBot'=>'(nuhk)|(Googlebot)|(Yammybot)|(Openbot)|(Slurp)|(MSNBot)|(Ask Jeeves/Teoma)|(ia_archiver)'
+        );
+        $agent = strtolower($agent ? $agent : $_SERVER['HTTP_USER_AGENT']);
+        foreach($oses as $os=>$pattern) {
+            if (preg_match('/'.$pattern.'/i', $agent)) {
+                if(preg_match('/WOW64/i', $agent)) {
+                    return $os . ' (x64)';
+                }
+                return $os;
+            }
+        }
+        return 'Unknown';
+    }
+
+    /**
+     * This gives the user object for the first contact user or false if there
+     * is no firstcontact.
+     *
+     * @return mixed
+     */
+    public function get_firstcontact() {
+        global $DB;
+        if(empty($this->firstcontact)) {
+            return false;
+        }
+        return get_record('user', array('id' => $this->firstcontact));
+    }
+
+    /**
+     * This only sets the first contact if it isn't already set.
+     *
+     * @param mixed     $user can be a user object or a user id.
+     * @return bool
+     */
+    public function set_firstcontact($user) {
+        if(is_object($user)) {
+            $user = $user->id;
+        }
+        if(empty($user)) {
+            error(get_string('invalidtype', 'block_helpdesk') . ' - ' . __FILE__ . ':' . __LINE__);
+        }
+        if(empty($this->firstcontact)) {
+            $this->firstcontact = $user;
+            return true;
+        }
+        return false;
+    }
 }
-?>

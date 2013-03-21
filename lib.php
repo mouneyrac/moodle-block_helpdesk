@@ -25,19 +25,11 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
 
 $hdpath = "$CFG->dirroot/blocks/helpdesk";
 require_once("$hdpath/db/access.php");
 require_once("$hdpath/helpdesk.php");
 require_once("$hdpath/helpdesk_ticket.php");
-require_once($CFG->libdir . '/moodlelib.php');
-require_once($CFG->libdir . '/blocklib.php');
-require_once($CFG->libdir . '/weblib.php');
-require_once($CFG->libdir . '/datalib.php');
-require_once($CFG->libdir . '/formslib.php');
-require_once($CFG->libdir . '/adminlib.php');
-
 unset($hdpath);
 
 define('HELPDESK_DATE_FORMAT', 'F j, Y, g:i a');

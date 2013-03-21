@@ -25,11 +25,7 @@
  */
 
 // We are moodle, so we should get necessary stuff.
-require_once('../../config.php');
-require_once($CFG->libdir . '/blocklib.php');
-require_once($CFG->libdir . '/weblib.php');
-require_once($CFG->libdir . '/datalib.php');
-require_once($CFG->libdir . '/formslib.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 
 // We are the helpdesk, so we need the core library.
 require_once($CFG->dirroot . '/blocks/helpdesk/lib.php');

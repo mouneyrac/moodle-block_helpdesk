@@ -26,10 +26,8 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
 
 class helpdesk_native extends helpdesk {
-
     /**
      * helpdesk_native constructor. Nothing special, but this isn't called
      * directly. Help Desk base class has a factory function for construction.
@@ -696,9 +694,6 @@ class helpdesk_native extends helpdesk {
      * together and checking a bunch of stuff. We will get a mixed result, false
      * if unsucessful, or an array of tickets if we find matches.
      *
-     * MOODLE 2.x NOTE: -- Search needs to be refactored. This is used for
-     * browsing any ticket in the help desk system. --jdoane 20121031
-     *
      * @param object    $data is an object with search attributes.
      * @return object   contains 3 attributes, results, count, and httpdata (or
      *                  false for no failed search.)
@@ -957,5 +952,4 @@ class helpdesk_native extends helpdesk {
         }
         return $url;
     }
-
 }

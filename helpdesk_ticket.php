@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Abstract helpdesk_ticket class. This defines the layout that a ticket must
  * have and sets a layout and structure for any given ticket for a particular
@@ -298,5 +297,3 @@ abstract class helpdesk_ticket {
      */
     abstract function store_edit($msg=null);
 }
-
-?>

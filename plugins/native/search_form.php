@@ -24,12 +24,41 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
-require_once("$CFG->libdir/formslib.php");
-class search_form extends moodleform {
 
+require_once("$CFG->libdir/formslib.php");
+
+class search_form extends moodleform {
     function definition() {
-        global $CFG;
+        global $DB, $CFG;
+
+        $context = get_context_instance(CONTEXT_SYSTEM);
+
+        // Return all that have rows, but not on the join itself.
+        // We want to populate the answerers list with only users who have
+        $sql = "
+            SELECT u.*
+            FROM {user} AS u
+            LEFT JOIN {block_helpdesk_ticket_assign} AS hta ON u.id = hta.userid
+            WHERE hta.ticketid IS NOT NULL
+            ORDER BY u.lastname, u.firstname ASC
+        ";
+        $answerers = $DB->get_records_sql($sql);
+
+        $statuses = get_ticket_statuses();
+        $statuslist = array();
+        $statusdefault = array();
+        foreach($statuses as $s) {
+            $statuslist[$s->id] = get_status_string($s);
+            $statusdefault[] = $s->id;
+        }
+
+        $answererlist = array(
+            -1 => get_string('anyanswerer', 'block_helpdesk'),
+            0 => get_string('noanswerers', 'block_helpdesk')
+        );
+        foreach($answerers as $a) {
+            $answererlist[$a->id] = fullname($a);
+        }
 
         $mform =& $this->_form;
 
@@ -37,15 +66,37 @@ class search_form extends moodleform {
 
         $help = helpdesk_simple_helpbutton($searchstr, 'search');
         $searchphrase = get_string('searchphrase', 'block_helpdesk');
+        $statusstr = get_string('status', 'block_helpdesk');
+        $answererstr = get_string('answerer', 'block_helpdesk');
 
+        // Elements
         $mform->addElement('header', 'frm', get_string('search'));
         $mform->addElement('text', 'searchstring', $searchphrase . $help);
-        $mform->addRule('searchstring', null, 'required', 'server');
+
+        $adv = array();
+        $statuselement =& $mform->createElement('select', 'status', $statusstr, $statuslist);
+        $statuselement->setMultiple(true);
+        $mform->addElement($statuselement);
+        // TODO: Configure this later. --jdoane
+        //$adv =& $mform->createElement('select', 'orderby', $orderbystr, $orderbylist);
+        $mform->addElement('select', 'answerer', $answererstr, $answererlist);
+
+        // Rules
+        $mform->addRule('status', null, 'required', 'server');
+        $mform->setAdvanced('answerer', true);
+        $mform->setAdvanced('status', true);
+        $mform->setDefault('answerer', -1);
+        $mform->setDefault('status', $statusdefault);
         $mform->addElement('submit', 'submitbutton', get_string('search'));
+        $mform->addElement('hidden', 'submitter', '');
     }
 
     function validation($data, $files) {
         // Add something at some point.
     }
+
+    function set_multiselect_default($array) {
+        $mform =& $this->_form;
+        $mform->setDefault('status', $array);
+    }
 }
-?>

@@ -71,5 +71,3 @@ function get_status_string($status) {
     $instance = $hd->new_ticket();
     return $instance->get_status_string($status);
 }
-
-?>

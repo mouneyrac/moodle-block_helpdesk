@@ -15,20 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script handles global settings for this Help Desk block.
+ * This script handles the updating of tickets by managing the UI and entry
+ * level functions for the task.
  *
  * @package     block_helpdesk
- * @copyright   2010 VLACS
+ * @copyright   2010-2011 VLACS
  * @author      Joanthan Doane <jdoane@vlacs.org>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+define('MOODLE_INTERNAL', true);
+require_once('init.php');
 
-defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
+helpdesk_is_capable(HELPDESK_CAP_ANSWER, true); // require answerer capability.
+$id = required_param('id', PARAM_INT); // this is a ticket update id.
 
-require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
-
-$hd = helpdesk::get_helpdesk();
-
-if (method_exists($hd, 'plugin_settings')) {
-    $hd->plugin_settings($settings);
+$update = get_record('helpdesk_ticket_update', 'id', $id, '', '', '', '', 'id, hidden, ticketid');
+$update->hidden = 0;
+if(!update_record('helpdesk_ticket_update', $update)) {
+    error(get_string('unabletoshowupdate', 'block_helpdesk'));
 }
+
+$url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/view.php");
+$url->param('id', $update->ticketid);
+redirect($url->out(), get_string('updatewillnowbeshown', 'block_helpdesk'));

@@ -25,6 +25,7 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
+
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
 class block_helpdesk extends block_base {
@@ -187,4 +188,3 @@ class block_helpdesk extends block_base {
         return false;
     }
 }
-?>

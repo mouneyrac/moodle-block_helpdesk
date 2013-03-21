@@ -28,6 +28,11 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_hd_t_userid" UNIQUE="false" FIELDS="userid" NEXT="idx_hd_t_firstcontact"/>
+        <INDEX NAME="idx_hd_t_firstcontact" UNIQUE="false" FIELDS="firstcontact" PREVIOUS="idx_hd_t_userid" NEXT="idx_hd_t_status"/>
+        <INDEX NAME="idx_hd_t_status" UNIQUE="false" FIELDS="status" PREVIOUS="idx_hd_t_firstcontact"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="block_helpdesk_ticket_tag" COMMENT="A table that holds individual custom tags per ticket." PREVIOUS="block_helpdesk_ticket" NEXT="block_helpdesk_ticket_update">
       <FIELDS>
@@ -39,6 +44,9 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_hd_tt_ticketid" UNIQUE="false" FIELDS="ticketid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="block_helpdesk_ticket_update" COMMENT="Every time a ticket is updated with a new status, it gets put here. This table will contain the full history of each ticket." PREVIOUS="block_helpdesk_ticket_tag" NEXT="block_helpdesk_ticket_assign">
       <FIELDS>
@@ -67,6 +75,10 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_hd_ta_userid" UNIQUE="false" FIELDS="userid" NEXT="idx_hd_ta_ticketid"/>
+        <INDEX NAME="idx_hd_ta_ticketid" UNIQUE="false" FIELDS="ticketid" PREVIOUS="idx_hd_ta_userid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="block_helpdesk_ticket_group" COMMENT="Ticket groupings table." PREVIOUS="block_helpdesk_ticket_assign" NEXT="block_helpdesk_status">
       <FIELDS>

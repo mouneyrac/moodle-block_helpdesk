@@ -31,25 +31,24 @@ require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
 require_login(0, false);
 
-global $CFG;
-
 $id = required_param('id', PARAM_INT);
 $baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$searchurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $url = clone $baseurl;
 $url->param('id', $id);
 $nav = array (
     array (
         'name' => get_string('helpdesk', 'block_helpdesk'),
-        'link' => $baseurl->out()
-          ),
+        'link' => $searchurl->out()
+    ),
     array (
         'name' => get_string('ticketview', 'block_helpdesk'),
         'link' => $url->out()
     ),
     array (
         'name' => get_string('updateticket', 'block_helpdesk')
-        )
-    );
+    )
+);
 
 $title = get_string('helpdeskupdateticket', 'block_helpdesk');
 helpdesk::page_init($title, $nav);
@@ -80,5 +79,3 @@ helpdesk::page_header();
 $form->display();
 $hd->display_ticket($ticket, true);
 helpdesk::page_footer();
-
-?>

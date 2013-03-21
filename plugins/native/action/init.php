@@ -15,23 +15,27 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is the helpdesk native plugin init script.
- * This will setup everything necessary for the plugin to function.
+ * This script handles the updating of tickets by managing the UI and entry
+ * level functions for the task.
  *
  * @package     block_helpdesk
- * @copyright   2010 VLACS
- * @author      Jonathan Doane <jdoane@vlacs.org>
+ * @copyright   2010-2011 VLACS
+ * @author      Joanthan Doane <jdoane@vlacs.org>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
 
-$path = "$CFG->dirroot/blocks/helpdesk/plugins/native";
+// At this point, we've very deep inside moodle/helpdesk, we're a good
+// number of sub-directories away from config and libs, plus the file we're on.
+$hd_depth = 4;
+$www_depth = 6;
+$path = __FILE__;
+for($i = 1; $i <= $www_depth; $i++) {
+    $path = dirname($path);
+    if($i == $hd_depth) { $hdpath = $path; }
+}
+require_once("{$path}/config.php");
+require_once("{$hdpath}/lib.php");
 
-// All the files the plugin needs should be here.
-require_once("$path/lib_native.php");
-require_once("$path/new_ticket_form.php");
-require_once("$path/search_form.php");
-require_once("$path/tag_ticket_form.php");
-require_once("$path/change_overview_form.php");
-require_once("$path/update_ticket_form.php");
-require_once("$path/helpdesk_ticket_native.php");
-require_once("$path/helpdesk_native.php");
+// Sorry, you need to be able to login to get here.
+require_login(0, false);

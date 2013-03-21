@@ -25,7 +25,6 @@
  */
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-global $CFG, $OUTPUT;
 
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
@@ -91,5 +90,3 @@ print $OUTPUT->heading(get_string('updateticketoverview', 'block_helpdesk'));
 $form->display();
 
 helpdesk::page_footer();
-
-?>

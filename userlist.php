@@ -45,6 +45,7 @@ if ($sort == "name") {
 }
 
 $baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$searchurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $thisurl = new moodle_url(me());
 $thisurl->remove_params();
 $thisurl->param('paramname', $paramname);
@@ -60,10 +61,14 @@ if (is_numeric($ticketid)) {
     $ticketreturn = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
     $ticketreturn->param('id', $ticketid);
     $nav[] = array (
-        'name' => get_string('ticketviewer', 'block_helpdesk'),
+        'name' => get_string('ticketview', 'block_helpdesk'),
         'link' => $ticketreturn->out()
     );
 }
+$nav[] = array (
+    'name' => get_string('updateticketoverview', 'block_helpdesk'),
+    'link' => $returnurl
+);
 $nav[] = array (
     'name' => get_string('selectauser', 'block_helpdesk'),
 );
@@ -130,4 +135,3 @@ echo html_writer::table($table);
 echo $OUTPUT->paging_bar($usercount, $page, $perpage, $thisurl);
 
 echo $OUTPUT->footer();
-?>

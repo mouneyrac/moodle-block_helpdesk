@@ -25,8 +25,7 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
-require_once("$CFG->libdir/formslib.php");
+
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
 class helpdesk_pref_form extends moodleform {
@@ -54,4 +53,3 @@ class helpdesk_pref_form extends moodleform {
         $mform->addElement('submit', 'save', get_string('savepreferences', 'block_helpdesk'));
     }
 }
-?>

@@ -26,8 +26,6 @@
 
 // We are moodle, so we shall become moodle.
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-require_once($CFG->libdir . '/moodlelib.php');
-require_once($CFG->libdir . '/weblib.php');
 
 // We are also Helpdesk, so we shall also become a helpdesk.
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
@@ -163,4 +161,3 @@ $url = new moodle_url(qualified_me());
 echo $OUTPUT->paging_bar($total, $page, $count, $url);
 
 helpdesk::page_footer();
-?>
