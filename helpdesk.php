@@ -22,6 +22,7 @@ abstract class helpdesk {
         $PAGE->set_title($title);
         $PAGE->set_pagelayout('standard');
         $PAGE->set_url(isset($url) ? $url : qualified_me());
+        $PAGE->requires->css('/blocks/helpdesk/style.css');
 
         // Set up navigation, there are a couple different things we can do
         // here. :)

@@ -111,7 +111,7 @@ if ($options == false) {
 $str = get_string('relations', 'block_helpdesk');
 $relhelp = helpdesk_simple_helpbutton($str, 'relations');
 $table = new html_table();
-$table->width = '95%';
+$table->width = '100%';
 $table->head = array(get_string('changerelation', 'block_helpdesk') . $relhelp);
 $table->data = array();
 
@@ -179,6 +179,7 @@ if ($form->is_validated() or !empty($httpdata) or $rel !== null) {
         $lastupdatedstr = get_string('lastupdated', 'block_helpdesk');
         $userstr = get_string('user');
         $table = new html_table();
+        $table->width = '100%';
         $head = array();
         $head[] = $ticketnamestr;
         $head[] = $userstr;

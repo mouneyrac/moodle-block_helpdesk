@@ -50,7 +50,7 @@ if (!empty($tags)) {
 // Require a minimum of asker capability on the current user.
 helpdesk_is_capable(HELPDESK_CAP_ASK, true);
 
-$baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $url = new moodle_url("/blocks/helpdesk/new.php");
 if ($tags) {
     $url->param('tags', $tags);

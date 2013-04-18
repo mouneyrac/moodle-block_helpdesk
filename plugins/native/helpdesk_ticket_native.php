@@ -67,14 +67,6 @@ class helpdesk_ticket_native extends helpdesk_ticket {
     function display_ticket($readonly=false) {
         global $CFG, $DB;
 
-        $table = new html_table();
-        $table->size = array('30%');
-        $table->width = '95%';
-
-        $table->head = null;
-        $table->headspan = array(2);
-        $table->align = array('center', 'left');
-
         $hd = helpdesk::get_helpdesk();
 
         $this->fetch();
@@ -92,7 +84,9 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $url    = $url->out();
 
         echo "<div class=\"ticketinfo\">";
-        $details_table = clone $table;
+        $details_table = new html_table();
+        $details_table->headspan = array(2);
+        $details_table->attributes = array('class' => 'generaltable helpdesktable detailstable');
 
         $overviewstr = get_string('ticketinfo', 'block_helpdesk');
         $overviewhelp = helpdesk_simple_helpbutton($overviewstr, 'overview');
@@ -105,16 +99,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $headstr .= "<br /><a href=\"$editurl\">$editstr</a>";
         }
         $details_table->head = array($headstr);
-/*
-        $table = new html_table();
-        $table->size = array('15em', 'auto');
-        $table->width = '95%';
 
-        $table->head = array($headstr);
-        $table->headspan = array(2);
-        $table->align = array('center', 'left');
-        $table->data = array();
- */
         $row = array();
         $row[] = get_string('ticketid', 'block_helpdesk');
         $row[] = $this->get_idstring();
@@ -199,7 +184,11 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         echo html_writer::table($details_table);
         echo '<br />';
 
-        // Assignments start here.
+        unset($details_table);
+
+
+        // ASSIGNMENTS
+
         $assignedstr = get_string('assignedusers', 'block_helpdesk');
         $assignedhelp = helpdesk_simple_helpbutton($assignedstr, 'assigned');
         $thead = $assignedstr . $assignedhelp;
@@ -212,10 +201,10 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $string = get_string("assignuser", 'block_helpdesk');
             $thead .= "<br /><a href=\"$url\">$string</a>";
         }
-        //$table->head = array($thead);
 
-        $assign_table = clone $table;
-        $assign_table->size = array('70%');
+        $assign_table = new html_table;
+        $assign_table->headspan = array(2);
+        $assign_table->attributes = array('class' => 'generaltable helpdesktable assigntable');
         $assign_table->head = array($thead);
 
         $assigned = $this->get_assigned();
@@ -248,14 +237,14 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         echo html_writer::table($assign_table);
         echo '<br />';
 
-        // Assignments end here.
+        unset($assign_table);
+
+
         // START TAGS DISPLAY
 
         $tagstr = get_string('extradetailtags', 'block_helpdesk');
         $taghelp = helpdesk_simple_helpbutton($tagstr, 'tag');
         $thead = $tagstr . $taghelp;
-
-        $tags_table = clone $table;
 
         // If answerer, show link for adding tags.
         if ($isanswerer and !$readonly) {
@@ -266,9 +255,10 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
             $thead .= "<br /><a href=\"$url\">$addtagstr</a>";
         }
-        //print_table_head($thead);
 
-        //$table->head = array($thead);
+        $tags_table = new html_table();
+        $tags_table->attributes = array('class' => 'generaltable helpdesktable tagstable');
+        $tags_table->headspan = array(2);
         $tags_table->head = array($thead);
         $tags_table->data = array();
         if (!$tags == null) {
@@ -294,18 +284,20 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 );
             }
         } else {
+            $tags_table->headspan = null;
             $tags_table->data = array(array(get_string('notags', 'block_helpdesk')));
         }
         echo html_writer::table($tags_table);
-
-        // END TAGS DISPLAY
-
         echo '</div>';
 
-        // Updates start here.
+        unset($tags_table);
+
+
+        // UPDATES
+
+        echo "<div class=\"ticketupdates\">";
         $updatestr = get_string('updates', 'block_helpdesk');
         $updatehelp = helpdesk_simple_helpbutton($updatestr, 'update');
-        echo "<div class=\"ticketupdates\">";
 
         $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/update.php");
         $url->param('id', $this->get_idstring());
@@ -316,21 +308,22 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if(!$readonly) {
             $thead .= "<br /><a href=\"$url\">$translated</a>";
         }
-        //print_table_head($thead);
 
         // We're going to find out now if we are displaying these updates.
-        //$table->head = array($thead);
-        $updates_table = clone $table;
-        $updates_table->headspan = null;
-        $updates_table->head = array($thead);
-        $updates_table->data = array();
+        $update_list_table = new html_table();
+        $update_list_table->attributes = array('class' => 'generaltable helpdesktable updatelisttable');
+        $update_list_table->head = array($thead);
+        $update_list_table->data = array();
         $updateprinted = false;
         if (is_array($udata) or is_object($udata)) {
+            $update_table = new html_table();
+            $update_table->attributes = array('class' => 'generaltable helpdesktable updatetable');
+
             // If we have system or detailed updates, display them.
             $showdetailed = helpdesk_get_session_var('showdetailedupdates');
             $showsystem = helpdesk_get_session_var('showsystemupdates');
             foreach($udata as $update) {
-                $updates_table->data = array();
+                $update_table->data = array();
                 if ($update->type == HELPDESK_UPDATE_TYPE_DETAILED and !$showdetailed) {
                     continue;
                 }
@@ -367,7 +360,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                     } else {
                         $row[] = $hideshowbutton;
                     }
-                    $updates_table->head = $row;
+                    $update_table->head = $row;
                 }
 
                 $user = $DB->get_record('user', array('id' => $update->userid));
@@ -383,13 +376,13 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 $user_name = fullname($user);
                 $row[] = get_string('user', 'block_helpdesk');
                 $row[] = "<a href=\"$user_url\">$user_name</a>";
-                $updates_table->data[] = $row;
+                $update_table->data[] = $row;
 
                 // Status
                 $row = array();
                 $row[] = get_string('status', 'block_helpdesk');
                 $row[] = get_string($update->status, 'block_helpdesk');
-                $updates_table->data[] = $row;
+                $update_table->data[] = $row;
 
                 // New ticket status if status changed.
                 if ($update->newticketstatus != null) {
@@ -397,7 +390,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                     $tstat = $DB->get_record('block_helpdesk_status', array('id' => $update->newticketstatus));
                     $row[] = get_string('newquestionstatus', 'block_helpdesk');
                     $row[] = $this->get_status_string($tstat);
-                    $updates_table->data[] = $row;
+                    $update_table->data[] = $row;
                 }
 
                 // "Created On" date.
@@ -407,25 +400,25 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 // Time Created date.
                 $row[] = get_string('timecreated', 'block_helpdesk');
                 $row[] = $creation_date;
-                $updates_table->data[] = $row;
+                $update_table->data[] = $row;
 
                 // Update Note.
                 $row = array();
                 $row[] = get_string('note', 'block_helpdesk');
                 $row[] = $update->notes;
-                $updates_table->data[] = $row;
-                echo html_writer::table($updates_table);
-                echo '<br />';
+                $update_table->data[] = $row;
+                $update_list_table->data[] = array(html_writer::table($update_table));
+                //echo '<br />';
             }
         }
         if ($updateprinted === false) {
             $row = array();
             $row[] = get_string('noupdatestoview', 'block_helpdesk');
             $updates_table->data[] = $row;
-            echo html_writer::table($updates_table);
         }
-
+        echo html_writer::table($update_list_table);
         echo '</div>';
+
         return true;
     }
 
