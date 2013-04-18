@@ -36,6 +36,10 @@ table.detailstable tr td:first-child {
     width: 30%;
 }
 
+table.tagstable tr td:first-child {
+    width: 30%;
+}
+
 table.assigntable tr td:first-child {
     width: 70%;
 }
