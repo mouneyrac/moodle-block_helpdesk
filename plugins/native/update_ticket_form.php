@@ -78,7 +78,7 @@ class update_ticket_form extends moodleform {
                         ON sp.tostatusid=s.id
                 WHERE sp.fromstatusid = ?
                     AND sp.capabilityname = ?
-                GROUP BY s.id, s.*";
+                GROUP BY s.id";
 
 
         $pstatuses = $DB->get_records_sql($sql, array($status->id, $cap));

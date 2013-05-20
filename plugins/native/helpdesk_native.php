@@ -727,7 +727,7 @@ class helpdesk_native extends helpdesk {
         }
 
         $selectsearch   = 'SELECT DISTINCT t.id, t.summary, t.detail, t.timemodified';
-        $selectcount    = 'SELECT COUNT(DISTINCT t.*)';
+        $selectcount    = 'SELECT COUNT(DISTINCT t.id)';
         $selectusers    = 'SELECT u.id, u.firstname, u.lastname, u.email';
         $assignon       = 't.id = hta.ticketid';
 
@@ -788,9 +788,9 @@ class helpdesk_native extends helpdesk {
         $searchquery    = "SELECT * FROM ({$selectsearch} {$sqltickets} {$ticketwheresql}) AS foo {$orderby}";
         $countquery     = "{$selectcount} {$sqltickets} {$ticketwheresql}";
 
-        $tidbitcount    = $DB->count_records_sql($countquery);
+        $tidbitcount    = $DB->count_records_sql($countquery, $params);
         $offset         = $page * $count;
-        $tidbits        = $DB->get_records_sql($searchquery, null, $offset, $count);
+        $tidbits        = $DB->get_records_sql($searchquery, $params, $offset, $count);
 
         $bigtickets     = array();
         if(!empty($tidbits)) {
