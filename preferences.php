@@ -33,7 +33,7 @@ require_once("$CFG->dirroot/blocks/helpdesk/pref_form.php");
 
 require_login(0, false);
 
-$baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $nav = array (
     array ('name' => get_string('helpdesk', 'block_helpdesk'), 'link' => $baseurl->out()),
     array ('name' => get_string('preferences')),

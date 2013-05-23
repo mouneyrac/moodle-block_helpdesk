@@ -27,6 +27,7 @@
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
 
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
+require_once("$CFG->libdir/formslib.php");
 
 class helpdesk_pref_form extends moodleform {
     function definition() {
