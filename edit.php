@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script handles the updating of tickets by managing the UI and entry 
+ * This script handles the updating of tickets by managing the UI and entry
  * level functions for the task.
  *
  * @package     block_helpdesk
@@ -25,7 +25,6 @@
  */
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-global $CFG;
 
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
@@ -41,19 +40,18 @@ $nav = array (
     array (
         'name' => get_string('helpdesk', 'block_helpdesk'),
         'link' => $searchurl->out()
-          ),
+    ),
     array (
         'name' => get_string('ticketview', 'block_helpdesk'),
         'link' => $url->out()
     ),
     array (
-        'name' => get_string('updateticketoverview', 'block_helpdesk')
-        )
-    );
-
+        'name' => get_string('updateticketoverview', 'block_helpdesk'),
+        'link' => ''
+    )
+);
 $title = get_string('helpdeskeditticket', 'block_helpdesk');
-helpdesk_print_header(build_navigation($nav), $title);
-print_heading(get_string('updateticketoverview', 'block_helpdesk'));
+helpdesk::page_init($title, $nav);
 
 $hd = helpdesk::get_helpdesk();
 
@@ -86,8 +84,9 @@ if ( $form->is_submitted() and ($data = $form->get_data())) {
     redirect($url, get_string('ticketedited', 'block_helpdesk'));
 }
 
+helpdesk::page_header();
+print $OUTPUT->heading(get_string('updateticketoverview', 'block_helpdesk'));
+
 $form->display();
 
-print_footer();
-
-?>
+helpdesk::page_footer();

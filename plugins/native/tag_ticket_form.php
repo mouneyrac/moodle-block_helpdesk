@@ -24,7 +24,7 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
+
 require_once("$CFG->libdir/formslib.php");
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 require_once("$CFG->dirroot/blocks/helpdesk/plugins/native/helpdesk_native.php");
@@ -52,9 +52,8 @@ class tag_ticket_form extends moodleform {
         $mform->addElement('submit', 'submitbutton', get_string('addtag', 'block_helpdesk'));
     }
 
-    function validation($data) {
+    function validation($data, $files) {
         // We'll do custom validation if we ever need to.
         return array();
     }
 }
-?>

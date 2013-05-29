@@ -6,12 +6,61 @@
  * @copyright   2010 VLACS
  * @author      Jonathan Doane <jdoane@vlacs.org>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @package     block_helpdesk
  */
 abstract class helpdesk {
+    /**
+     * Unique to Moodle 2.x. This is one of the first things we do on any page
+     * and that is configure the $PAGE. We don't want to output the header yet
+     * because there could be redirections that will rely on the set URL in this
+     * method. --jdoane 20121105
+     */
+    public static function page_init($title, $nav=array(), $url=null) {
+        global $PAGE;
+        // Set up the page
+        $PAGE->set_context(get_context_instance(CONTEXT_SYSTEM));
+        $PAGE->set_heading($title);
+        $PAGE->set_title($title);
+        $PAGE->set_pagelayout('standard');
+        $PAGE->set_url(isset($url) ? $url : qualified_me());
+        $PAGE->requires->css('/blocks/helpdesk/style.css');
+
+        // Set up navigation, there are a couple different things we can do
+        // here. :)
+        $crumb_nav =& $PAGE->navbar;
+        foreach($nav as $navitem) {
+            if(empty($navitem['link'])) {
+                $navitem['link'] = null;
+            }
+            $crumb_nav->add($navitem['name'], $navitem['link']);
+        }
+
+        // We also have this neat navigation inside the navigation block which
+        // is configured as a tree, we will want to use this to provide some
+        // "easy to access" help desk links that are not related to the Help
+        // Desk context.
+        $hd_nav = $PAGE->navigation->add(get_string('helpdesk', 'block_helpdesk'));
+
+        // TODO: Add some more cool stuff here. --jdoane 20121105
+    }
 
     /**
-     * Every helpdesk has access to the moodle cron for this block. This method 
+     * Help Desk wrapper for $OUTPUT->header()
+     */
+    public static function page_header() {
+        global $OUTPUT;
+        print $OUTPUT->header();
+    }
+
+    /**
+     * Help Desk wrapper for $OUTPUT->header()
+     */
+    public static function page_footer() {
+        global $OUTPUT;
+        print $OUTPUT->footer();
+    }
+
+    /**
+     * Every helpdesk has access to the moodle cron for this block. This method
      * gets called every time cron hits the block.
      *
      * @return true
@@ -19,7 +68,7 @@ abstract class helpdesk {
     abstract function cron();
 
     /**
-     * This method can be overridden to run tasks after the tables have been 
+     * This method can be overridden to run tasks after the tables have been
      * created on install.
      *
      * @return bool
@@ -27,6 +76,8 @@ abstract class helpdesk {
     function install() {
         return true;
     }
+
+    abstract function is_installed();
 
     /**
      * Depending on the helpdesk being used, we want to check to see if an
@@ -60,13 +111,13 @@ abstract class helpdesk {
      * @param string     $string Search string.
      * @return mixed
      */
-    abstract function search($data, $count=10, $page=0);
+    abstract function search($string);
 
     /**
      * Abstract methods that returns a new ticket form for the helpdesk's
      * respective plugin.
      *
-     * @param array     $data is an array of stuff to be used by the plugin, 
+     * @param array     $data is an array of stuff to be used by the plugin,
      *                  such as new ticket tags.
      * @return moodleform
      */
@@ -166,7 +217,7 @@ abstract class helpdesk {
 
     /**
      * Get the default URL to submit a ticket for this plugin.
-     * Plugins can use this to collect available context data in the ticket by 
+     * Plugins can use this to collect available context data in the ticket by
      * default, without requiring user participation on those points.
      *
      * Returns a moodle_url object for the 'submitnewticket' link in the block.
@@ -196,5 +247,3 @@ abstract class helpdesk {
         );
     }
 }
-
-?>

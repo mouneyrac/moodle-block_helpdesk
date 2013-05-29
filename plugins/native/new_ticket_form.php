@@ -25,10 +25,10 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
-require_once("$CFG->libdir/formslib.php");
-class new_ticket_form extends moodleform {
 
+require_once("$CFG->libdir/formslib.php");
+
+class new_ticket_form extends moodleform {
     function definition() {
         global $CFG;
 
@@ -48,14 +48,14 @@ class new_ticket_form extends moodleform {
         $mform->addElement('submit', 'submitbutton', get_string('submitticket', 'block_helpdesk'));
     }
 
-    function validation($data) {
-        // At some point we could do custom validation, but moodleform defaults 
+    function validation($data, $files) {
+        // At some point we could do custom validation, but moodleform defaults
         // do just fine.
         return array();
     }
 
     /**
-     * This is a workaround to allow us to add hidden values to a form. Forms 
+     * This is a workaround to allow us to add hidden values to a form. Forms
      * appears to butcher moodle_urls or url strings with gets as an action.
      *
      * @param string    $name is the name of the hidden element.
@@ -67,4 +67,3 @@ class new_ticket_form extends moodleform {
         $mform->addElement('hidden', $name, $value);
     }
 }
-?>

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is the english translation file for get_string() for all translatable 
+ * This is the english translation file for get_string() for all translatable
  * text in the help desk block.
  *
  * @package     block_helpdesk
@@ -24,6 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['pluginname']            = 'Help Desk';
 $string['blockname']            = 'Help Desk';
 $string['helpdesk:answer']      = 'Help Desk Answerer';
 $string['block/helpdesk:answer']= $string['helpdesk:answer'];
@@ -58,7 +59,7 @@ $string['newticketform']        = 'New Question';
 $string['newticketmsg']         = 'Your question has been successfully submitted.';
 $string['newticket']            = 'New Question';
 $string['viewalltickets']       = 'View all Questions';
-$string['submitnewticket']      = 'Submit a new technical question';
+$string['submitnewticket']      = 'Submit a new question';
 $string['mytickets']            = 'My Submitted Questions';
 $string['status_new']           = 'New';
 $string['reopened']             = 'Reopened';
@@ -176,7 +177,7 @@ $string['helpdesktagticket']    = 'Help Desk: Tagging';
 $string['helpdeskupdateticket'] = 'Help Desk: Update question';
 $string['helpdeskassignuser']   = 'Help Desk: Assign user to question';
 $string['helpdesksearch']       = 'Help Desk: Search questions';
-
+$string['helpdeskpreferences']  = 'Help Desk: Preferences';
 $string['useragent']            = 'HTTP agent string';
 $string['useroperatingsystem']  = 'Submitter\'s operating system';
 $string['helpdesknewticket']    = 'Help Desk: New Question';
@@ -235,10 +236,6 @@ $string['showfirstcontact']     = 'Show First Contact';
 $string['showfirstcontactdesc'] = 'Displays the first helper that replied to the question when viewing the ticket.';
 $string['includeagent']         = 'Include HTTP agent string';
 $string['includeagentdesc']     = 'This includes the submitters HTTP agent string and operating system as tags when a ticket is submitted.';
-$string['generalsettings']      = 'General help desk block settings';
-$string['generalsettingsdesc']  = 'Settings shared between all help desk plugins.';
-$string['customblockname']      = 'Custom block name';
-$string['customblocknamedesc']  = 'Set a user specified block name for the help desk block.';
 
 // Email defaults
 $string['emaildefaultmsgtext']  = <<<EOF
@@ -254,4 +251,26 @@ Thank you,
 EOF;
 $string['emaildefaultsubject']  = 'Ticket #!ticketid! Updated';
 
-?>
+// Help strings
+$string['assigned']                 = 'Question Assignments';
+$string['assigned_help']            = 'Assigned users are Help Desk Answers who have been assigned to help resolve a given question.';
+$string['detailedupdates']          = 'Extra Detail Updates';
+$string['detailedupdates_help']     = 'This option displays extra detail updates when viewing a specific question. This includes user (un)assignments and tag removals and additions.';
+$string['firstcontact']             = 'First Contact';
+$string['firstcontact_help']        = 'This user is the first helper that made an update to your ticket. This person is essentially responsible for your question, even if another user was assigned to the ticket.';
+$string['overview']                 = 'Question Overview';
+$string['overview_help']            = 'The question overview provides a basic description about the question that is currently being displayed.';
+$string['pref']                     = 'Preferences';
+$string['pref_help']                = 'Preferences allows users to change how some information is presented or if any specific information is presented. Many of these settings reset after you log out.';
+$string['relations']                = 'Question Relations';
+$string['relations_help']           = 'Click a link to choose a group of questions to see. These are short-cuts to help you quickly find a question if you know something about its status or its relation.';
+$string['search']                   = 'Question Searching';
+$string['search_help']              = 'This search phrase is a series of words that are used to find matching questions. Questions are searched by their summaries, details, tags, and updates.';
+$string['systemupdates']            = 'System Updates';
+$string['systemupdates_help']       = 'This option enables you to see system updates. System updates include automatic communication and automatic actions performed by the server.';
+$string['tag']                      = 'Tags';
+$string['tag_help']                 = 'Tags are extra little bits of information that an answerer found useful and added to the question to make a record of it. These tags are customizable and allows an answerer to add any information that he or she sees fit.';
+$string['update']                   = 'Question Updates';
+$string['update_help']              = 'Updates reflect communication from any user who is working on a given question. Updates can reflect changes in a question as well as system updates if a user has setup their preferences to view these, they are disabled by default.';
+$string['grab']                     = 'Grab Question';
+$string['grab_help']                = 'As an answerer, you have the ability to take over a question if no one has touched it yet. This makes you the first contact (if enabled by your administrator,) and assigns you to the question.';

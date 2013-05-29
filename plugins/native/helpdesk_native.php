@@ -26,10 +26,8 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
 
 class helpdesk_native extends helpdesk {
-
     /**
      * helpdesk_native constructor. Nothing special, but this isn't called
      * directly. Help Desk base class has a factory function for construction.
@@ -46,6 +44,7 @@ class helpdesk_native extends helpdesk {
      * @return bool
      */
     function install() {
+        global $DB;
         // Lets define base statuses.
         $new = new stdClass;
         $new->name = 'new';
@@ -75,13 +74,13 @@ class helpdesk_native extends helpdesk {
 
         // Lets add all of our statuses.
         $rval = true;
-        $rval = $rval and $new->id = insert_record('helpdesk_status', $new, true);
-        $rval = $rval and $wip->id = insert_record('helpdesk_status', $wip, true);
-        $rval = $rval and $closed->id = insert_record('helpdesk_status', $closed, true);
-        $rval = $rval and $resolved->id = insert_record('helpdesk_status', $resolved, true);
-        $rval = $rval and $reopen->id = insert_record('helpdesk_status', $reopen, true);
-        $rval = $rval and $nmi->id = insert_record('helpdesk_status', $nmi, true);
-        $rval = $rval and $ip->id = insert_record('helpdesk_status', $ip, true);
+        $rval = $rval and $new->id = $DB->insert_record('block_helpdesk_status', $new, true);
+        $rval = $rval and $wip->id = $DB->insert_record('block_helpdesk_status', $wip, true);
+        $rval = $rval and $closed->id = $DB->insert_record('block_helpdesk_status', $closed, true);
+        $rval = $rval and $resolved->id = $DB->insert_record('block_helpdesk_status', $resolved, true);
+        $rval = $rval and $reopen->id = $DB->insert_record('block_helpdesk_status', $reopen, true);
+        $rval = $rval and $nmi->id = $DB->insert_record('block_helpdesk_status', $nmi, true);
+        $rval = $rval and $ip->id = $DB->insert_record('block_helpdesk_status', $ip, true);
 
         // If one failed, we're doomed.
         if (!$rval) {
@@ -153,7 +152,12 @@ class helpdesk_native extends helpdesk {
 
         return $rval;
     }
-    
+
+    function is_installed() {
+        global $DB;
+        return $DB->record_exists('block_helpdesk_status', array('core' => 1));
+    }
+
     /**
      * Gets language string associated with a relation.
      *
@@ -167,18 +171,19 @@ class helpdesk_native extends helpdesk {
     /**
      * This creates a path from one status to another based on capability.
      *
-     * @param object    $from is a status record. This defines the inital 
+     * @param object    $from is a status record. This defines the inital
      *                  status.
      * @param object    $to is a status record of the possible next status.
      * @param string    $capability is a capability string to check users by.
      * @return bool
      */
     function add_status_path($from, $to, $capability) {
+        global $DB;
         $obj = new stdClass;
         $obj->fromstatusid = $from->id;
         $obj->tostatusid = $to->id;
         $obj->capabilityname = $capability;
-        return insert_record('helpdesk_status_path', $obj);
+        return $DB->insert_record('block_helpdesk_status_path', $obj);
     }
 
     /**
@@ -187,12 +192,13 @@ class helpdesk_native extends helpdesk {
      * @return object
      */
     function get_default_status() {
-        return get_record('helpdesk_status', 'ticketdefault', 1);
+        global $DB;
+        return $DB->get_record('block_helpdesk_status', array('ticketdefault'=>1));
     }
 
     /**
-     * This method gets the possible status changes from a given status. Can 
-     * also manually specify a specific capability. User's capability will be 
+     * This method gets the possible status changes from a given status. Can
+     * also manually specify a specific capability. User's capability will be
      * used if $cap is null.
      *
      * @param mixed     $status is a status id or status object.
@@ -212,7 +218,7 @@ class helpdesk_native extends helpdesk {
         if (is_null($cap)) {
             $cap = helpdesk_is_capable();
         }
-        
+
         $capid = get_field('capabilities', 'id', 'name', $cap);
     }
 
@@ -256,6 +262,7 @@ class helpdesk_native extends helpdesk {
     }
 
     private function get_idle_tickets($userid=null, $offset='', $count='') {
+        global $DB;
         // Askers can get their own tickets only.
         $duration = get_config(null, 'block_helpdesk_ticket_idle_dur');
         if ($duration === 0 or $duration == false) {
@@ -272,14 +279,14 @@ class helpdesk_native extends helpdesk {
         $before = $now - (3600 * $duration);
 
         $where = "timemodified <= $before";
-        
+
         if ($userid != null) {
             $where .= " AND userid = $userid";
         }
 
-        $records = get_records_select('helpdesk_ticket', $where, 'timemodified DESC',
-                                      'id, status', $offset, $count);
-        
+        $records = $DB->get_records_select('block_helpdesk_ticket', $where, 'timemodified DESC',
+                                          'id, status', $offset, $count);
+
         if (empty($records)) {
             return false;
         }
@@ -293,7 +300,7 @@ class helpdesk_native extends helpdesk {
             $tickets[] = $ticket;
         }
         return $tickets;
-    }  
+    }
 
     /**
      * Checks to see if an update is hidden or not.
@@ -439,7 +446,7 @@ class helpdesk_native extends helpdesk {
             $emailhtml = str_replace('!supportname!', $supportuser->firstname, $emailhtml);
             $emailtext = str_replace('!updatetime!', helpdesk_get_date_string(time()), $emailtext);
             $emailhtml = str_replace('!updatetime!', helpdesk_get_date_string(time()), $emailhtml);
-            
+
             $rval = email_to_user($user, $supportuser, $emailsubject, $emailtext, $emailhtml);
             if ($rval === false) {
                 notify(get_string('failedtosendemail', 'block_helpdesk'));
@@ -450,10 +457,10 @@ class helpdesk_native extends helpdesk {
     }
 
     /**
-     * This provides extra fields for the block configuration that are specific 
+     * This provides extra fields for the block configuration that are specific
      * to the plugin.
      *
-     * @param object    $settings is a reference to the settings variable in the 
+     * @param object    $settings is a reference to the settings variable in the
      *                  help desk settings.php file.
      * @return bool
      */
@@ -468,7 +475,7 @@ class helpdesk_native extends helpdesk {
                                                         get_string('showfirstcontact', 'block_helpdesk'),
                                                         get_string('showfirstcontactdesc', 'block_helpdesk'),
                                                         '0', '1', '0'));
-        
+
         $settings->add(new admin_setting_configcheckbox('block_helpdesk_send_update_email',
                                                         get_string('sendemailupdate', 'block_helpdesk'),
                                                         get_string('sendemailupdatedesc', 'block_helpdesk'),
@@ -509,11 +516,13 @@ class helpdesk_native extends helpdesk {
                                                         '', PARAM_RAW));
 
         $base = 'admin_setting_config';
-        $class = ($CFG->version >= 2007101590.00) ? "{$base}htmltextarea" : "{$base}textarea";
+        // $class = ($CFG->version >= 2007101590.00) ? "{$base}htmltextarea" : "{$base}textarea";
+        $class = "{$base}htmleditor";
         $settings->add(new $class('block_helpdesk_email_htmlcontent',
                                   get_string('emailrtfcontent', 'block_helpdesk'),
                                   get_string('emailrtfcontentdesc', 'block_helpdesk'),
                                   '', PARAM_RAW));
+
 
         //$settings->add(new admin_setting_configtext('block_helpdesk_ticket_idle_dur',
         //                                            get_string('emailidlewait', 'block_helpdesk'),
@@ -560,14 +569,14 @@ class helpdesk_native extends helpdesk {
     }
 
     /**
-     * Specialized method to convert a relation into a set of search parameters. 
+     * Specialized method to convert a relation into a set of search parameters.
      * This is the roadmap to being able to create custom search presets.
      *
      * @param int       $rel is a relation id.
      * @return object
      */
     function get_ticket_relation_search($rel) {
-        global $USER;
+        global $DB, $USER;
         // Setup base search criteria. We may want to make this a static method.
         $search = $this->new_search_obj();
 
@@ -578,7 +587,7 @@ class helpdesk_native extends helpdesk {
             $search->submitter = $USER->id;
             break;
         case HELPDESK_NATIVE_REL_NEW:
-            $search->status[] = get_field('helpdesk_status', 'id', 'name', 'new');
+            $search->status[] = $DB->get_field('block_helpdesk_status', 'id', array('name' => 'new'));
             break;
         case HELPDESK_NATIVE_REL_UNASSIGNED:
             $currentuser = 0;
@@ -608,7 +617,7 @@ class helpdesk_native extends helpdesk {
      * @return array
      */
     function get_status_ids($active=true, $inactive=true, $core=false) {
-        global $CFG;
+        global $DB, $CFG;
         // not active and not inactive is nothing.
         $where = '';
         if($active == $inactive and $active == false) {
@@ -626,12 +635,12 @@ class helpdesk_native extends helpdesk {
         }
         $sql = "
             SELECT id, name
-            FROM {$CFG->prefix}helpdesk_status
+            FROM {block_helpdesk_status}
         ";
         if(!empty($where)) {
             $sql .= "WHERE {$where}";
         }
-        $stat = get_records_sql($sql);
+        $stat = $DB->get_records_sql($sql);
         $ids = array();
         foreach($stat as $s) {
             $ids[] = $s->id;
@@ -686,11 +695,11 @@ class helpdesk_native extends helpdesk {
      * if unsucessful, or an array of tickets if we find matches.
      *
      * @param object    $data is an object with search attributes.
-     * @return object   contains 3 attributes, results, count, and httpdata (or 
+     * @return object   contains 3 attributes, results, count, and httpdata (or
      *                  false for no failed search.)
      */
     function search($data, $count=10, $page=0) {
-        global $CFG;
+        global $DB, $CFG;
         if(is_string($data)) {
             error('deprecated search call parameter. I want an object, not a string. ROAR!');
         }
@@ -709,7 +718,6 @@ class helpdesk_native extends helpdesk {
 
         // We need to search tickets and related values for the anded values of
         // these 'words'. We're going to pull it apart based on word.
-        $like           = sql_ilike();
         $cname          = '[' . sha1(rand()) . ']';
 
         $words          = explode(' ', $data->searchstring);
@@ -719,26 +727,27 @@ class helpdesk_native extends helpdesk {
         }
 
         $selectsearch   = 'SELECT DISTINCT t.id, t.summary, t.detail, t.timemodified';
-        $selectcount    = 'SELECT COUNT(DISTINCT t.*)';
+        $selectcount    = 'SELECT COUNT(DISTINCT t.id)';
         $selectusers    = 'SELECT u.id, u.firstname, u.lastname, u.email';
         $assignon       = 't.id = hta.ticketid';
 
         if($data->answerer > 0) { $assignon .= " AND hta.userid = {$data->answerer}"; }
 
-        $sqltickets = "
-            FROM {$CFG->prefix}helpdesk_ticket AS t
-            JOIN {$CFG->prefix}user AS u ON t.userid = u.id
-            LEFT JOIN {$CFG->prefix}helpdesk_ticket_tag AS tt ON t.id = tt.ticketid
-        ";
+        $sqltickets = '
+            FROM {block_helpdesk_ticket} AS t
+            JOIN {user} AS u ON t.userid = u.id
+            LEFT JOIN {block_helpdesk_ticket_tag} AS tt ON t.id = tt.ticketid
+        ';
 
         if($data->answerer <= 0) {
             $sqltickets .= "LEFT ";
         }
-        $sqltickets    .= "JOIN {$CFG->prefix}helpdesk_ticket_assignments AS hta ON t.id = hta.ticketid";
+        $sqltickets    .= "JOIN {block_helpdesk_ticket_assign} AS hta ON t.id = hta.ticketid";
         $sqltickets    .= $data->answerer > 0 ? " AND hta.userid = $data->answerer " : '';
 
         $wheretickets   = array('t.summary', 't.detail', 'tt.value', 'u.firstname', 'u.lastname');
 
+        $params = array();
         $ticketsearchgroups = array();
         foreach($words as $word) {
             if(empty($word)) {
@@ -746,7 +755,8 @@ class helpdesk_native extends helpdesk {
             }
             $ticketsubwhere = array();
             foreach($wheretickets as $column) {
-                $ticketsubwhere[] = "$column $like '%{$word}%'";
+                $ticketsubwhere[] = $DB->sql_like($column, '?', false);
+                $params[] = "%{$word}%";
             }
             if(is_numeric($word)) {
                 $ticketsubwhere[] = "t.id = $word";
@@ -778,9 +788,9 @@ class helpdesk_native extends helpdesk {
         $searchquery    = "SELECT * FROM ({$selectsearch} {$sqltickets} {$ticketwheresql}) AS foo {$orderby}";
         $countquery     = "{$selectcount} {$sqltickets} {$ticketwheresql}";
 
-        $tidbitcount    = count_records_sql($countquery);
+        $tidbitcount    = $DB->count_records_sql($countquery, $params);
         $offset         = $page * $count;
-        $tidbits        = get_records_sql($searchquery, $offset, $count);
+        $tidbits        = $DB->get_records_sql($searchquery, $params, $offset, $count);
 
         $bigtickets     = array();
         if(!empty($tidbits)) {
@@ -801,7 +811,7 @@ class helpdesk_native extends helpdesk {
     }
 
     function change_overview_form($ticket) {
-        global $CFG;
+        global $CFG, $DB;
         $id = $ticket->get_idstring();
         if (empty($id)) {
             return false;
@@ -809,7 +819,7 @@ class helpdesk_native extends helpdesk {
         $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/edit.php");
         $url->param('id', $ticket->get_idstring());
 
-        $user = get_record('user', 'id', $ticket->get_userid());
+        $user = $DB->get_record('user', array('id'=>$ticket->get_userid()));
 
         $form = new change_overview_form($url->out(), null, 'post', '', null, true, $ticket);
 
@@ -942,8 +952,4 @@ class helpdesk_native extends helpdesk {
         }
         return $url;
     }
-
 }
-
-
-?>

@@ -25,22 +25,10 @@
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
 
-global $CFG;
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
-
-// Do block as a whole settings first.
-$settings->add(new admin_setting_heading('block_helpdesk_general',
-    get_string('generalsettings', 'block_helpdesk'),
-    get_string('generalsettingsdesc', 'block_helpdesk')));
-
-$settings->add(new admin_setting_configtext('block_helpdesk_customblockname',
-    get_string('customblockname', 'block_helpdesk'),
-    get_string('customblocknamedesc', 'block_helpdesk'),
-    '', PARAM_TEXT, 128));
 
 $hd = helpdesk::get_helpdesk();
 
 if (method_exists($hd, 'plugin_settings')) {
     $hd->plugin_settings($settings);
 }
-?>

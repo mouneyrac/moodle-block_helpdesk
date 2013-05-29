@@ -24,24 +24,25 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
-require_once("$CFG->libdir/formslib.php");
-class search_form extends moodleform {
 
+require_once("$CFG->libdir/formslib.php");
+
+class search_form extends moodleform {
     function definition() {
-        global $CFG;
+        global $DB, $CFG;
 
         $context = get_context_instance(CONTEXT_SYSTEM);
 
         // Return all that have rows, but not on the join itself.
-        // We want to populate the answerers list with only users who have 
-        $answerers = get_records_sql("
+        // We want to populate the answerers list with only users who have
+        $sql = "
             SELECT u.*
-            FROM {$CFG->prefix}user AS u
-            LEFT JOIN {$CFG->prefix}helpdesk_ticket_assignments AS hta ON u.id = hta.userid
+            FROM {user} AS u
+            LEFT JOIN {block_helpdesk_ticket_assign} AS hta ON u.id = hta.userid
             WHERE hta.ticketid IS NOT NULL
             ORDER BY u.lastname, u.firstname ASC
-        ");
+        ";
+        $answerers = $DB->get_records_sql($sql);
 
         $statuses = get_ticket_statuses();
         $statuslist = array();
@@ -90,7 +91,7 @@ class search_form extends moodleform {
         $mform->addElement('hidden', 'submitter', '');
     }
 
-    function validation() {
+    function validation($data, $files) {
         // Add something at some point.
     }
 
@@ -99,4 +100,3 @@ class search_form extends moodleform {
         $mform->setDefault('status', $array);
     }
 }
-?>

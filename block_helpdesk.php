@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script extends a moodle block_base and is the entry point for all 
+ * This script extends a moodle block_base and is the entry point for all
  * helpdesk  ability.
  *
  * @package     block_helpdesk
@@ -25,39 +25,40 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
+
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
 class block_helpdesk extends block_base {
     var $hd;
     /**
-     * Overridden block_base method. All this method does is sets the block's 
+     * Overridden block_base method. All this method does is sets the block's
      * title and version.
      *
      * @return null
      */
     function init() {
-        // Title should depend on block settings.
         $this->title = get_string('helpdesk', 'block_helpdesk');
-        $alt_block_name = get_config(null, 'block_helpdesk_customblockname');
-        if($alt_block_name) {
-            $this->title = $alt_block_name;
-        }
-        $this->version = 2012071600;
         $this->cron = 1;
     }
 
     /**
-     * This overridden method gets called after the block's tables are created.
+     * Overridden method that gets called every time. This is the only place to
+     * make sure the help desk gets installed.
      *
-     * @return bool
+     * @return null
      */
-    function after_install() {
+    function specialization() {
+        global $DB;
+        // If no core statuses, install the plugin.
+        // TODO: Make this less brain dead.
         $hd = helpdesk::get_helpdesk();
-        $rval = $hd->install();
+        if(!$hd->is_installed()) {
+            $hd->install();
+        }
     }
 
     /**
-     * Overridden block_base method. This generates the content in the body of 
+     * Overridden block_base method. This generates the content in the body of
      * the block and returns it.
      *
      * @return string
@@ -68,7 +69,7 @@ class block_helpdesk extends block_base {
 
         $this->content = new stdClass;
 
-        // First thing is first, user must have some form of capbility on the 
+        // First thing is first, user must have some form of capbility on the
         // helpdesk. Otherwise they shouldn't be able to access it.
         $cap = helpdesk_is_capable();
         $this->content->text = '';
@@ -112,7 +113,7 @@ class block_helpdesk extends block_base {
             }
         }
 
-        // Print my tickets title. Block itself just displays first 5 user 
+        // Print my tickets title. Block itself just displays first 5 user
         // tickets. Other tickets are found in ticket listing.
         $this->content->text .= '<h3>' . get_string('mytickets', 'block_helpdesk') . '</h3>';
 
@@ -163,7 +164,7 @@ class block_helpdesk extends block_base {
     }
 
     /**
-     * This is an overriden method. This method is called when Moodle's cron 
+     * This is an overriden method. This method is called when Moodle's cron
      * runs. Currently this method does nothing and returns nothing.
      *
      * @return null
@@ -187,4 +188,3 @@ class block_helpdesk extends block_base {
         return false;
     }
 }
-?>

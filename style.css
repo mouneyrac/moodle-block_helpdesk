@@ -8,7 +8,7 @@ div.ticketinfo {
 }
 div#ticketlistoptions {
     display: block;
-    width: 95%;
+    width: 100%;
     min-height: 15em;
 }
 div.left2div {
@@ -25,6 +25,37 @@ li {
     min-width: 1px;
 }
 table {
-    table-layout: fixed;
     word-wrap: break-word;
+}
+
+table.helpdesktable {
+    width: 100%;
+}
+
+table.detailstable tr td:first-child {
+    width: 30%;
+}
+
+table.tagstable tr td:first-child {
+    width: 30%;
+}
+
+table.assigntable tr td:first-child {
+    width: 70%;
+}
+
+table.updatelisttable>tbody>tr>td {
+    padding: 0;
+}
+
+table.updatetable {
+    margin: 0;
+}
+
+table.updatetable th {
+    text-align: left;
+}
+
+table.updatetable tr td:first-child {
+    width: 30%;
 }

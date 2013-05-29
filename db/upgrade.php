@@ -76,7 +76,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $field->setAttributes(XMLDB_TYPE_INTEGER, '20', XMLDB_UNSIGNED, null,
                               null, null, null, null, 'groupid');
         $result = $result && add_field($table, $field);
-    } 
+    }
 
     // Statuses are being move to the database here!
     if ($oldversion < 2010091400) {
@@ -108,9 +108,9 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
                               null, null, null, null, 'ticketdefault');
         $result = $result && add_field($table, $field);
 
-        // We have to convert all the old style statuses over to new statuses. 
-        // We don't like legacy data in the database. With that said, we need to 
-        // populate all the statuses, which is normally done when the block is 
+        // We have to convert all the old style statuses over to new statuses.
+        // We don't like legacy data in the database. With that said, we need to
+        // populate all the statuses, which is normally done when the block is
         // installed. (for all versions starting with this one.)
         $hd = helpdesk::get_helpdesk();
         $hd->install();
@@ -119,7 +119,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $wip    = get_field('helpdesk_status', 'id', 'name', 'workinprogress');
         $closed = get_field('helpdesk_status', 'id', 'name', 'closed');
 
-        // Now our statuses are installed. We're ready to convert legacy to 
+        // Now our statuses are installed. We're ready to convert legacy to
         // current. This could potentially use a lot of memory.
         $table = new XMLDBTable('helpdesk_ticket');
         $field = new XMLDBField('status');
@@ -133,12 +133,12 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
                               null, null, null. null, $new);
         $result = $result && add_field($table, $field);
 
-        // We want to update all tickets without doing them all at once. Some 
+        // We want to update all tickets without doing them all at once. Some
         // systems may have limited memory.
         $chunksize = 100;       // 100 Records at a time.
         $ticketcount = count_records('helpdesk_ticket');
 
-        // Lets grab all the statuses so we can convert the old ones. This 
+        // Lets grab all the statuses so we can convert the old ones. This
         // shouldn't be *too* bad.
 
 
@@ -159,7 +159,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
                 WHERE oldstatus = 'closed'";
         $result = $result && execute_sql($sql);
 
-        // At this point, we're done. Lets get rid of the extra field in the 
+        // At this point, we're done. Lets get rid of the extra field in the
         // database that has the old statuses.
         $table = new XMLDBTable('helpdesk_ticket');
         $field = new XMLDBField('oldstatus');
@@ -172,7 +172,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $field->setAttributes(XMLDB_TYPE_INTEGER, '20', XMLDB_UNSIGNED, null,
                               null, null, null, null, null);
         $result = $result && add_field($table, $field);
-    } 
+    }
 
     if($oldversion < 2011112900) {
         $table = new XMLDBTable('helpdesk_ticket');
@@ -206,6 +206,31 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $result = $result && add_index($table, $index);
     }
 
+    if ($oldversion < 2013022800) {
+        $tables = array(
+            'helpdesk'                      => 'block_helpdesk',
+            'helpdesk_ticket'               => 'block_helpdesk_ticket',
+            'helpdesk_ticket_tag'           => 'block_helpdesk_ticket_tag',
+            'helpdesk_ticket_update'        => 'block_helpdesk_ticket_update',
+            'helpdesk_ticket_assignments'   => 'block_helpdesk_ticket_assign',
+            'helpdesk_ticket_group'         => 'block_helpdesk_ticket_group',
+            'helpdesk_status'               => 'block_helpdesk_status',
+            'helpdesk_status_path'          => 'block_helpdesk_status_path',
+            'helpdesk_rule'                 => 'block_helpdesk_rule',
+            'helpdesk_rule_email'           => 'block_helpdesk_rule_email'
+        );
+
+        foreach ($tables as $old_name => $new_name) {
+            // Define table block_helpdesk to be renamed to NEWNAMEGOESHERE
+            $table = new xmldb_table($old_name);
+
+            // Launch rename table for block_helpdesk
+            $dbman->rename_table($table, $new_name);
+        }
+
+        // helpdesk savepoint reached
+        upgrade_block_savepoint(true, 2013022800, 'helpdesk');
+    }
+
     return $result;
 }
-?>

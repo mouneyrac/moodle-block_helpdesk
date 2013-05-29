@@ -25,19 +25,11 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
 
 $hdpath = "$CFG->dirroot/blocks/helpdesk";
 require_once("$hdpath/db/access.php");
 require_once("$hdpath/helpdesk.php");
 require_once("$hdpath/helpdesk_ticket.php");
-require_once($CFG->libdir . '/moodlelib.php');
-require_once($CFG->libdir . '/blocklib.php');
-require_once($CFG->libdir . '/weblib.php');
-require_once($CFG->libdir . '/datalib.php');
-require_once($CFG->libdir . '/formslib.php');
-require_once($CFG->libdir . '/adminlib.php');
-
 unset($hdpath);
 
 define('HELPDESK_DATE_FORMAT', 'F j, Y, g:i a');
@@ -75,11 +67,15 @@ function helpdesk_get_date_string($date) {
     return userdate($date);
 }
 
+/**
+ * This needs to be deprecated. We might be able to do what we want with HTML
+ * tables in Moodle now. I have to look into this. --jdoane (20121102.00)
+ */
 function print_table_head($string, $width='95%') {
-    $table = new stdClass;
+    $table = new html_table;
     $table->width   = $width;
     $table->head    = array($string);
-    print_table($table);
+    echo html_writer::table($table);
 }
 
 /**
@@ -91,14 +87,14 @@ function print_table_head($string, $width='95%') {
  * @return bool
  */
 function helpdesk_is_capable($capability=null, $require=false, $user=null) {
-
+    global $DB;
     if (empty($user)) {
         global $USER;
         $user = $USER;
     }
 
     if (is_numeric($user)) {
-	$user = get_record('user', 'id', $user);
+	$user = $DB->get_record('user', array('id' => $user));
     }
 
     $context = get_context_instance(CONTEXT_SYSTEM);
@@ -137,10 +133,11 @@ function helpdesk_is_capable($capability=null, $require=false, $user=null) {
  * @return mixed
  */
 function helpdesk_get_user($id) {
+    global $DB;
     if (empty($id)) {
         error(get_string('missingidparam', 'block_helpdesk'));
     }
-    return get_record('user', 'id', $id);
+    return $DB->get_record('user', array('id'=>$id));
 }
 
 /**
@@ -155,7 +152,7 @@ function helpdesk_get_session_var($varname) {
     global $SESSION;
     if (isset($SESSION->block_helpdesk)) {
         return isset($SESSION->block_helpdesk->$varname) ?
-	       $SESSION->block_helpdesk->$varname : false; 
+	       $SESSION->block_helpdesk->$varname : false;
     }
     $SESSION->block_helpdesk = new stdClass;
     return null;
@@ -186,10 +183,14 @@ function helpdesk_set_session_var($varname, $value) {
  * @return string
  */
 function helpdesk_simple_helpbutton($title, $name, $return=true) {
-    global $CFG;
-    $result = helpbutton($name, $title, 'block_helpdesk', true, false, '', $return);
-    return $result;
-
+    global $OUTPUT;
+    $result = $OUTPUT->help_icon($name, 'block_helpdesk', false);
+    if ($return) {
+        return $result;
+    }
+    else {
+        echo $result;
+    }
 }
 
 /**
@@ -198,17 +199,21 @@ function helpdesk_simple_helpbutton($title, $name, $return=true) {
  * Besides, the header is going to be very similar from one page to another with
  * the exception of navigation.
  *
- * @param object        $nav will be a navigation build by build_navigation().
+ * @param array         $nav array of URL-title pairs
+ * @param string        $title is the page title
  * @return null
  */
-function helpdesk_print_header($nav, $title=null) {
-    global $CFG, $COURSE;
-    $helpdeskstr = get_string('helpdesk', 'block_helpdesk');
-    if (empty($title)) {
-	$title = $helpdeskstr;
-    }
-    $meta = "<meta http-equiv=\"x-ua-compatible\" content=\"IE=8\" />\n
-	     <link rel=\"stylesheet\" type=\"text/css\" href=\"$CFG->wwwroot/blocks/helpdesk/style.css\" />\n";
-    print_header($title, $helpdeskstr, $nav, '', $meta);
+function helpdesk_print_header($nav, $title) {
+    // TODO: This function is deprecated. Please use static help desk methods to
+    // do this. Example: helpdesk::page_header(); helpdesk::page_footer(); and
+    // helpdesk::page_init($title, $nav);
+    // --jdoane 20121105
+    debugging('helpdesk_print_header() has been deprecated. Do not use this function call.');
+    helpdesk::page_init($title, $nav);
+    helpdesk::page_header();
 }
-?>
+
+function helpdesk_print_footer() {
+    debugging('helpdesk_print_footer() has been deprecated. Do not use this function call.');
+    helpdesk::page_footer();
+}

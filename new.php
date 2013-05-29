@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script is for creating new tickets and handling the UI and entry level 
+ * This script is for creating new tickets and handling the UI and entry level
  * functions of this task.
  *
  * @package     block_helpdesk
@@ -25,11 +25,7 @@
  */
 
 // We are moodle, so we should get necessary stuff.
-require_once('../../config.php');
-require_once($CFG->libdir . '/blocklib.php');
-require_once($CFG->libdir . '/weblib.php');
-require_once($CFG->libdir . '/datalib.php');
-require_once($CFG->libdir . '/formslib.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 
 // We are the helpdesk, so we need the core library.
 require_once($CFG->dirroot . '/blocks/helpdesk/lib.php');
@@ -37,17 +33,13 @@ require_once($CFG->dirroot . '/blocks/helpdesk/lib.php');
 require_login(0, false);
 
 // User should be logged in, no guests.
-$nav = array (
-    array ('name' => get_string('helpdesk', 'block_helpdesk')),
-    array ('name' => get_string('newticket', 'block_helpdesk'))
-    );
 
 // We may have some special tags included in GET.
 $tags = optional_param('tags', null, PARAM_TAGLIST);
 $tagslist = array();
 if (!empty($tags)) {
-    $tags = explode(',', $tags);
-    foreach($tags as $tag) {
+    $tagssplit = explode(',', $tags);
+    foreach($tagssplit as $tag) {
         if (!($rval = optional_param($tag, null, PARAM_TEXT))) {
             notify(get_string('missingnewtickettag', 'block_helpdesk') . ": $tag");
         }
@@ -58,9 +50,17 @@ if (!empty($tags)) {
 // Require a minimum of asker capability on the current user.
 helpdesk_is_capable(HELPDESK_CAP_ASK, true);
 
+$baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
+$url = new moodle_url("/blocks/helpdesk/new.php");
+if ($tags) {
+    $url->param('tags', $tags);
+}
+$nav = array (
+    array ('name' => get_string('helpdesk', 'block_helpdesk'), 'link' => $baseurl->out()),
+    array ('name' => get_string('newticket', 'block_helpdesk')),
+);
 $title = get_string('helpdesknewticket', 'block_helpdesk');
-helpdesk_print_header(build_navigation($nav), $title);
-print_heading(get_string('helpdesk', 'block_helpdesk'));
+helpdesk::page_init($title, $nav, $url);
 
 // Meat and potatoes of the new ticket.
 // Get plugin helpdesk.
@@ -75,8 +75,9 @@ if (!empty($taglist)) {
 
 // If the form is submitted (or not) we gotta do stuff.
 if (!$form->is_submitted() or !($data = $form->get_data())) {
+    helpdesk::page_header();
     $form->display();
-    print_footer();
+    helpdesk::page_footer();
     exit;
 }
 
@@ -100,7 +101,7 @@ if (!empty($data->tags)) {
             $taglist[$tag] = $rval;
         }
     }
-    
+
     foreach($taglist as $key => $value) {
         $tagobject = new stdClass;
         $tagobject->ticketid = $id;
@@ -115,6 +116,4 @@ if (!empty($data->tags)) {
 $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
 $url->param('id', $id);
 $url = $url->out();
-
 redirect($url, get_string('newticketmsg', 'block_helpdesk'));
-?>

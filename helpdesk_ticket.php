@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Abstract helpdesk_ticket class. This defines the layout that a ticket must
  * have and sets a layout and structure for any given ticket for a particular
@@ -8,7 +7,6 @@
  * @copyright   2010 VLACS
  * @author      Jonathan Doane <jdoane@vlacs.org>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @package     block_helpdesk
  */
 abstract class helpdesk_ticket {
     /**
@@ -24,7 +22,7 @@ abstract class helpdesk_ticket {
      * object. This is determined by the overriding function. Should return
      * false if the fetch fails, and true if it gets a ticket.
      *
-     * @param bool      $permissionhalt will error out if the user doesn't have 
+     * @param bool      $permissionhalt will error out if the user doesn't have
      *                  access, setting to false will just return false.
      * @return bool
      */
@@ -289,15 +287,13 @@ abstract class helpdesk_ticket {
     abstract function get_assigned();
 
     /**
-     * This should be called when an already existing ticket is edited and is to 
-     * be stored in the database. Some cases a help desk may do extra things on 
+     * This should be called when an already existing ticket is edited and is to
+     * be stored in the database. Some cases a help desk may do extra things on
      * a ticket edit.
      *
-     * @param string    $msg is the message to leave in the update associated 
+     * @param string    $msg is the message to leave in the update associated
      *                  with this edit.
      * @return bool
      */
     abstract function store_edit($msg=null);
 }
-
-?>
