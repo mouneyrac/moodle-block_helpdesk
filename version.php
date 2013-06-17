@@ -16,7 +16,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version  = 2013061700;
+$plugin->version  = 2013061701;
 $plugin->requires = 2007101509;
 $plugin->component = 'block_helpdesk';
 
