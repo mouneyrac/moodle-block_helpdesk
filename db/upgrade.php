@@ -207,7 +207,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
     }
 
     // Rename all tables to the new name...
-    if ($oldversion < 2012120500) {
+    if ($oldversion < 2013061700) {
         $table = new XMLDBTable('helpdesk');
         $result = $result && rename_table($table, 'block_helpdesk');
 
