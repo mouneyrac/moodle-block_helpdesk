@@ -619,7 +619,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $assign = new stdClass;
         $assign->userid = $userid;
         $assign->ticketid = $this->id;
-        $rval = insert_record('block_helpdesk_ticket_assignments', $assign, false);
+        $rval = insert_record('block_helpdesk_ticket_assign', $assign, false);
         if (!$rval) {
             return false;
         }
@@ -651,7 +651,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function remove_assignment($userid) {
-        $result = delete_records('block_helpdesk_ticket_assignments', 'userid', $userid, 'ticketid', $this->id);
+        $result = delete_records('block_helpdesk_ticket_assign', 'userid', $userid, 'ticketid', $this->id);
         if ($result) {
             $this->store();
             $urecord            = get_record('user', 'id', $userid);
@@ -680,7 +680,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if (empty($this->id)) {
             return false;
         }
-        $records = get_records('block_helpdesk_ticket_assignments', 'ticketid', $this->id);
+        $records = get_records('block_helpdesk_ticket_assign', 'ticketid', $this->id);
 
         // If there are no records, there are no users assigned.
         if (!$records) {

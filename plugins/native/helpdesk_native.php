@@ -734,7 +734,7 @@ class helpdesk_native extends helpdesk {
         if($data->answerer <= 0) {
             $sqltickets .= "LEFT ";
         }
-        $sqltickets    .= "JOIN {$CFG->prefix}block_helpdesk_ticket_assignments AS hta ON t.id = hta.ticketid";
+        $sqltickets    .= "JOIN {$CFG->prefix}block_helpdesk_ticket_assign AS hta ON t.id = hta.ticketid";
         $sqltickets    .= $data->answerer > 0 ? " AND hta.userid = $data->answerer " : '';
 
         $wheretickets   = array('t.summary', 't.detail', 'tt.value', 'u.firstname', 'u.lastname');
