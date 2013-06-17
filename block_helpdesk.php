@@ -37,7 +37,8 @@ class block_helpdesk extends block_base {
      */
     function init() {
         $this->title = get_string('helpdesk', 'block_helpdesk');
-        $this->version = 2012120500;
+        require(dirname(__FILE__) . '/version.php');
+        $this->version = $plugin->version;
         $this->cron = 1;
     }
 
