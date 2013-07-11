@@ -44,7 +44,6 @@ if ($sort == "name") {
     $sort = "firstname";
 }
 
-$baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
 $searchurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $thisurl = new moodle_url(me());
 $thisurl->remove_params();
@@ -54,7 +53,7 @@ $thisurl->param('returnurl', $returnurl);
 $nav = array (
     array (
         'name' => get_string('helpdesk', 'block_helpdesk'),
-        'link' => $baseurl->out()
+        'link' => $searchurl->out()
     )
 );
 if (is_numeric($ticketid)) {
