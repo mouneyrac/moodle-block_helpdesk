@@ -43,18 +43,18 @@ $page   = ($page == null ? 0 : $page);
 
 $context = get_context_instance(CONTEXT_SYSTEM);
 
-$viewurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
-$qurl = clone $viewurl;
-$qurl->param('id', $tid);
+$qurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
+$viewurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$viewurl->param('id', $tid);
 
 $nav = array (
     array (
         'name' => get_string('helpdesk', 'block_helpdesk'),
-        'link' => $viewurl->out()
+        'link' => $qurl->out()
     ),
     array (
         'name' => get_string('ticketview', 'block_helpdesk'),
-        'link' => $qurl->out()
+        'link' => $viewurl->out()
     ),
     array (
         'name' => get_string('assignments', 'block_helpdesk')
