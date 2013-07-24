@@ -25,19 +25,11 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
 
 $hdpath = "$CFG->dirroot/blocks/helpdesk";
 require_once("$hdpath/db/access.php");
 require_once("$hdpath/helpdesk.php");
 require_once("$hdpath/helpdesk_ticket.php");
-require_once($CFG->libdir . '/moodlelib.php');
-require_once($CFG->libdir . '/blocklib.php');
-require_once($CFG->libdir . '/weblib.php');
-require_once($CFG->libdir . '/datalib.php');
-require_once($CFG->libdir . '/formslib.php');
-require_once($CFG->libdir . '/adminlib.php');
-
 unset($hdpath);
 
 define('HELPDESK_DATE_FORMAT', 'F j, Y, g:i a');
@@ -64,6 +56,22 @@ define('HELPDESK_UPDATE_TYPE_DETAILED', 'update_type_detailed');
  * sort of equivalent system update.
  */
 define('HELPDESK_UPDATE_TYPE_SYSTEM', 'update_type_system');
+
+/**
+ * Helpdesk userlist functions
+ */
+define('HELPDESK_USERLIST_NEW_SUBMITTER', 'newsubmitter');
+define('HELPDESK_USERLIST_NEW_WATCHER', 'newwatcher');
+define('HELPDESK_USERLIST_MANAGE_EXTERNAL', 'manageext');
+define('HELPDESK_USERLIST_SUBMIT_AS', 'submitas');
+define('HELPDESK_USERLIST_PLUGIN', 'plugin');
+
+/**
+ * Helpdesk userlist user sets
+ */
+define('HELPDESK_USERSET_ALL', 'all');
+define('HELPDESK_USERSET_INTERNAL', 'internal');
+define('HELPDESK_USERSET_EXTERNAL', 'external');
 
 /**
  * Gets a speicificly formatted date string for the helpdesk block.
@@ -136,11 +144,94 @@ function helpdesk_is_capable($capability=null, $require=false, $user=null) {
  *
  * @return mixed
  */
-function helpdesk_get_user($id) {
-    if (empty($id)) {
+function helpdesk_get_user($userid) {
+    if (empty($userid)) {
         error(get_string('missingidparam', 'block_helpdesk'));
     }
-    return get_record('user', 'id', $id);
+    static $users = array();
+    if (isset($users[$userid])) {
+        return $users[$userid];
+    }
+
+    global $CFG;
+
+    $sql = "
+        SELECT hu.id AS hd_userid, u.id AS userid, u.firstname, u.lastname, u.email,
+            COALESCE(u.phone1, u.phone2) AS phone
+        FROM {$CFG->prefix}user AS u
+        LEFT JOIN {$CFG->prefix}block_helpdesk_hd_user AS hu ON hu.userid = u.id
+        WHERE u.id = $userid
+    ";
+    $user = get_record_sql($sql);
+    if (!$user) {
+        return false;
+    }
+    if (!isset($user->hd_userid)) {
+        # make an hd_user record for the user
+        $user->hd_userid = helpdesk_create_hd_user($userid);
+    }
+    $users[$userid] = $user;
+    return $user;
+}
+
+function helpdesk_ensure_hd_user($userid) {
+    $hd_user = get_record('block_helpdesk_hd_user', 'userid', $userid);
+    if (!$hd_user) {
+        return helpdesk_create_hd_user($userid);
+    }
+    return $hd_user->id;
+}
+
+/**
+ * Makes an hd_user record for a local Moodle user
+ */
+function helpdesk_create_hd_user($userid) {
+    $hd_user = (object) array(
+        'userid' => $userid
+    );
+    return insert_record('block_helpdesk_hd_user', $hd_user);
+}
+
+function helpdesk_get_hd_user($hd_userid) {
+    if (empty($hd_userid)) {
+        error(get_string('missingidparam', 'block_helpdesk'));
+    }
+    static $users = array();
+    if (isset($users[$hd_userid])) {
+        return $users[$hd_userid];
+    }
+
+    global $CFG;
+
+    $sql = "
+        SELECT hu.id AS hd_userid, u.id AS userid, COALESCE(u.email, hu.email) AS email,
+            COALESCE(u.firstname, hu.name) AS firstname, COALESCE(u.lastname, '') AS lastname,
+            COALESCE(u.phone1, u.phone2, hu.phone) AS phone
+        FROM {$CFG->prefix}block_helpdesk_hd_user AS hu
+        LEFT JOIN {$CFG->prefix}user AS u ON u.id = hu.userid
+        WHERE hu.id = $hd_userid
+    ";
+    if (!$user = get_record_sql($sql)) {
+        return false;
+    }
+    $users[$hd_userid] = $user;
+    return $user;
+}
+
+function helpdesk_user_link($user) {
+    global $CFG;
+    $type = '';
+    if (isset($user->userid)) {
+        $url = new moodle_url("$CFG->wwwroot/user/view.php");
+        $url->param('id', $user->userid);
+    } else {
+        $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/userlist.php");
+        $url->param('hd_userid', $user->hd_userid);
+        $url->param('function', HELPDESK_USERLIST_MANAGE_EXTERNAL);
+        $type = get_string('nonmoodleuser', 'block_helpdesk');
+    }
+    $url = $url->out();
+    return "<a href=\"$url\">" . fullname($user) . "</a> $type";
 }
 
 /**
@@ -155,7 +246,7 @@ function helpdesk_get_session_var($varname) {
     global $SESSION;
     if (isset($SESSION->block_helpdesk)) {
         return isset($SESSION->block_helpdesk->$varname) ?
-	       $SESSION->block_helpdesk->$varname : false; 
+	       $SESSION->block_helpdesk->$varname : false;
     }
     $SESSION->block_helpdesk = new stdClass;
     return null;
@@ -211,4 +302,3 @@ function helpdesk_print_header($nav, $title=null) {
 	     <link rel=\"stylesheet\" type=\"text/css\" href=\"$CFG->wwwroot/blocks/helpdesk/style.css\" />\n";
     print_header($title, $helpdeskstr, $nav, '', $meta);
 }
-?>

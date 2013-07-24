@@ -25,12 +25,13 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
+
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
 class block_helpdesk extends block_base {
     var $hd;
     /**
-     * Overridden block_base method. All this method does is sets the block's 
+     * Overridden block_base method. All this method does is sets the block's
      * title and version.
      *
      * @return null
@@ -53,7 +54,7 @@ class block_helpdesk extends block_base {
     }
 
     /**
-     * Overridden block_base method. This generates the content in the body of 
+     * Overridden block_base method. This generates the content in the body of
      * the block and returns it.
      *
      * @return string
@@ -64,7 +65,7 @@ class block_helpdesk extends block_base {
 
         $this->content = new stdClass;
 
-        // First thing is first, user must have some form of capbility on the 
+        // First thing is first, user must have some form of capbility on the
         // helpdesk. Otherwise they shouldn't be able to access it.
         $cap = helpdesk_is_capable();
         $this->content->text = '';
@@ -108,13 +109,14 @@ class block_helpdesk extends block_base {
             }
         }
 
-        // Print my tickets title. Block itself just displays first 5 user 
+        // Print my tickets title. Block itself just displays first 5 user
         // tickets. Other tickets are found in ticket listing.
         $this->content->text .= '<h3>' . get_string('mytickets', 'block_helpdesk') . '</h3>';
 
         // Grab the tickets to display and add to the content.
+        $hd_user = helpdesk_get_user($USER->id);
         $so = $hd->new_search_obj();
-        $so->submitter = $USER->id;
+        $so->submitter = $hd_user->hd_userid;
         $so->status = $hd->get_status_ids(true, false);
         $tickets = $hd->search($so, 5, 0);
         if (!empty($tickets->count)) {
@@ -148,6 +150,23 @@ class block_helpdesk extends block_base {
         $text = get_string('submitnewticket', 'block_helpdesk');
         $this->content->text .= "<a href=\"$url\">$text</a><br /><br />";
 
+        if (helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
+            $submitas_url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/userlist.php");
+            $submitas_url->param('function', HELPDESK_USERLIST_SUBMIT_AS);
+            $submitas_url = $submitas_url->out();
+            $submitas_text = get_string('submitas', 'block_helpdesk');
+            $this->content->text .= "<a href=\"$submitas_url\">$submitas_text</a><br />";
+
+            if ($CFG->block_helpdesk_allow_external_users) {
+                $manage_url = new moodle_Url("$CFG->wwwroot/blocks/helpdesk/userlist.php");
+                $manage_url->param('function', HELPDESK_USERLIST_MANAGE_EXTERNAL);
+                $manage_url = $manage_url->out();
+                $manage_text = $manage_text = get_string('manageexternallink', 'block_helpdesk');
+                $this->content->text .= "<a href=\"$manage_url\">$manage_text</a><br />";
+            }
+            $this->content->text .= "<br />";
+        }
+
         // print a footer.
         $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/preferences.php");
         $url = $url->out();
@@ -159,7 +178,7 @@ class block_helpdesk extends block_base {
     }
 
     /**
-     * This is an overriden method. This method is called when Moodle's cron 
+     * This is an overriden method. This method is called when Moodle's cron
      * runs. Currently this method does nothing and returns nothing.
      *
      * @return null
@@ -183,4 +202,3 @@ class block_helpdesk extends block_base {
         return false;
     }
 }
-?>

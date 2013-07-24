@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script handles the updating of tickets by managing the UI and entry 
+ * This script handles the updating of tickets by managing the UI and entry
  * level functions for the task.
  *
  * @package     block_helpdesk
@@ -25,6 +25,7 @@
  */
 define('MOODLE_INTERNAL', true);
 require_once('init.php');
+
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true); // require answerer capability.
 $id = required_param('id', PARAM_INT); // this is a ticket update id.
 
@@ -37,4 +38,3 @@ if(!update_record('block_helpdesk_ticket_update', $update)) {
 $url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/view.php");
 $url->param('id', $update->ticketid);
 redirect($url->out(), get_string('updatewillnowbehidden', 'block_helpdesk'));
-?>

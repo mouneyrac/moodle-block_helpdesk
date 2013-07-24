@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Abstract helpdesk_ticket class. This defines the layout that a ticket must
  * have and sets a layout and structure for any given ticket for a particular
@@ -24,7 +23,7 @@ abstract class helpdesk_ticket {
      * object. This is determined by the overriding function. Should return
      * false if the fetch fails, and true if it gets a ticket.
      *
-     * @param bool      $permissionhalt will error out if the user doesn't have 
+     * @param bool      $permissionhalt will error out if the user doesn't have
      *                  access, setting to false will just return false.
      * @return bool
      */
@@ -125,12 +124,12 @@ abstract class helpdesk_ticket {
     abstract function set_status($status);
 
     /**
-     * Methods sets the userid of a question.
+     * Methods sets the hd_userid of a question.
      *
-     * @param int       $id is a userid.
+     * @param int       $id is a hd_user.id
      * @return bool
      */
-    abstract function set_userid($id);
+    abstract function set_hd_userid($id);
 
     /**
      * Abstract method used to return an id string. This method should return
@@ -213,7 +212,7 @@ abstract class helpdesk_ticket {
      *
      * @return mixed
      */
-    abstract function get_userid();
+    abstract function get_hd_userid();
 
     /**
      * Abstract method for adding an update to a ticket. This method returns
@@ -289,15 +288,13 @@ abstract class helpdesk_ticket {
     abstract function get_assigned();
 
     /**
-     * This should be called when an already existing ticket is edited and is to 
-     * be stored in the database. Some cases a help desk may do extra things on 
+     * This should be called when an already existing ticket is edited and is to
+     * be stored in the database. Some cases a help desk may do extra things on
      * a ticket edit.
      *
-     * @param string    $msg is the message to leave in the update associated 
+     * @param string    $msg is the message to leave in the update associated
      *                  with this edit.
      * @return bool
      */
     abstract function store_edit($msg=null);
 }
-
-?>

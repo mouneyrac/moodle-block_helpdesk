@@ -15,8 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is the view script. It handles the UI and entry level function calls for 
- * displaying a respective ticket. If no parameters are passed through post or 
+ * This is the view script. It handles the UI and entry level function calls for
+ * displaying a respective ticket. If no parameters are passed through post or
  * get, it will display a ticket listing for whatever user is logged on.
  *
  * @package     block_helpdesk
@@ -27,31 +27,28 @@
 
 // We are moodle, so we shall become moodle.
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-require_once($CFG->libdir . '/moodlelib.php');
-require_once($CFG->libdir . '/weblib.php');
 
 // We are also Helpdesk, so we shall also become a helpdesk.
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
 require_login(0, false);
 
-$id         = required_param('id', PARAM_INT);
+$id = required_param('id', PARAM_INT);
 
 $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
-$nav = array(array (
-    'name' => get_string('helpdesk', 'block_helpdesk'),
-    'link' => $url->out()
-));
-$heading = get_string('helpdesk', 'block_helpdesk');
-if (isset($id)) {
-    $nav[] = array('name' => get_string('ticketviewer', 'block_helpdesk'));
-    $heading = get_string('ticketviewer', 'block_helpdesk');
-}
+$nav = array(
+    array(
+        'name' => get_string('helpdesk', 'block_helpdesk'),
+        'link' => $url->out()
+    ),
+    array(
+        'name' => get_string('ticketviewer', 'block_helpdesk')
+    )
+);
 
 $title = get_string('helpdeskticketviewer', 'block_helpdesk');
 
 helpdesk_print_header(build_navigation($nav), $title);
-print_heading($heading);
 
 // Let's construct our helpdesk.
 $hd = helpdesk::get_helpdesk();
@@ -64,4 +61,3 @@ if (!$ticket) {
 $hd->display_ticket($ticket);
 
 print_footer();
-?>

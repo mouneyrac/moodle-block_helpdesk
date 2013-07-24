@@ -15,28 +15,38 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script handles global settings for this Help Desk block.
+ * Simple form for searching users
  *
  * @package     block_helpdesk
  * @copyright   2010 VLACS
- * @author      Joanthan Doane <jdoane@vlacs.org>
+ * @author      Jonathan Doane <jdoane@vlacs.org>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
 
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
+require_once("$CFG->libdir/formslib.php");
 
-$settings->add(new admin_setting_heading('block_helpdesk_general',
-                                         get_string('generalsettings', 'block_helpdesk'),
-                                         get_string('generalsettingsdesc', 'block_helpdesk')));
+class helpdesk_usersearch_form extends moodleform {
+    function definition() {
+        global $CFG;
 
-$settings->add(new admin_setting_configcheckbox('block_helpdesk_allow_external_users',
-                                                get_string('allowexternal', 'block_helpdesk'),
-                                                get_string('allowexternaldesc', 'block_helpdesk'),
-                                                '0', '1', '0'));
+        $mform =& $this->_form;
 
-$hd = helpdesk::get_helpdesk();
-if (method_exists($hd, 'plugin_settings')) {
-    $hd->plugin_settings($settings);
+        $hidden_fields = array(
+            'function',
+            'returnurl',
+            'paramname',
+            'ticketid',
+        );
+
+        $mform->addElement('header', 'usersearch', get_string('search'));
+        $mform->addElement('text', 'search', '', 'size="40"');
+        $mform->addElement('submit', 'submitbutton', get_string('search'));
+
+        foreach ($hidden_fields as $hf) {
+            $mform->addElement('hidden', $hf);
+        }
+    }
 }

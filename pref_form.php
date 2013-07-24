@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is a preferences script. This allows the user to change settings that 
+ * This is a preferences script. This allows the user to change settings that
  * may alter how the helpdesk is viewed.
  *
  * @package     block_helpdesk
@@ -25,9 +25,9 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
-require_once("$CFG->libdir/formslib.php");
+
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
+require_once("$CFG->libdir/formslib.php");
 
 class helpdesk_pref_form extends moodleform {
     function definition() {
@@ -54,4 +54,3 @@ class helpdesk_pref_form extends moodleform {
         $mform->addElement('submit', 'save', get_string('savepreferences', 'block_helpdesk'));
     }
 }
-?>

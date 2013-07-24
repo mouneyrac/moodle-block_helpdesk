@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script handles the updating of tickets by managing the UI and entry 
+ * This script handles the updating of tickets by managing the UI and entry
  * level functions for the task.
  *
  * @package     block_helpdesk
@@ -37,8 +37,5 @@ for($i = 1; $i <= $www_depth; $i++) {
 require_once("{$path}/config.php");
 require_once("{$hdpath}/lib.php");
 
-global $CFG, $USER;
-
 // Sorry, you need to be able to login to get here.
 require_login(0, false);
-?>

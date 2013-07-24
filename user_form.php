@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tag form for adding tags to a ticket. Extends moodleform.
+ * Form for new/editing hd users
  *
  * @package     block_helpdesk
  * @copyright   2010 VLACS
@@ -25,35 +25,39 @@
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
 
-require_once("$CFG->libdir/formslib.php");
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
-require_once("$CFG->dirroot/blocks/helpdesk/plugins/native/helpdesk_native.php");
+require_once("$CFG->libdir/formslib.php");
 
-class tag_ticket_form extends moodleform {
-    private $ticketid;
+class helpdesk_user_form extends moodleform {
+    protected $new_user;
+
+    function __construct($new_user = false, $action=null) {
+        $this->new_user = $new_user;
+        parent::__construct($action);
+    }
 
     function definition() {
         global $CFG;
 
         $mform =& $this->_form;
 
-        // Status Array
-
-        $mform->addElement('header', 'frm', get_string('tickettag', 'block_helpdesk'));
-        $mform->addElement('text', 'name', get_string('tagname', 'block_helpdesk'));
-        $mform->addRule('name', null, 'required', 'server');
-        $htmleditorparams = array (
-            'rows' => 10,
-            'cols' => 75
+        $hidden_fields = array(
+            'function',
+            'returnurl',
+            'paramname',
+            'ticketid',
+            'id',
         );
-        $mform->addElement('htmleditor', 'value', get_string('tagcontent', 'block_helpdesk'), $htmleditorparams);
-        $mform->setType('value', PARAM_RAW);
-        $mform->addRule('value', null, 'required', 'server');
-        $mform->addElement('submit', 'submitbutton', get_string('addtag', 'block_helpdesk'));
-    }
 
-    function validation($data) {
-        // We'll do custom validation if we ever need to.
-        return array();
+        $mform->addElement('header', 'title', get_string($this->new_user ? 'new_user' : 'editexternal', 'block_helpdesk'));
+        $mform->addElement('text', 'name', get_string('fullname'), 'size="40"');
+        $mform->addElement('text', 'email', get_string('email', 'block_helpdesk'), 'size="40"');
+        $mform->addElement('text', 'phone', get_string('phone'), 'size="20"');
+
+        $mform->addElement('submit', 'submitbutton', get_string('submit'));
+
+        foreach ($hidden_fields as $hf) {
+            $mform->addElement('hidden', $hf);
+        }
     }
 }
