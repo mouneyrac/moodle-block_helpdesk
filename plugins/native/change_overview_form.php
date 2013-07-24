@@ -24,10 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-global $CFG;
-
 class change_overview_form extends moodleform {
-
     private $ticket;
 
     function change_overview_form($action=null, $customdata=null, $method='post',
@@ -36,14 +33,15 @@ class change_overview_form extends moodleform {
         $this->ticket = $ticket;
         parent::moodleform($action, $customdata, $method, $target, $attributes,
                             $editable);
-    }
+                                  }
+
     function definition() {
         $mform =& $this->_form;
 
         $mform->addElement('header', 'frm', get_string('updateticketoverview', 'block_helpdesk'));
         $userparams = array('readonly' => 'readonly', 'disabled' => 'disabled');
         $mform->addElement('text', 'username', get_string('submittedby', 'block_helpdesk'), $userparams);
-        $mform->addElement('hidden', 'userid', '0');
+        $mform->addElement('hidden', 'hd_userid', '0');
         $mform->addElement('text', 'summary', get_string('summary', 'block_helpdesk'));
         $mform->addRule('summary', null, 'required', 'server');
 
@@ -96,6 +94,4 @@ class change_overview_form extends moodleform {
         // Maybe at some point. Defaults work well already.
         return array();
     }
-
 }
-?>

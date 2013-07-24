@@ -25,7 +25,6 @@
  */
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-global $CFG;
 
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
@@ -41,19 +40,16 @@ $nav = array (
     array (
         'name' => get_string('helpdesk', 'block_helpdesk'),
         'link' => $searchurl->out()
-          ),
+    ),
     array (
         'name' => get_string('ticketview', 'block_helpdesk'),
         'link' => $url->out()
     ),
     array (
         'name' => get_string('updateticketoverview', 'block_helpdesk')
-        )
-    );
-
+    )
+);
 $title = get_string('helpdeskeditticket', 'block_helpdesk');
-helpdesk_print_header(build_navigation($nav), $title);
-print_heading(get_string('updateticketoverview', 'block_helpdesk'));
 
 $hd = helpdesk::get_helpdesk();
 
@@ -65,7 +61,7 @@ if (!$ticket) {
 }
 
 if ($newuser != null ) {
-    $ticket->set_userid($newuser);
+    $ticket->set_hd_userid($newuser);
     notify(get_string('newuserselected', 'block_helpdesk') . "<br />" .
            get_string('changedusernotice', 'block_helpdesk'));
 }
@@ -76,7 +72,7 @@ if ( $form->is_submitted() and ($data = $form->get_data())) {
     $ticket->set_summary($data->summary);
     $ticket->set_detail($data->detail);
     $ticket->set_status($data->status);
-    $ticket->set_userid($data->userid);
+    $ticket->set_hd_userid($data->hd_userid);
     if (!$ticket->store_edit($data->msg)) {
         error(get_string('cannotaddupdate', 'block_helpdesk'));
     }
@@ -86,8 +82,9 @@ if ( $form->is_submitted() and ($data = $form->get_data())) {
     redirect($url, get_string('ticketedited', 'block_helpdesk'));
 }
 
+helpdesk_print_header(build_navigation($nav), $title);
+print_heading(get_string('updateticketoverview', 'block_helpdesk'));
+
 $form->display();
 
 print_footer();
-
-?>

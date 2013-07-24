@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script handles the updating of tickets by managing the UI and entry 
+ * This script handles the updating of tickets by managing the UI and entry
  * level functions for the task.
  *
  * @package     block_helpdesk
@@ -25,29 +25,26 @@
  */
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-global $CFG;
 
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
-require_once("$CFG->dirroot/user/filters/lib.php");
+require_once(dirname(__FILE__) . '/usersearch_form.php');
+require_once(dirname(__FILE__) . '/user_form.php');
 
 require_login(0, false);
 
-$returnurl      = required_param('returnurl', PARAM_RAW);
-$paramname      = required_param('paramname', PARAM_ALPHA);
+$function       = required_param('function', PARAM_ALPHA);
+$returnurl      = optional_param('returnurl', '', PARAM_RAW);
+$paramname      = optional_param('paramname', '', PARAM_ALPHA);
 $ticketid       = optional_param('tid', null, PARAM_INT);
-$userid         = optional_param('userid', null, PARAM_INT);
+$userset        = optional_param('userset', null, PARAM_ALPHA);
+$hd_userid      = optional_param('hd_userid', 0, PARAM_INT);
 $page           = optional_param('page', 0, PARAM_INT);
 $perpage        = optional_param('perpage', 20, PARAM_INT);
-$sort           = optional_param('sort', 'name', PARAM_ALPHA);
-$dir            = optional_param('dir', 'ASC', PARAM_ALPHA);
+$search         = optional_param('search', '', PARAM_ALPHA);
 
-$baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
+$thisurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/userlist.php");
+$thisurl->param('function', $function);
 $searchurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
-$thisurl = new moodle_url(me());
-$thisurl->remove_params();
-$thisurl->param('paramname', $paramname);
-$thisurl->param('returnurl', $returnurl);
-
 $nav = array (
     array (
         'name' => get_string('helpdesk', 'block_helpdesk'),
@@ -60,30 +57,115 @@ if (is_numeric($ticketid)) {
     $nav[] = array (
         'name' => get_string('ticketview', 'block_helpdesk'),
         'link' => $ticketreturn->out()
-        );
+    );
+}
+
+$title = get_string('helpdeskselectuser', 'block_helpdesk');
+$selecttext = get_string('selectuser', 'block_helpdesk');
+if (!isset($userset)) {
+    if ($CFG->block_helpdesk_allow_external_users) {
+        $userset = HELPDESK_USERSET_ALL;
+    } else {
+        $userset = HELPDESK_USERSET_INTERNAL;
+    }
+}
+switch ($function) {
+case HELPDESK_USERLIST_NEW_SUBMITTER:
+    $returnurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/edit.php");
+    $returnurl->param('id', $ticketid);
+    $paramname = 'newuser';
+
+    $nav[] = array (
+        'name' => get_string('updateticketoverview', 'block_helpdesk'),
+        'link' => $returnurl->out()
+    );
+    $nav[] = array (
+        'name' => get_string('changesubmitter', 'block_helpdesk'),
+    );
+    break;
+case HELPDESK_USERLIST_NEW_WATCHER:
+    $returnurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/manage_watchers.php");
+    $returnurl->param('tid', $ticketid);
+    $paramname = 'hd_userid';
+
+    $nav[] = array(
+        'name' => get_string('addwatcher', 'block_helpdesk'),
+    );
+    $title = get_string('helpdeskselectwatcher', 'block_helpdesk');
+    break;
+case HELPDESK_USERLIST_MANAGE_EXTERNAL:
+    if (!$CFG->block_helpdesk_allow_external_users) {
+        error(get_string('externalusersdisabled', 'block_helpdesk'));
+    }
+    $userset = HELPDESK_USERSET_EXTERNAL;
+    $returnurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/hduser.php");
+    $returnurl->param('returnurl', $thisurl->out());
+    $paramname = 'id';
+    $nav[] = array(
+        'name' => get_string('manageexternal', 'block_helpdesk'),
+    );
+    $title = get_string('helpdeskmanageexternal', 'block_helpdesk');
+    $selecttext = get_string('edituser', 'block_helpdesk');
+    break;
+case HELPDESK_USERLIST_SUBMIT_AS:
+    $returnurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/new.php");
+    $paramname = 'hd_userid';
+    $nav[] = array(
+        'name' => get_string('helpdesknewticket', 'block_helpdesk'),
+    );
+    $title = get_string('helpdeskselectticketuser', 'block_helpdesk');
+    break;
+case HELPDESK_USERLIST_PLUGIN:
+    $returnurl = new moodle_url($returnurl);
+    break;
+default:
+    error(get_string('unknownfunction'));
 }
 $nav[] = array (
-    'name' => get_string('updateticketoverview', 'block_helpdesk'),
-    'link' => $returnurl
-);
-$nav[] = array (
-    'name' => get_string('selectauser', 'block_helpdesk'),
+    'name' => get_string('selectuser', 'block_helpdesk'),
 );
 
+$url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/userlist.php");
 helpdesk_print_header(build_navigation($nav));
-print_heading(get_string('changeuser', 'block_helpdesk'));
 
-$hd = helpdesk::get_helpdesk();
 
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
 
+echo "<div class=\"left2div\">";
 
-$ufiltering = new user_filtering(null, qualified_me());
+// search box
+$search_form = new helpdesk_usersearch_form();
+$search_form->set_data((object) array(
+    'function' => $function,
+    'returnurl' => $returnurl->out(),
+    'paramname' => $paramname,
+    'ticketid' => $ticketid,
+//    'userid' => $userid,
+));
+$search_form->display();
 
-$columns = array ('fullname', 'email');
+echo "</div> <div class=\"right2div\">";
+
+// new user
+if ($CFG->block_helpdesk_allow_external_users and !$hd_userid) {
+    $user_form = new helpdesk_user_form(true, "$CFG->wwwroot/blocks/helpdesk/hduser.php");
+    $user_form->set_data((object) array(
+        'returnurl' => $returnurl->out(),
+        'paramname' => $paramname,
+        'ticketid' => $ticketid,
+    ));
+    $user_form->display();
+}
+
+echo "</div><div class=\"clear\">";
+
+// search results
+
+$columns = array ('fullname', 'email', 'phone');
 $table = new stdClass;
 $table->head = array();
 $table->data = array();
+$table->attributes = array('class' => 'generaltable helpdesktable');
 
 foreach ($columns as $column) {
     if ($column == '') {
@@ -93,27 +175,81 @@ foreach ($columns as $column) {
     $table->head[$column] = get_string("$column");
 }
 
-if ($sort == "name") {
-    $sort = "firstname";
-}
-
-$extrasql = $ufiltering->get_sql_filter();
-$users = get_users_listing($sort, $dir, $page*$perpage, $perpage, '', '', '', $extrasql);
-$usercount = get_users(false);
-$usersearchcount = get_users(false, '', true, "", "", '', '', '', '', '*', $extrasql);
-
-if ($extrasql !== '') {
-    print_heading("$usersearchcount / $usercount ".get_string('users'));
-    $usercount = $usersearchcount;
+if ($function == HELPDESK_USERLIST_MANAGE_EXTERNAL and $hd_userid) {
+    $search_count = 1;
+    $users = array(helpdesk_get_hd_user($hd_userid));
 } else {
-    print_heading("$usercount ".get_string('users'));
+    $sql_users = "
+        FROM {$CFG->prefix}user AS u
+        LEFT JOIN {$CFG->prefix}block_helpdesk_hd_user AS hu2 ON hu2.userid = u.id
+        WHERE u.deleted = 0
+    ";
+    $sql_hdusers = "
+        FROM {$CFG->prefix}block_helpdesk_hd_user AS hu
+        WHERE userid IS NULL
+    ";
+    $params = null;
+    $search_count = $full_count = 0;
+    if ($userset == HELPDESK_USERSET_ALL or $userset == HELPDESK_USERSET_INTERNAL) {
+        $full_count += count_records_sql('SELECT COUNT(*)' . $sql_users);
+    }
+    if ($userset == HELPDESK_USERSET_ALL or $userset == HELPDESK_USERSET_EXTERNAL) {
+        $full_count += count_records_sql('SELECT COUNT(*)' . $sql_hdusers);
+    }
+    if ($search) {
+        $like = sql_ilike();
+        $param_count = 0;
+        $search = "'%$search%'";
+        if ($userset == HELPDESK_USERSET_ALL or $userset == HELPDESK_USERSET_INTERNAL) {
+            $sql_users .= "
+                AND (u.username $like $search
+                OR u.firstname $like $search
+                OR u.lastname $like $search
+                OR u.email $like $search)
+            ";
+            $search_count += count_records_sql('SELECT COUNT(*)' . $sql_users);
+        }
+        if ($userset == HELPDESK_USERSET_ALL or $userset == HELPDESK_USERSET_EXTERNAL) {
+            $sql_hdusers .= "
+                AND (hu.name $like $search
+                OR (hu.email $like $search)
+            ";
+            $search_count += count_records_sql('SELECT COUNT(*)' . $sql_hdusers);
+        }
+        print_heading("$search_count / $full_count ".get_string('users'));
+    } else {
+        print_heading("$full_count ".get_string('users'));
+        $search_count = $full_count;
+    }
+
+    $sql = '';
+    if ($userset == HELPDESK_USERSET_ALL or $userset == HELPDESK_USERSET_INTERNAL) {
+        $sql .= "
+            SELECT " . sql_concat("'u-'", "u.id") . " AS id,
+                u.id AS userid, hu2.id AS hd_userid, u.email, u.firstname, u.lastname,
+                COALESCE(u.phone1, u.phone2) AS phone
+            $sql_users
+        ";
+    }
+    if ($userset == HELPDESK_USERSET_ALL) {
+        $sql .= "UNION";
+    }
+    if ($userset == HELPDESK_USERSET_ALL or $userset == HELPDESK_USERSET_EXTERNAL) {
+        $sql .= "
+            SELECT " . sql_concat("'hu-'", "hu.id") . " AS id,
+                NULL AS userid, hu.id AS hd_userid, hu.email, hu.name AS firstname, '' AS lastname,
+                hu.phone AS phone
+            $sql_hdusers
+        ";
+    }
+    $sql .= "
+        ORDER BY firstname
+        LIMIT $perpage
+        OFFSET " . ($perpage * $page);
+
+    $users = get_records_sql($sql);
 }
 
-$alphabet = explode(',', get_string('alphabet'));
-$strall = get_string('all');
-
-$thisurl->param('sort', $sort);
-$thisurl->param('dir', $dir);
 $thisurl->param('perpage', $perpage);
 $thisurl = $thisurl->out() . '&';
 
@@ -122,23 +258,20 @@ print_paging_bar($usercount, $page, $perpage, $thisurl);
 flush();
 
 foreach($users as $user) {
-    if ($user->username == 'guest') {
-        continue;
+    if (!isset($user->hd_userid)) {
+        $user->hd_userid = helpdesk_ensure_hd_user($user->userid);
     }
-    $url = new moodle_url($returnurl);
-    $url->param($paramname, $user->id);
+    $returnurl->param($paramname, $user->hd_userid);
 
-    $changelink = fullname($user) . ' <small>(<a href="' . $url->out() . '">' . 
-            get_string('selectuser', 'block_helpdesk') . '</a>)</small>';
+    $changelink = fullname($user) . ' <small>(<a href="' . $returnurl->out() . '">' .
+            $selecttext . '</a>)</small>';
     $table->data[] = array(
         $changelink,
-        $user->email
-        );
+        $user->email,
+        $user->phone
+    );
 }
-$ufiltering->display_add();
-$ufiltering->display_active();
 print_table($table);
 print_paging_bar($usercount, $page, $perpage, $thisurl);
 
 print_footer();
-?>

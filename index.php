@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Make sure that direct browsing to the helpdesk block directory does something 
+ * Make sure that direct browsing to the helpdesk block directory does something
  * helpful.
  *
  * @package     block_helpdesk
@@ -25,8 +25,5 @@
  */
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-require_once($CFG->libdir . '/weblib.php');
 
-redirect('view.php');
-
-?>
+redirect('search.php');

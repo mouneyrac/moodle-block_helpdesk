@@ -24,7 +24,6 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-global $CFG;
 $path = "$CFG->dirroot/blocks/helpdesk/plugins/native";
 
 // All the files the plugin needs should be here.
@@ -36,4 +35,3 @@ require_once("$path/change_overview_form.php");
 require_once("$path/update_ticket_form.php");
 require_once("$path/helpdesk_ticket_native.php");
 require_once("$path/helpdesk_native.php");
-?>

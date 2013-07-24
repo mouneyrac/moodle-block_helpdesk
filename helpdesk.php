@@ -19,7 +19,7 @@ abstract class helpdesk {
     abstract function cron();
 
     /**
-     * This method can be overridden to run tasks after the tables have been 
+     * This method can be overridden to run tasks after the tables have been
      * created on install.
      *
      * @return bool
@@ -60,13 +60,13 @@ abstract class helpdesk {
      * @param string     $string Search string.
      * @return mixed
      */
-    abstract function search($data, $count=10, $page=0);
+    abstract function search($data, $count=10, $page=0);    # todo: check to see if we should change this
 
     /**
      * Abstract methods that returns a new ticket form for the helpdesk's
      * respective plugin.
      *
-     * @param array     $data is an array of stuff to be used by the plugin, 
+     * @param array     $data is an array of stuff to be used by the plugin,
      *                  such as new ticket tags.
      * @return moodleform
      */
@@ -166,7 +166,7 @@ abstract class helpdesk {
 
     /**
      * Get the default URL to submit a ticket for this plugin.
-     * Plugins can use this to collect available context data in the ticket by 
+     * Plugins can use this to collect available context data in the ticket by
      * default, without requiring user participation on those points.
      *
      * Returns a moodle_url object for the 'submitnewticket' link in the block.
@@ -196,5 +196,3 @@ abstract class helpdesk {
         );
     }
 }
-
-?>

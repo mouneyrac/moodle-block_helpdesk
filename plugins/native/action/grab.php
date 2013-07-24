@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script handles the updating of tickets by managing the UI and entry 
+ * This script handles the updating of tickets by managing the UI and entry
  * level functions for the task.
  *
  * @package     block_helpdesk
@@ -26,20 +26,18 @@
 define('MOODLE_INTERNAL', true);
 require_once('init.php');
 
-global $CFG, $USER;
-
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true); // require answerer capability.
 $hd = helpdesk::get_helpdesk();
 
 /**
  * Hello! I'm an action script! I do cool things to tickets.
- * This particular script takes a new unassigned question and gives it to an 
+ * This particular script takes a new unassigned question and gives it to an
  * answer, assigns them to it, and makes them the first responder instantly.
- * 
+ *
  * I suspect a queue might be more useful, but this works for now. --jdoane
  *
- * Keep mind this script is in NATIVE LAND, we don't need to worry about 
- * helpdesk and helpdesk_ticket abstraction. We can call helpdesk_native methods 
+ * Keep mind this script is in NATIVE LAND, we don't need to worry about
+ * helpdesk and helpdesk_ticket abstraction. We can call helpdesk_native methods
  * directly. That is the point of this script set.
  */
 
@@ -69,4 +67,3 @@ $url = new moodle_url($CFG->wwwroot . '/blocks/helpdesk/view.php');
 $url->param('id', $ticket->get_idstring());
 
 redirect($url->out(), get_string('questiongrabbed', 'block_helpdesk') . ': ' . $ticket->get_summary());
-?>

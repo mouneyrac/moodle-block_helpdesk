@@ -34,6 +34,8 @@ define('HELPDESK_NATIVE_STATUS_INPROGRESS', 'workinprogress');
 define('HELPDESK_NATIVE_UPDATE_COMMENT', 'comment');
 define('HELPDESK_NATIVE_UPDATE_ASSIGN', 'assign');
 define('HELPDESK_NATIVE_UPDATE_UNASSIGN', 'unassign');
+define('HELPDESK_NATIVE_UPDATE_WATCHING', 'watching');
+define('HELPDESK_NATIVE_UPDATE_NOTWATCHING', 'notwatching');
 define('HELPDESK_NATIVE_UPDATE_TAG', 'tag');
 define('HELPDESK_NATIVE_UPDATE_UNTAG', 'untag');
 define('HELPDESK_NATIVE_UPDATE_STATUS', 'statuschanged');
@@ -70,4 +72,3 @@ function get_status_string($status) {
     $instance = $hd->new_ticket();
     return $instance->get_status_string($status);
 }
-?>
