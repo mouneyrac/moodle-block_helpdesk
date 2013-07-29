@@ -136,6 +136,7 @@ echo "<div class=\"left2div\">";
 // search box
 $search_form = new helpdesk_usersearch_form();
 $search_form->set_data((object) array(
+    'search' => $search,
     'function' => $function,
     'returnurl' => $returnurl->out(),
     'paramname' => $paramname,
@@ -150,7 +151,7 @@ echo "</div> <div class=\"right2div\">";
 if ($CFG->block_helpdesk_allow_external_users and !$hd_userid) {
     $user_form = new helpdesk_user_form(true, "$CFG->wwwroot/blocks/helpdesk/hduser.php");
     $user_form->set_data((object) array(
-        'returnurl' => $returnurl->out(),
+        'returnurl' => $function == HELPDESK_USERLIST_MANAGE_EXTERNAL ? $thisurl->out() : $returnurl->out(),
         'paramname' => $paramname,
         'ticketid' => $ticketid,
     ));
@@ -199,20 +200,20 @@ if ($function == HELPDESK_USERLIST_MANAGE_EXTERNAL and $hd_userid) {
     if ($search) {
         $like = sql_ilike();
         $param_count = 0;
-        $search = "'%$search%'";
+        $sql_search = "'%$search%'";
         if ($userset == HELPDESK_USERSET_ALL or $userset == HELPDESK_USERSET_INTERNAL) {
             $sql_users .= "
-                AND (u.username $like $search
-                OR u.firstname $like $search
-                OR u.lastname $like $search
-                OR u.email $like $search)
+                AND (u.username $like $sql_search
+                OR u.firstname $like $sql_search
+                OR u.lastname $like $sql_search
+                OR u.email $like $sql_search)
             ";
             $search_count += count_records_sql('SELECT COUNT(*)' . $sql_users);
         }
         if ($userset == HELPDESK_USERSET_ALL or $userset == HELPDESK_USERSET_EXTERNAL) {
             $sql_hdusers .= "
-                AND (hu.name $like $search
-                OR (hu.email $like $search)
+                AND (hu.name $like $sql_search
+                OR hu.email $like $sql_search)
             ";
             $search_count += count_records_sql('SELECT COUNT(*)' . $sql_hdusers);
         }
@@ -250,10 +251,11 @@ if ($function == HELPDESK_USERLIST_MANAGE_EXTERNAL and $hd_userid) {
     $users = get_records_sql($sql);
 }
 
+$thisurl->param('search', $search);
 $thisurl->param('perpage', $perpage);
 $thisurl = $thisurl->out() . '&';
 
-print_paging_bar($usercount, $page, $perpage, $thisurl);
+print_paging_bar($search_count, $page, $perpage, $thisurl);
 
 flush();
 
@@ -272,6 +274,6 @@ foreach($users as $user) {
     );
 }
 print_table($table);
-print_paging_bar($usercount, $page, $perpage, $thisurl);
+print_paging_bar($search_count, $page, $perpage, $thisurl);
 
 print_footer();

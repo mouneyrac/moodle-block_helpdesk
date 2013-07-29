@@ -47,8 +47,10 @@ $nav = array(
 );
 
 $title = get_string('helpdeskticketviewer', 'block_helpdesk');
+$heading = get_string('ticketviewer', 'block_helpdesk');
 
 helpdesk_print_header(build_navigation($nav), $title);
+print_heading($heading);
 
 // Let's construct our helpdesk.
 $hd = helpdesk::get_helpdesk();
