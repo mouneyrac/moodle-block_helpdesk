@@ -522,7 +522,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $table = new XMLDBTable('block_helpdesk_ticket');
         $index = new XMLDBIndex('idx_hd_t_status');
         $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('status'));
-        $result = $result && $dbman->drop_index($table, $index);
+        $result = $result && drop_index($table, $index);
 
         $table = new XMLDBTable('block_helpdesk_ticket');
         $index = new XMLDBIndex('block_helpdesk_ticket_st_ix');

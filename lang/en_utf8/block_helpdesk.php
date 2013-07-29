@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is the english translation file for get_string() for all translatable 
+ * This is the english translation file for get_string() for all translatable
  * text in the help desk block.
  *
  * @package     block_helpdesk
@@ -24,6 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['pluginname']            = 'Help Desk';
 $string['blockname']            = 'Help Desk';
 $string['helpdesk:answer']      = 'Help Desk Answerer';
 $string['block/helpdesk:answer']= $string['helpdesk:answer'];
@@ -32,7 +33,7 @@ $string['anyanswerer']          = 'Any answerer';
 $string['helpdesk:ask']         = 'Help Desk Asker';
 $string['block/helpdesk:ask']   = $string['helpdesk:ask'];
 $string['helpdesk']             = 'Help Desk';
-$string['ticketinfo']           = 'Question details';
+$string['ticketinfo']           = 'Question Details';
 $string['ticketid']             = 'Question ID';
 $string['submittedby']          = 'Submitted By';
 $string['timecreated']          = 'Created On';
@@ -43,6 +44,7 @@ $string['summary']              = 'Summary';
 $string['detail']               = 'Issue Details';
 $string['ticketupdates']        = 'Question History';
 $string['user']                 = 'User';
+$string['nonmoodleuser']        = '(External User)';
 $string['date']                 = 'Date';
 $string['comment']              = 'Comment';
 $string['updateticket']         = 'Reply to question';
@@ -57,7 +59,7 @@ $string['timemodified']         = 'Updated On';
 $string['newticketform']        = 'New Question';
 $string['newticketmsg']         = 'Your question has been successfully submitted.';
 $string['newticket']            = 'New Question';
-$string['viewalltickets']       = 'View all Questions';
+$string['viewalltickets']       = 'View all questions';
 $string['submitnewticket']      = 'Submit a new question';
 $string['mytickets']            = 'My Submitted Questions';
 $string['status_new']           = 'New';
@@ -85,10 +87,13 @@ $string['assignments']          = 'Assignments';
 $string['selectusertoassign']   = 'Select a helper to assign to the question.';
 $string['assignmentadded']      = 'Assignment added.';
 $string['returntoticket']       = 'Return to question.';
-$string['assignedusers']        = 'Assigned helpers';
+$string['assignedusers']        = 'Assigned Helpers';
 $string['noneassigned']         = 'No helpers are assigned.';
 $string['assignuser']           = 'Assign a Helper';
 $string['isalreadyassigned']    = 'is already assigned to this question.';
+$string['watchers']             = 'Watchers';
+$string['watchingusers']        = 'Users Watching';
+$string['assignwatchers']       = 'Add a Watcher';
 $string['notags']               = 'This question has no tags.';
 $string['changerelation']       = 'Short-cuts to question groups';
 $string['usertickets']          = 'User Questions';
@@ -101,8 +106,10 @@ $string['previouspage']         = 'Previous Page';
 $string['youarea']              = 'You are a';
 $string['warning_getandrequire']= 'A function call is passing a parameter when one is not expected. This is a software bug.';
 $string['noticketstodisplay']   = 'No questions to display.';
-$string['wasassigned']          = 'was assigned to this question.';
-$string['wasunassigned']        = 'was unassigned from the question.';
+$string['wasassigned']          = ' was assigned to this question.';
+$string['wasunassigned']        = ' was unassigned from the question.';
+$string['startwatching']        = ' was added as a watcher to this question.';
+$string['notwatching']          = ' was removed as a watcher to this question.';
 $string['tagaddedwithnameof']   = 'A tag was added with the name of: ';
 $string['tagremovewithnameof']  = 'A tag was removed with the name of: ';
 $string['note']                 = 'Note';
@@ -119,6 +126,9 @@ $string['savepreferences']      = 'Save Preferences';
 $string['preferencesupdated']   = 'Your preferences have been saved.';
 $string['resetonlogout']        = 'Notice: These preferences are reset when you log out.';
 $string['cannotaddassignment']  = 'Unable to add assignment.';
+$string['cannotremoveassignment']  = 'Unable to remove assignment.';
+$string['cannotaddwatcher']     = 'Unable to add watcher.';
+$string['cannotremovewatcher']  = 'Unable to remove watcher.';
 $string['alltickets']           = 'All Questions';
 $string['reportedby']           = 'Active questions asked by user';
 $string['newtickets']           = 'New Questions';
@@ -139,7 +149,7 @@ $string['needmoreinfo']         = 'Need more info';
 $string['closed']               = 'Closed';
 $string['statuschanged']        = 'Question Status Updated';
 $string['detailschanged']       = 'Question Details Updated';
-$string['updateticketoverview'] = 'Update question details';
+$string['updateticketoverview'] = 'Update Question Details';
 $string['changedetails']        = 'Edit Question';
 $string['savequestion']         = 'Save Question';
 $string['editoverview']         = 'Edit question details';
@@ -151,12 +161,14 @@ $string['assign']               = 'User Assigned';
 $string['unassign']             = 'User Unassigned';
 $string['missingnewtickettag']  = 'Missing listed new question tag';
 $string['hasbeenunassigned']    = 'has been unassigned';
+$string['nolongerwatching']     = ' is no longer watching';
 $string['tag']                  = 'Tagged';
 $string['untag']                = 'Untagged';
 $string['ticketlisting']        = 'Question Listing';
 $string['changeuserconfirmation'] = 'Are you sure you want to change the user on this question to the name below?';
 $string['confirmuserchange']    = 'Confirm User Change';
 $string['changeuser']           = 'Change User';
+$string['changesubmitter']      = 'Change Submitter';
 $string['changetothisuser']     = 'Change to this user';
 $string['unabletochangeuseronquestion'] = 'Unable to change the user on this question.';
 $string['useronquestionchanged'] = 'User on this question has been changed.';
@@ -164,6 +176,7 @@ $string['changeuseronquestion'] = 'Change the user on this question.';
 $string['newuserselected']      = 'New user has been selected.';
 $string['selectauser']           = 'Select a User';
 $string['selectuser']           = 'Select User';
+$string['edituser']           = 'Edit User';
 $string['changedusernotice']    = 'Notice: You must save the question before the new user will be saved.';
 $string['firstcontactuser']     = 'First Contact';
 $string['firstcontact']         = $string['firstcontactuser'];
@@ -175,8 +188,14 @@ $string['helpdeskeditticket']   = 'Help Desk: Edit question';
 $string['helpdesktagticket']    = 'Help Desk: Tagging';
 $string['helpdeskupdateticket'] = 'Help Desk: Update question';
 $string['helpdeskassignuser']   = 'Help Desk: Assign user to question';
+$string['helpdeskaddwatcher']   = 'Help Desk: Add watcher to question';
 $string['helpdesksearch']       = 'Help Desk: Search questions';
-
+$string['helpdeskpreferences']  = 'Help Desk: Preferences';
+$string['helpdeskuser']         = 'Help Desk: External User';
+$string['helpdeskselectuser']   = 'Help Desk: Select User';
+$string['helpdeskselectwatcher'] = 'Help Desk: Select New Watcher';
+$string['helpdeskselectticketuser'] = 'Help Desk: Select Ticket User';
+$string['helpdeskmanageexternal'] = 'Help Desk: Manage External Users';
 $string['useragent']            = 'HTTP agent string';
 $string['useroperatingsystem']  = 'Submitter\'s operating system';
 $string['helpdesknewticket']    = 'Help Desk: New Question';
@@ -189,11 +208,30 @@ $string['questiongrabbed']      = 'Question grabbed';
 $string['showupdate']           = 'Show update';
 $string['updatewillnowbeshown'] = 'Update will now be shown';
 $string['updatewillnowbehidden']= 'Update will now be hidden';
+$string['new_user']             = 'New External User';
+$string['edit_user']            = 'Edit User';
+$string['email']                = 'Email';
+$string['submitas']             = 'Create ticket as user';
+$string['submittingas']         = 'Submitting as: ';
+$string['addwatcher']           = 'Add Watcher';
+$string['manageexternal']       = 'Manage External Users';
+$string['manageexternallink']       = 'Manage external users';
+$string['externaluserdisabled'] = 'External users are disabled';
+$string['unknownfunction']      = 'Unknown function';
+$string['nouser']               = 'User not found';
+$string['viewexternal']         = 'View external user';
+$string['editexternal']         = 'Edit External User';
 
 /**
  * These are settings.php strings.
  * These should only (or at least mostly) appear in the helpdesk config.
  */
+$string['generalsettings']      = 'General Helpdesk Settings';
+$string['generalsettingsdesc']  = 'These settings affect all helpdesk plugins.';
+$string['allowexternal']        = 'Allow External Users';
+$string['allowexternaldesc']    = 'Allow helpdesk answerers to manager external users and create tickets for them.';
+$string['assignedaswatchers']   = 'Add/remove assigned users as watchers';
+$string['assignedaswatchersdesc'] = 'When a user is assigned to/removed from a ticket, automatically add/remove them as a watcher.';
 $string['sendemailupdate']      = 'Send Email Updates';
 $string['sendemailupdatedesc']  = 'When a question is updated, an email will be sent to the submitter and the assigned users.';
 $string['emailsettings']        = 'Email Settings';
@@ -250,4 +288,3 @@ Thank you,
 EOF;
 $string['emaildefaultsubject']  = 'Ticket #!ticketid! Updated';
 
-?>

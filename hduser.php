@@ -64,13 +64,13 @@ if ($user_form->is_cancelled()) {
     # todo: redirect
     # can we get the hidden fields from a cancelled form?
 } else if ($user = $user_form->get_data()) {
-    foreach (array('returnurl', 'paramname', 'ticketid') as $field) { unset($user->$field); }
-    if (isset($user->id)) {
+    if ($user->id) {
         $rval = update_record('block_helpdesk_hd_user', $user);
     } else {
         $rval = insert_record('block_helpdesk_hd_user', $user);
     }
     if (!$rval) {
+        echo "failed"; die;
         # todo: error
     }
     $url = new moodle_url($returnurl);
@@ -80,7 +80,7 @@ if ($user_form->is_cancelled()) {
     redirect($url->out());
 }
 helpdesk_print_header(build_navigation($nav), $title);
-if (!$toform = $DB->get_record('block_helpdesk_hd_user', array('id' => $id))) {
+if (!$toform = get_record('block_helpdesk_hd_user', 'id', $id)) {
     error(get_string('nouser', 'block_helpdesk'));
 }
 $toform->returnurl = $returnurl;

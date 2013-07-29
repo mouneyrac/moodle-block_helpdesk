@@ -17,7 +17,7 @@
 /**
  * Help Desk Ticket, Native
  *
- * Help desk ticket native is the ticket class that handles all 
+ * Help desk ticket native is the ticket class that handles all
  * operations to an individual ticket.
  *
  * @package     block_helpdesk
@@ -79,9 +79,6 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $showfirstcontact = get_config(null, 'block_helpdesk_show_firstcontact');
 
         $user   = helpdesk_get_hd_user($this->hd_userid);
-        $url    = new moodle_url("$CFG->wwwroot/user/view.php");
-        $url->param('id', $user->id);
-        $url    = $url->out();
 
         echo "<div class=\"ticketinfo\">";
         $overviewstr = get_string('ticketinfo', 'block_helpdesk');
@@ -120,7 +117,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $row[] = $str;
         $row[] = helpdesk_user_link($user);
         $table->data[] = $row;
-        
+
         if ($this->firstcontact != null and $showfirstcontact != false) {
             $help = helpdesk_simple_helpbutton(get_string('firstcontact', 'block_helpdesk'),
                                                'firstcontact');
@@ -240,19 +237,17 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 $addurl->param('tid', $this->get_idstring());
                 $whead .= '<br /><a href="' . $addurl->out() . '">' . get_string('assignwatchers', 'block_helpdesk') . '</a>';
             }
+            print_table_head($whead);
 
-            $watcher_table = new stdClass();
-            $watcher_table->headspan = array(2);
-            $watcher_table->attributes = array('class' => 'generaltable helpdesktable watchertable');
-            $watcher_table->head = array($whead);
+            //$watcher_table->class = 'generaltable helpdesktable watchertable';
 
             if (!$watchers = $this->get_watchers()) {
-                $watcher_table->data = array(array(get_string('nowatchers', 'block_helpdesk')));
+                $table->data = array(array(get_string('nowatchers', 'block_helpdesk')));
             } else {
                 $removeurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/manage_watchers.php");
                 $removeurl->param('tid', $this->get_idstring());
                 $removeurl->param('remove', 'true');
-                $watcher_table->data = array();
+                $table->data = array();
                 foreach ($watchers as $w) {
                     $row = array();
                     $row[] = helpdesk_user_link($w);
@@ -260,11 +255,11 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                         $removeurl->param('hd_userid', $w->hd_userid);
                         $row[] = '<a href="' . $removeurl->out() . '">'. get_string('remove') . '</a>';
                     }
-                    $watcher_table->data[] = $row;
+                    $table->data[] = $row;
                 }
             }
 
-            print_table($watcher_table);
+            print_table($table, false);
             echo "<br />";
         }
 
