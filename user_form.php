@@ -41,6 +41,17 @@ class helpdesk_user_form extends moodleform {
 
         $mform =& $this->_form;
 
+        $mform->addElement('header', 'title', get_string($this->new_user ? 'new_user' : 'editexternal', 'block_helpdesk'));
+        $mform->addElement('text', 'name', get_string('fullname'), 'size="40"');
+        $mform->addElement('text', 'email', get_string('email', 'block_helpdesk'), 'size="40"');
+        $mform->addElement('text', 'phone', get_string('phone'), 'size="20"');
+
+        $type_options = explode(',', $CFG->block_helpdesk_user_types);
+        $type_options = array_combine($type_options, $type_options);
+        $mform->addElement('select', 'type', get_string('usertype', 'block_helpdesk'), $type_options);
+
+        $mform->addElement('submit', 'submitbutton', get_string('submit'));
+
         $hidden_fields = array(
             'function',
             'returnurl',
@@ -48,14 +59,6 @@ class helpdesk_user_form extends moodleform {
             'ticketid',
             'id',
         );
-
-        $mform->addElement('header', 'title', get_string($this->new_user ? 'new_user' : 'editexternal', 'block_helpdesk'));
-        $mform->addElement('text', 'name', get_string('fullname'), 'size="40"');
-        $mform->addElement('text', 'email', get_string('email', 'block_helpdesk'), 'size="40"');
-        $mform->addElement('text', 'phone', get_string('phone'), 'size="20"');
-
-        $mform->addElement('submit', 'submitbutton', get_string('submit'));
-
         foreach ($hidden_fields as $hf) {
             $mform->addElement('hidden', $hf);
         }

@@ -29,22 +29,41 @@ require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 require_once("$CFG->libdir/formslib.php");
 
 class helpdesk_usersearch_form extends moodleform {
+    protected $userset;
+
+    function __construct($userset = HELPDESK_USERSET_ALL) {
+        $this->userset = $userset;
+        parent::__construct();
+    }
+
     function definition() {
         global $CFG;
 
         $mform =& $this->_form;
 
+        switch ($this->userset) {
+        case HELPDESK_USERSET_ALL:
+            $header = get_string('searchall', 'block_helpdesk');
+            break;
+        case HELPDESK_USERSET_INTERNAL:
+            $header = get_string('searchinternal', 'block_helpdesk');
+            break;
+        case HELPDESK_USERSET_EXTERNAL:
+            $header = get_string('searchexternal', 'block_helpdesk');
+            break;
+        }
+
+        $mform->addElement('header', 'usersearch', $header);
+
+        $mform->addElement('text', 'search', '', 'size="40"');
+        $mform->addElement('submit', 'submitbutton', get_string('search'));
+
         $hidden_fields = array(
             'function',
             'returnurl',
             'paramname',
-            'ticketid',
+            'tid',
         );
-
-        $mform->addElement('header', 'usersearch', get_string('search'));
-        $mform->addElement('text', 'search', '', 'size="40"');
-        $mform->addElement('submit', 'submitbutton', get_string('search'));
-
         foreach ($hidden_fields as $hf) {
             $mform->addElement('hidden', $hf);
         }
