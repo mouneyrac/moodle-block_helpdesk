@@ -40,7 +40,7 @@ $userset        = optional_param('userset', null, PARAM_ALPHA);
 $hd_userid      = optional_param('hd_userid', 0, PARAM_INT);
 $page           = optional_param('page', 0, PARAM_INT);
 $perpage        = optional_param('perpage', 20, PARAM_INT);
-$search         = optional_param('search', '', PARAM_ALPHA);
+$search         = optional_param('search', '', PARAM_CLEAN);
 
 $thisurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/userlist.php");
 $thisurl->param('function', $function);
@@ -134,13 +134,13 @@ helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
 echo "<div class=\"left2div\">";
 
 // search box
-$search_form = new helpdesk_usersearch_form();
+$search_form = new helpdesk_usersearch_form($userset);
 $search_form->set_data((object) array(
     'search' => $search,
     'function' => $function,
     'returnurl' => $returnurl->out(),
     'paramname' => $paramname,
-    'ticketid' => $ticketid,
+    'tid' => $ticketid,
 //    'userid' => $userid,
 ));
 $search_form->display();
@@ -162,18 +162,23 @@ echo "</div><div class=\"clear\">";
 
 // search results
 
-$columns = array ('fullname', 'email', 'phone');
+$columns = array (
+    'fullname' => '',
+    'email' => '',
+    'phone' => '',
+    'usertype' => 'block_helpdesk',
+);
 $table = new stdClass;
 $table->head = array();
 $table->data = array();
 $table->attributes = array('class' => 'generaltable helpdesktable');
 
-foreach ($columns as $column) {
+foreach ($columns as $column => $module) {
     if ($column == '') {
         $table->head[] = '';
         continue;
     }
-    $table->head[$column] = get_string("$column");
+    $table->head[$column] = get_string($column, $module);
 }
 
 if ($function == HELPDESK_USERLIST_MANAGE_EXTERNAL and $hd_userid) {
@@ -200,21 +205,29 @@ if ($function == HELPDESK_USERLIST_MANAGE_EXTERNAL and $hd_userid) {
     if ($search) {
         $like = sql_ilike();
         $param_count = 0;
-        $sql_search = "'%$search%'";
+        $sql_search = explode(' ', $search);
+        foreach ($sql_search as $k => $v) {
+            if (!strlen($v)) { unset($sql_search[$k]); }
+            $sql_search[$k] = "'%$v%'";
+        }
         if ($userset == HELPDESK_USERSET_ALL or $userset == HELPDESK_USERSET_INTERNAL) {
-            $sql_users .= "
-                AND (u.username $like $sql_search
-                OR u.firstname $like $sql_search
-                OR u.lastname $like $sql_search
-                OR u.email $like $sql_search)
-            ";
+            foreach ($sql_search as $v) {
+                $sql_users .= "
+                    AND (u.username $like $v
+                    OR u.firstname $like $v
+                    OR u.lastname $like $v
+                    OR u.email $like $v)
+                ";
+            }
             $search_count += count_records_sql('SELECT COUNT(*)' . $sql_users);
         }
         if ($userset == HELPDESK_USERSET_ALL or $userset == HELPDESK_USERSET_EXTERNAL) {
-            $sql_hdusers .= "
-                AND (hu.name $like $sql_search
-                OR hu.email $like $sql_search)
-            ";
+            foreach ($sql_search as $v) {
+                $sql_hdusers .= "
+                    AND (hu.name $like $v
+                    OR hu.email $like $v)
+                ";
+            }
             $search_count += count_records_sql('SELECT COUNT(*)' . $sql_hdusers);
         }
         print_heading("$search_count / $full_count ".get_string('users'));
@@ -228,7 +241,7 @@ if ($function == HELPDESK_USERLIST_MANAGE_EXTERNAL and $hd_userid) {
         $sql .= "
             SELECT " . sql_concat("'u-'", "u.id") . " AS id,
                 u.id AS userid, hu2.id AS hd_userid, u.email, u.firstname, u.lastname,
-                COALESCE(u.phone1, u.phone2) AS phone
+                COALESCE(u.phone1, u.phone2) AS phone, '' AS type
             $sql_users
         ";
     }
@@ -239,7 +252,7 @@ if ($function == HELPDESK_USERLIST_MANAGE_EXTERNAL and $hd_userid) {
         $sql .= "
             SELECT " . sql_concat("'hu-'", "hu.id") . " AS id,
                 NULL AS userid, hu.id AS hd_userid, hu.email, hu.name AS firstname, '' AS lastname,
-                hu.phone AS phone
+                hu.phone AS phone, hu.type AS type
             $sql_hdusers
         ";
     }
@@ -270,7 +283,8 @@ foreach($users as $user) {
     $table->data[] = array(
         $changelink,
         $user->email,
-        $user->phone
+        $user->phone,
+        isset($user->userid) ? get_string('internal_user', 'block_helpdesk') : $user->type,
     );
 }
 print_table($table);

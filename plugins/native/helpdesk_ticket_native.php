@@ -35,6 +35,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
     protected $timecreated;
     protected $timemodified;
     protected $hd_userid;
+    protected $createdby;
     protected $firstcontact;
 
     // All child db tables that have a relation with this ticket object.
@@ -78,7 +79,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
         $showfirstcontact = get_config(null, 'block_helpdesk_show_firstcontact');
 
-        $user   = helpdesk_get_hd_user($this->hd_userid);
+        $user = helpdesk_get_hd_user($this->hd_userid);
 
         echo "<div class=\"ticketinfo\">";
         $overviewstr = get_string('ticketinfo', 'block_helpdesk');
@@ -106,7 +107,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $table->data[] = $row;
 
         $row = array();
-        $str = get_string('submittedby', 'block_helpdesk');
+        $str = get_string('user');
         if ($isanswerer and !$readonly) {
             $newuserurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/userlist.php");
             $newuserurl->param('function', HELPDESK_USERLIST_NEW_SUBMITTER);
@@ -116,6 +117,12 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         }
         $row[] = $str;
         $row[] = helpdesk_user_link($user);
+        $table->data[] = $row;
+
+        $createdby = helpdesk_get_hd_user($this->createdby);
+        $row = array();
+        $row[] = get_string('submittedby', 'block_helpdesk');
+        $row[] = helpdesk_user_link($createdby);
         $table->data[] = $row;
 
         if ($this->firstcontact != null and $showfirstcontact != false) {
@@ -220,7 +227,6 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $table->size = array('70%');
         print_table($table, false);
         echo '<br />';
-        $table->size = array('30%');
 
         // Assignments end here.
 
@@ -266,6 +272,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
         // START TAGS DISPLAY
 
+        $table->size = array('30%');
         $tagstr = get_string('extradetailtags', 'block_helpdesk');
         $taghelp = helpdesk_simple_helpbutton($tagstr, 'tag');
         $thead = $tagstr . $taghelp;
@@ -511,6 +518,11 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         return true;
     }
 
+    function set_createdby($id) {
+        $this->createdby = $id;
+        return true;
+    }
+
     /**
      * Get method that returns an idstring.
      *
@@ -587,7 +599,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
     }
 
     /**
-     * Gets the id of the user that submitted a particular ticket. The output of
+     * Gets the id of the user that a particular ticket is for. The output of
      * this method varies from plugin to plugin, this case it returns an int for
      * an id.
      *
@@ -595,6 +607,10 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      */
     function get_hd_userid() {
         return $this->hd_userid;
+    }
+
+    function get_createdby() {
+        return $this->createdby;
     }
 
     /**
@@ -874,6 +890,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $this->set_timemodified();
         $dataobject->timemodified       = $this->timemodified;
         $dataobject->hd_userid             = $this->hd_userid;
+        $dataobject->createdby          = $this->createdby;
 
         if (empty($this->status)) {
             $this->status               = get_record('block_helpdesk_status', 'ticketdefault', 1);
@@ -922,8 +939,10 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             error(get_string('error_insertquestion', 'block_helpdesk'));
         }
 
-        # todo: when we add helper created tickets, we probably don't want this
-        if(get_config(null, 'block_helpdesk_includeagent') == true) {
+        # add the submitter as a watcher
+        $this->add_watcher($this->hd_userid);
+
+        if($this->createdby === $this->hd_userid and get_config(null, 'block_helpdesk_includeagent') == true) {
             $tag = new stdClass;
             $tag->name = get_string('useragent', 'block_helpdesk');
             $tag->value = $_SERVER['HTTP_USER_AGENT'];
@@ -935,9 +954,6 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $tag->value = addslashes($this->get_os($_SERVER['HTTP_USER_AGENT']));
             $this->add_tag($tag);
         }
-
-        # add the submitter as a watcher
-        $this->add_watcher($this->hd_userid);
 
         # no need to fetch, as adding the watcher did that
         return true;
@@ -974,6 +990,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if (!is_object($data)) {
             return false;
         }
+        $hd_user = helpdesk_get_user($USER->id);
         // An id may not always exists, like if this is a new ticket.
         if (isset($data->id)) {
             $this->id           = $data->id;
@@ -981,10 +998,14 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $this->detail           = $data->detail;
         $this->summary          = $data->summary;
         if (empty($data->hd_userid)) {
-            $hd_user = helpdesk_get_user($USER->id);
             $this->hd_userid = $hd_user->hd_userid;
         } else {
             $this->hd_userid    = $data->hd_userid;
+        }
+        if (empty($data->createdby)) {
+            $this->createdby = $hd_user->hd_userid;
+        } else {
+            $this->createdby = $data->hd_userid;
         }
         if (isset($data->timecreated)) {
             $this->timecreated  = $data->timecreated;
@@ -1015,6 +1036,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $this->detail           = stripslashes($record->detail);
         $this->summary          = stripslashes($record->summary);
         $this->hd_userid           = $record->hd_userid;
+        $this->createdby        = $record->createdby;
         $this->timecreated      = $record->timecreated;
         $this->timemodified     = $record->timemodified;
         $this->status           = $record->status;

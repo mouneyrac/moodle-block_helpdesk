@@ -53,8 +53,8 @@ if (!empty($tags)) {
     $toform['tags'] = $taglist;
 }
 
-$hd_userid = optional_param('hd_userid', null, PARAM_INT);
-if (isset($hd_userid)) {
+$hd_userid = optional_param('hd_userid', 0, PARAM_INT);
+if ($hd_userid) {
     helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
     $url->param('hd_userid', $hd_userid);
     $toform['hd_userid'] = $hd_userid;
@@ -80,7 +80,7 @@ $form = $hd->new_ticket_form($toform);
 if (!$form->is_submitted() or !($data = $form->get_data())) {
     helpdesk_print_header(build_navigation($nav), $title);
     print_heading(get_string('helpdesk', 'block_helpdesk'));
-    if (isset($hd_userid)) {
+    if ($hd_userid) {
         $user = helpdesk_get_hd_user($hd_userid);
         print_heading(get_string('submittingas', 'block_helpdesk') . fullname($user));
     }
@@ -94,10 +94,21 @@ $ticket = $hd->new_ticket();
 if (!$ticket->parse($data)) {
     error(get_string("cannotparsedata", 'block_helpdesk'));
 }
+if ($hd_userid) { $ticket->set_firstcontact($USER->id); }
 if (!$ticket->store()) {
     error(get_string('unabletostoreticket', 'block_helpdesk'));
 }
 $id = $ticket->get_idstring();
+
+if ($hd_userid) {
+    $ticket->add_assignment($USER->id);
+    if ($CFG->block_helpdesk_assigned_auto_watch) {
+        $user = helpdesk_get_user($USER->id);
+        if (!$ticket->add_watcher($user->hd_userid)) {
+            error(get_string('cannotaddwatcher', 'block_helpdesk'));
+        }
+    }
+}
 
 if (!empty($data->tags)) {
     $taglist = array();

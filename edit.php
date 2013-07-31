@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script handles the updating of tickets by managing the UI and entry 
+ * This script handles the updating of tickets by managing the UI and entry
  * level functions for the task.
  *
  * @package     block_helpdesk
@@ -75,6 +75,9 @@ if ( $form->is_submitted() and ($data = $form->get_data())) {
     $ticket->set_hd_userid($data->hd_userid);
     if (!$ticket->store_edit($data->msg)) {
         error(get_string('cannotaddupdate', 'block_helpdesk'));
+    }
+    if (!record_exists('block_helpdesk_watcher', 'ticketid', $id, 'hd_userid', $data->hd_userid)) {
+        $ticket->add_watcher($data->hd_userid);
     }
     $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
     $url->param('id', $id);

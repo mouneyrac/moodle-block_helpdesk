@@ -285,7 +285,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
 
 
         /**
-         * Add helpdesk_ticket.hd_userid
+         * Add helpdesk_ticket.hd_userid, .createdby
          */
 
         // Define field hd_userid to be added to block_helpdesk_ticket
@@ -293,6 +293,14 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $field = new XMLDBField('hd_userid');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '20', null, null, null, null, null, null, 'timemodified');
 
+        $result = $result && add_field($table, $field);
+
+        /// Define field createdby to be added to block_helpdesk_ticket
+        $table = new XMLDBTable('block_helpdesk_ticket');
+        $field = new XMLDBField('createdby');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '20', XMLDB_UNSIGNED, null, null, null, null, null, 'status');
+
+        /// Launch add field createdby
         $result = $result && add_field($table, $field);
 
 
@@ -322,14 +330,14 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
 
         /**
          * Create helpdesk_watcher records for ticket submitters, and also
-         * populate helpdesk_ticket.hd_userid at the same time
+         * populate helpdesk_ticket.hd_userid & .createdby at the same time
          */
 
         $watchers = array();
         $tickets = get_records('block_helpdesk_ticket');
         foreach ($tickets as $ticket) {
-            # set hd_userid
-            $ticket->hd_userid = $user2hd_user[$ticket->userid];
+            # set createdby, hd_userid
+            $ticket->createdby = $ticket->hd_userid = $user2hd_user[$ticket->userid];
             update_record('block_helpdesk_ticket', $ticket);
 
             # create watcher rec
@@ -361,7 +369,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
 
 
         /**
-         * Add not null requirement for helpdesk_ticket.hd_userid
+         * Add not null requirement for helpdesk_ticket.hd_userid, .createdby
          */
 
         // Changing nullability of field hd_userid on table block_helpdesk_ticket to not null
@@ -370,6 +378,14 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $field->setAttributes(XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, null, null, null, 'timemodified');
 
         // Launch change of nullability for field hd_userid
+        $result = $result && change_field_notnull($table, $field);
+
+        /// Changing nullability of field createdby on table block_helpdesk_ticket to not null
+        $table = new XMLDBTable('block_helpdesk_ticket');
+        $field = new XMLDBField('createdby');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '20', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null, 'status');
+
+        /// Launch change of nullability for field createdby
         $result = $result && change_field_notnull($table, $field);
 
 
@@ -563,6 +579,16 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $index = new XMLDBIndex('block_helpdesk_ticket_assign_t_ix');
         $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('ticketid'));
         $result = $result && add_index($table, $index);
+    }
+
+    if ($result && $oldversion < 2013072900) {
+        /// Define field type to be added to block_helpdesk_hd_user
+        $table = new XMLDBTable('block_helpdesk_hd_user');
+        $field = new XMLDBField('type');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, null, null, null, null, null, 'name');
+
+        /// Launch add field type
+        $result = $result && add_field($table, $field);
     }
 
     return $result;

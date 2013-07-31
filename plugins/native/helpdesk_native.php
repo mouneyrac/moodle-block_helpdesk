@@ -467,7 +467,7 @@ class helpdesk_native extends helpdesk {
                                                         get_string('showfirstcontact', 'block_helpdesk'),
                                                         get_string('showfirstcontactdesc', 'block_helpdesk'),
                                                         '0', '1', '0'));
-        
+
         $settings->add(new admin_setting_configcheckbox('block_helpdesk_send_update_email',
                                                         get_string('sendemailupdate', 'block_helpdesk'),
                                                         get_string('sendemailupdatedesc', 'block_helpdesk'),

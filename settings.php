@@ -28,13 +28,18 @@ defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
 $settings->add(new admin_setting_heading('block_helpdesk_general',
-                                         get_string('generalsettings', 'block_helpdesk'),
-                                         get_string('generalsettingsdesc', 'block_helpdesk')));
+    get_string('generalsettings', 'block_helpdesk'),
+    get_string('generalsettingsdesc', 'block_helpdesk')));
 
 $settings->add(new admin_setting_configcheckbox('block_helpdesk_allow_external_users',
-                                                get_string('allowexternal', 'block_helpdesk'),
-                                                get_string('allowexternaldesc', 'block_helpdesk'),
-                                                '0', '1', '0'));
+    get_string('allowexternal', 'block_helpdesk'),
+    get_string('allowexternaldesc', 'block_helpdesk'),
+    '0', '1', '0'));
+
+$settings->add(new admin_setting_configtext('block_helpdesk_user_types',
+    get_string('usertypesconfig', 'block_helpdesk'),
+    get_string('usertypesconfigdesc', 'block_helpdesk'),
+    'student,teacher,guardian', PARAM_TEXT));
 
 $hd = helpdesk::get_helpdesk();
 if (method_exists($hd, 'plugin_settings')) {
