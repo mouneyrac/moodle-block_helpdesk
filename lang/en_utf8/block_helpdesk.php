@@ -227,6 +227,7 @@ $string['internal_user']        = 'Internal User';
 $string['searchall']            = 'Search Internal & External Users';
 $string['searchinternal']            = 'Search Internal Users';
 $string['searchexternal']            = 'Search External Users';
+$string['externaluserupdatefailed'] = 'Could not create/update external user';
 
 /**
  * These are settings.php strings.

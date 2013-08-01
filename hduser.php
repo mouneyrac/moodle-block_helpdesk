@@ -70,8 +70,7 @@ if ($user_form->is_cancelled()) {
         $rval = insert_record('block_helpdesk_hd_user', $user);
     }
     if (!$rval) {
-        echo "failed"; die;
-        # todo: error
+        error(get_string('externaluserupdatefailed', 'block_helpdesk'));
     }
     $url = new moodle_url($returnurl);
     if ($paramname) {
