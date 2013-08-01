@@ -79,7 +79,7 @@ $form = $hd->new_ticket_form($toform);
 // If the form is submitted (or not) we gotta do stuff.
 if (!$form->is_submitted() or !($data = $form->get_data())) {
     helpdesk_print_header(build_navigation($nav), $title);
-    print_heading(get_string('helpdesk', 'block_helpdesk'));
+    //print_heading(get_string('helpdesk', 'block_helpdesk'));
     if ($hd_userid) {
         $user = helpdesk_get_hd_user($hd_userid);
         print_heading(get_string('submittingas', 'block_helpdesk') . fullname($user));

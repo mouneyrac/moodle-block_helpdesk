@@ -196,6 +196,7 @@ $string['helpdeskselectuser']   = 'Help Desk: Select User';
 $string['helpdeskselectwatcher'] = 'Help Desk: Select New Watcher';
 $string['helpdeskselectticketuser'] = 'Help Desk: Select Ticket User';
 $string['helpdeskmanageexternal'] = 'Help Desk: Manage External Users';
+$string['helpdeskchangeuser']   = 'Help Desk: Change Ticket User';
 $string['useragent']            = 'HTTP agent string';
 $string['useroperatingsystem']  = 'Submitter\'s operating system';
 $string['helpdesknewticket']    = 'Help Desk: New Question';
