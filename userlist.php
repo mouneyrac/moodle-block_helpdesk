@@ -34,7 +34,7 @@ require_login(0, false);
 
 $function       = required_param('function', PARAM_ALPHA);
 $returnurl      = optional_param('returnurl', '', PARAM_RAW);
-$paramname      = optional_param('paramname', '', PARAM_ALPHA);
+$paramname      = optional_param('paramname', '', PARAM_CLEAN);
 $ticketid       = optional_param('tid', null, PARAM_INT);
 $userset        = optional_param('userset', null, PARAM_ALPHA);
 $hd_userid      = optional_param('hd_userid', 0, PARAM_INT);
@@ -82,6 +82,7 @@ case HELPDESK_USERLIST_NEW_SUBMITTER:
     $nav[] = array (
         'name' => get_string('changesubmitter', 'block_helpdesk'),
     );
+    $title = get_string('helpdeskchangeuser', 'block_helpdesk');
     break;
 case HELPDESK_USERLIST_NEW_WATCHER:
     $returnurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/manage_watchers.php");
@@ -127,7 +128,7 @@ $nav[] = array (
 
 $url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/userlist.php");
 helpdesk_print_header(build_navigation($nav));
-
+print_heading($title);
 
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
 

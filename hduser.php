@@ -31,7 +31,7 @@ require_once(dirname(__FILE__) . '/user_form.php');
 require_login(0, false);
 
 $returnurl      = required_param('returnurl', PARAM_RAW);
-$paramname      = optional_param('paramname', null, PARAM_ALPHA);
+$paramname      = optional_param('paramname', null, PARAM_CLEAN);
 $id             = optional_param('id', null, PARAM_INT);
 
 $baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
