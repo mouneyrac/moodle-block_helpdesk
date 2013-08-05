@@ -58,6 +58,11 @@ define('HELPDESK_UPDATE_TYPE_DETAILED', 'update_type_detailed');
 define('HELPDESK_UPDATE_TYPE_SYSTEM', 'update_type_system');
 
 /**
+ * Token entropy in bytes
+ */
+define('HELPDESK_TOKEN_LENGTH', 32);
+
+/**
  * Helpdesk userlist functions
  */
 define('HELPDESK_USERLIST_NEW_SUBMITTER', 'newsubmitter');
@@ -232,6 +237,10 @@ function helpdesk_user_link($user) {
     }
     $url = $url->out();
     return "<a href=\"$url\">" . fullname($user) . "</a> $type";
+}
+
+function helpdesk_generate_token() {
+    return bin2hex(openssl_random_pseudo_bytes(HELPDESK_TOKEN_LENGTH));
 }
 
 /**

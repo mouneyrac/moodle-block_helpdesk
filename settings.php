@@ -41,6 +41,11 @@ $settings->add(new admin_setting_configtext('block_helpdesk_user_types',
     get_string('usertypesconfigdesc', 'block_helpdesk'),
     'student,teacher,guardian', PARAM_TEXT));
 
+$settings->add(new admin_setting_configcheckbox('block_helpdesk_external_user_tokens',
+    get_string('allowexternaltokens', 'block_helpdesk'),
+    get_string('allowexternaltokensdesc', 'block_helpdesk'),
+    '0', '1', '0'));
+
 $hd = helpdesk::get_helpdesk();
 if (method_exists($hd, 'plugin_settings')) {
     $hd->plugin_settings($settings);
