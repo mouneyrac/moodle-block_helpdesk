@@ -1299,7 +1299,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @param string    $msg is a message to leave in the update.
      * @return bool
      */
-    function store_edit($msg=null) {
+    function store_edit($msg=null, $newstatus=null) {
         if(!$this->store()) {
             return false;
         }
@@ -1308,6 +1308,9 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $update->notes     = $msg;
         $update->status    = HELPDESK_NATIVE_UPDATE_DETAILS;
         $update->type      = HELPDESK_UPDATE_TYPE_DETAILED;
+        if (isset($newstatus)) {
+            $update->newticketstatus = $newstatus;
+        }
         if (!$this->add_update($update)) {
             notify(get_string('unabletoaddeditupdate', 'block_helpdesk'));
         }

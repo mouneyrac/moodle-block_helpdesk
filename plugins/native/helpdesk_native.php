@@ -336,16 +336,17 @@ class helpdesk_native extends helpdesk {
         $html = get_config(null, 'block_helpdesk_idle_htmlcontent');
         $emailsubject = get_config(null, 'block_helpdesk_idle_subject');
 
-        $users = process_watchers_to_email($ticket->get_watchers());
+        $users = $this->process_watchers_to_email($ticket->get_watchers());
 
         $userticketurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
         $userticketurl->param('id', $ticket->get_idstring());
 
         foreach($users as $user) {
             if (isset($user->token)) {
-                $url->param('token', $w->token);
+                continue;   # skip external users for now, not ready
+                $userticketurl->param('token', $w->token);
             } else {
-                $url->remove_params('token');
+                $userticketurl->remove_params('token');
             }
 
             $url = $userticketurl->out();
@@ -408,7 +409,7 @@ class helpdesk_native extends helpdesk {
         }
         $emailsubject = str_replace('!ticketid!', $ticket->get_idstring(), $emailsubject);
 
-        $users = process_watchers_to_email($ticket->get_watchers());
+        $users = $this->process_watchers_to_email($ticket->get_watchers());
 
         $userticketurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
         $userticketurl->param('id', $ticket->get_idstring());
@@ -428,9 +429,10 @@ class helpdesk_native extends helpdesk {
             }
 
             if (isset($user->token)) {
-                $url->param('token', $w->token);
+                continue;   # skip external users for now, not ready
+                $userticketurl->param('token', $w->token);
             } else {
-                $url->remove_params('token');
+                $userticketurl->remove_params('token');
             }
 
             $url = $userticketurl->out();

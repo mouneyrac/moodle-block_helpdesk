@@ -71,9 +71,14 @@ $form = $hd->change_overview_form($ticket);
 if ( $form->is_submitted() and ($data = $form->get_data())) {
     $ticket->set_summary($data->summary);
     $ticket->set_detail($data->detail);
-    $ticket->set_status($data->status);
+    if ($ticket->get_status()->id != $data->status) {
+        $ticket->set_status($data->status);
+        $newstatus = $data->status;
+    } else {
+        $newstatus = null;
+    }
     $ticket->set_hd_userid($data->hd_userid);
-    if (!$ticket->store_edit($data->msg)) {
+    if (!$ticket->store_edit($data->msg, $newstatus)) {
         error(get_string('cannotaddupdate', 'block_helpdesk'));
     }
     if (!record_exists('block_helpdesk_watcher', 'ticketid', $id, 'hd_userid', $data->hd_userid)) {
