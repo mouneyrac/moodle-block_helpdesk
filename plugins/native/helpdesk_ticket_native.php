@@ -748,7 +748,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             'hd_userid' => $hd_userid,
         );
         if (!isset($user->userid)) {    # external users need tokens
-            # todo: generate a token
+            $watcher->token = helpdesk_generate_token();
         }
 
         if (!insert_record('block_helpdesk_watcher', $watcher)) {
@@ -814,7 +814,9 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         // At this point we have to process each user. This may sound scary but
         // the number of assigned users is usually low.
         foreach($records as $record) {
-            $users[] = helpdesk_get_hd_user($record->hd_userid);
+            $user = helpdesk_get_hd_user($record->hd_userid);
+            $user = (object) array_merge((array) $user, (array) $record);
+            $users[] = $user;
         }
 
         return $users;

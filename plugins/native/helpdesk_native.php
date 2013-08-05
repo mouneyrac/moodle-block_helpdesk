@@ -336,15 +336,20 @@ class helpdesk_native extends helpdesk {
         $html = get_config(null, 'block_helpdesk_idle_htmlcontent');
         $emailsubject = get_config(null, 'block_helpdesk_idle_subject');
 
-        $users = $ticket->get_watchers();
+        $users = process_watchers_to_email($ticket->get_watchers());
 
         $userticketurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
         $userticketurl->param('id', $ticket->get_idstring());
-        $url = $userticketurl->out();
-        $link = "<a href=\"$url\">$url</a>";
 
         foreach($users as $user) {
-            if (!isset($user->userid)) { continue; } # filter out external users for now
+            if (isset($user->token)) {
+                $url->param('token', $w->token);
+            } else {
+                $url->remove_params('token');
+            }
+
+            $url = $userticketurl->out();
+            $link = "<a href=\"$url\">$url</a>";
 
             $emailtext = str_replace('!username!', fullname($user), $text);
             $emailhtml = str_replace('!username!', fullname($user), $html);
@@ -403,28 +408,34 @@ class helpdesk_native extends helpdesk {
         }
         $emailsubject = str_replace('!ticketid!', $ticket->get_idstring(), $emailsubject);
 
-        $users = $ticket->get_watchers();
+        $users = process_watchers_to_email($ticket->get_watchers());
 
         $userticketurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
         $userticketurl->param('id', $ticket->get_idstring());
-        $url = $userticketurl->out();
-        $link = "<a href=\"$url\">$url</a>";
 
         $updates = $ticket->get_updates(true);
         $lastupdate = end($updates);
 
         foreach($users as $user) {
             // Dont send an email to the person making the update.
-            if ($user->id == $USER->id) {    # todo: handle token users
+            if ($user->id == $USER->id) {
                 continue;
             }
-            if (!isset($user->userid)) { continue; } # filter out external users for now
 
             // Don't send an email if the user can't see a hidden update.
-            if (!helpdesk_is_capable(HELPDESK_CAP_ANSWER, false, $user) AND
-                $lastupdate->hidden == true) {
+            if ($lastupdate->hidden and (isset($user->token) or !helpdesk_is_capable(HELPDESK_CAP_ANSWER, false, $user))) {
                 continue;
             }
+
+            if (isset($user->token)) {
+                $url->param('token', $w->token);
+            } else {
+                $url->remove_params('token');
+            }
+
+            $url = $userticketurl->out();
+            $link = "<a href=\"$url\">$url</a>";
+
             $emailtext = str_replace('!username!', fullname($user), $text);
             $emailhtml = str_replace('!username!', fullname($user), $html);
             $emailtext = str_replace('!ticketlink!', $url, $emailtext);
@@ -441,6 +452,28 @@ class helpdesk_native extends helpdesk {
         }
 
         return true;
+    }
+
+    private function process_watchers_to_email($watchers) {
+        global $CFG;
+
+        $processed = array();
+        foreach($watchers as $w) {
+            if (isset($w->userid)) {
+                $w = get_record('user', 'id', $w->userid);
+            } else {
+                if (!isset($CFG->block_helpdesk_external_user_tokens) or !$CFG->block_helpdesk_external_user_tokens) {
+                    continue;
+                }
+                if (!strlen($w->token)) {
+                    $w->token = helpdesk_generate_token();
+                    update_record('block_helpdesk_watcher', $w);
+                }
+                unset($w->id);  # Moodle's email functions thinks this is a user.id
+            }
+            $processed[] = $w;
+        }
+        return $processed;
     }
 
     /**

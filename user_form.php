@@ -46,7 +46,9 @@ class helpdesk_user_form extends moodleform {
         $mform->addElement('text', 'email', get_string('email', 'block_helpdesk'), 'size="40"');
         $mform->addElement('text', 'phone', get_string('phone'), 'size="20"');
 
-        $type_options = explode(',', $CFG->block_helpdesk_user_types);
+        $type_options = array_map(function ($option) {
+                return trim($option);
+            }, explode(',', $CFG->block_helpdesk_user_types));
         $type_options = array_combine($type_options, $type_options);
         $mform->addElement('select', 'type', get_string('usertype', 'block_helpdesk'), $type_options);
 
