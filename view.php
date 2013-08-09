@@ -31,9 +31,19 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 // We are also Helpdesk, so we shall also become a helpdesk.
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
-require_login(0, false);
-
 $id = required_param('id', PARAM_INT);
+$token = optional_param('token', '', PARAM_ALPHANUM);
+
+if ($CFG->block_helpdesk_external_user_tokens and strlen($token)) {
+    if (!$watcher = get_record('block_helpdesk_watcher', 'token', $token, 'ticketid', $id)) {
+        error(get_string('invalidtoken', 'block_helpdesk'));
+    }
+    $USER = helpdesk_get_hd_user($watcher->hd_userid);
+    $readonly = true;   # todo: setting to allow external users to make updates
+} else {
+    require_login(0, false);
+    $readonly = false;
+}
 
 $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $nav = array(
@@ -60,6 +70,6 @@ $ticket = $hd->get_ticket($id);
 if (!$ticket) {
     error(get_string('ticketiddoesnotexist','block_helpdesk'));
 }
-$hd->display_ticket($ticket);
+$hd->display_ticket($ticket, $readonly);
 
 print_footer();
