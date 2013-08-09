@@ -839,11 +839,14 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if (!$ticket) {
             return false;
         }
-        $hd_user = helpdesk_get_user($USER->id);
+        if (isset($USER->hd_userid)) {
+            $hd_user = helpdesk_get_hd_user($USER->hd_userid);
+        } else {
+            $hd_user = helpdesk_get_user($USER->id);
+        }
         $watchers = get_records('block_helpdesk_watcher', 'ticketid', $this->id);
         $iswatcher = false;
         foreach ($watchers as $w) {
-            # todo: tokens for anonymous users
             if ($w->hd_userid == $hd_user->hd_userid) {
                 $iswatcher = true;
                 break;
@@ -1099,7 +1102,6 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         }
 
         if (insert_record('block_helpdesk_ticket_update', $dat)) {
-            
             $usefirstcontact = get_config(null, 'block_helpdesk_firstcontact');
             $isanswerer = helpdesk_is_capable(HELPDESK_CAP_ANSWER);
             if ($usefirstcontact and $isanswerer and $this->firstcontact == true) {

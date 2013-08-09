@@ -43,6 +43,7 @@ class helpdesk_user_form extends moodleform {
 
         $mform->addElement('header', 'title', get_string($this->new_user ? 'new_user' : 'editexternal', 'block_helpdesk'));
         $mform->addElement('text', 'name', get_string('fullname'), 'size="40"');
+        $mform->addRule('name', null, 'required');
         $mform->addElement('text', 'email', get_string('email', 'block_helpdesk'), 'size="40"');
         $mform->addElement('text', 'phone', get_string('phone'), 'size="20"');
 

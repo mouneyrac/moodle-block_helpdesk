@@ -338,18 +338,14 @@ class helpdesk_native extends helpdesk {
 
         $users = $this->process_watchers_to_email($ticket->get_watchers());
 
-        $userticketurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
-        $userticketurl->param('id', $ticket->get_idstring());
+        $userticketurl = "$CFG->wwwroot/blocks/helpdesk/view.php?id={$ticket->get_idstring()}";
 
         foreach($users as $user) {
             if (isset($user->token)) {
-                continue;   # skip external users for now, not ready
-                $userticketurl->param('token', $w->token);
+                $url = "{$userticketurl}&token={$user->token}";
             } else {
-                $userticketurl->remove_params('token');
+                $url = $userticketurl;
             }
-
-            $url = $userticketurl->out();
             $link = "<a href=\"$url\">$url</a>";
 
             $emailtext = str_replace('!username!', fullname($user), $text);
@@ -411,8 +407,7 @@ class helpdesk_native extends helpdesk {
 
         $users = $this->process_watchers_to_email($ticket->get_watchers());
 
-        $userticketurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
-        $userticketurl->param('id', $ticket->get_idstring());
+        $userticketurl = "$CFG->wwwroot/blocks/helpdesk/view.php?id={$ticket->get_idstring()}";
 
         $updates = $ticket->get_updates(true);
         $lastupdate = end($updates);
@@ -429,13 +424,11 @@ class helpdesk_native extends helpdesk {
             }
 
             if (isset($user->token)) {
-                continue;   # skip external users for now, not ready
-                $userticketurl->param('token', $w->token);
+                $url = "{$userticketurl}&token={$user->token}";
             } else {
                 $userticketurl->remove_params('token');
+                $url = $userticketurl;
             }
-
-            $url = $userticketurl->out();
             $link = "<a href=\"$url\">$url</a>";
 
             $emailtext = str_replace('!username!', fullname($user), $text);

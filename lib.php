@@ -104,6 +104,20 @@ function print_table_head($string, $width='95%') {
  * @return bool
  */
 function helpdesk_is_capable($capability=null, $require=false, $user=null) {
+    # check for external user
+    $token = optional_param('token', '', PARAM_ALPHANUM);
+    if ($CFG->block_helpdesk_external_user_tokens and strlen($token)) {
+        $tid = required_param('id', PARAM_INT);
+        if (!$watcher = get_record('block_helpdesk_watcher', 'token', $token, 'ticketid', $tid)) {
+            return false;
+        }
+        if (!isset($capability)) {
+            return HELPDESK_CAP_ASK;
+        } else if ($capability == HELPDESK_CAP_ASK) {
+            return true;
+        }
+        return false;
+    }
 
     if (empty($user)) {
         global $USER;
@@ -111,7 +125,7 @@ function helpdesk_is_capable($capability=null, $require=false, $user=null) {
     }
 
     if (is_numeric($user)) {
-	$user = get_record('user', 'id', $user);
+        $user = get_record('user', 'id', $user);
     }
 
     $context = get_context_instance(CONTEXT_SYSTEM);
@@ -123,8 +137,8 @@ function helpdesk_is_capable($capability=null, $require=false, $user=null) {
             notify(get_string('warning_getandrequire', 'block_helpdesk'));
         }
 
-	// Order here does matter.
-	$rval = false;
+        // Order here does matter.
+        $rval = false;
         $cap = has_capability(HELPDESK_CAP_ASK, $context, $user->id);
         if ($cap) {
             $rval = HELPDESK_CAP_ASK;
