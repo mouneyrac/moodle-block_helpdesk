@@ -853,7 +853,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             }
         }
         # Check for permission before proceeding.
-        if (!helpdesk_is_capable(HELPDESK_CAP_ASK) or !$iswatcher) {
+        if (!helpdesk_is_capable(HELPDESK_CAP_ASK, false, null, true) or !$iswatcher) {
             if (!helpdesk_is_capable(HELPDESK_CAP_ANSWER, $permissionhalt)) {
                 return false;
             }
