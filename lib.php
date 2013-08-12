@@ -103,10 +103,10 @@ function print_table_head($string, $width='95%') {
  * @param bool  $require Makes the capability check a requirement to pass.
  * @return bool
  */
-function helpdesk_is_capable($capability=null, $require=false, $user=null) {
+function helpdesk_is_capable($capability=null, $require=false, $user=null, $allow_external = false) {
     # check for external user
     $token = optional_param('token', '', PARAM_ALPHANUM);
-    if ($CFG->block_helpdesk_external_user_tokens and strlen($token)) {
+    if ($allow_external and $CFG->block_helpdesk_external_user_tokens and strlen($token)) {
         $tid = required_param('id', PARAM_INT);
         if (!$watcher = get_record('block_helpdesk_watcher', 'token', $token, 'ticketid', $tid)) {
             return false;
