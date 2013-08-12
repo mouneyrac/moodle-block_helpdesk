@@ -104,6 +104,7 @@ function print_table_head($string, $width='95%') {
  * @return bool
  */
 function helpdesk_is_capable($capability=null, $require=false, $user=null, $allow_external = false) {
+    global $CFG;
     # check for external user
     $token = optional_param('token', '', PARAM_ALPHANUM);
     if ($allow_external and $CFG->block_helpdesk_external_user_tokens and strlen($token)) {
