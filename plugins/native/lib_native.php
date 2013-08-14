@@ -45,6 +45,7 @@ define('HELPDESK_NATIVE_UPDATE_DETAILS', 'detailschanged');
 // relations that group tickets together.
 define('HELPDESK_NATIVE_REL_ALL', 'alltickets');
 define('HELPDESK_NATIVE_REL_REPORTEDBY', 'reportedby');
+define('HELPDESK_NATIVE_REL_WATCHING', 'watching');
 define('HELPDESK_NATIVE_REL_ASSIGNEDTO', 'assignedto');
 define('HELPDESK_NATIVE_REL_NEW', 'newtickets');
 define('HELPDESK_NATIVE_REL_CLOSED', 'closedtickets');

@@ -566,11 +566,14 @@ class helpdesk_native extends helpdesk {
         // All users (except empty($cap) ones) get this.
         // Since we only have askers and answerers and answers have all the caps
         // that an asker has, we'll add these now.
-        $relations = array(HELPDESK_NATIVE_REL_REPORTEDBY);
-        $relations[] = HELPDESK_NATIVE_REL_ALL;
-        $relations[] = HELPDESK_NATIVE_REL_NEW;
-        $relations[] = HELPDESK_NATIVE_REL_CLOSED;
-        $relations[] = HELPDESK_NATIVE_REL_UNASSIGNED;
+        $relations = array(
+            HELPDESK_NATIVE_REL_WATCHING,
+            HELPDESK_NATIVE_REL_REPORTEDBY,
+            HELPDESK_NATIVE_REL_ALL,
+            HELPDESK_NATIVE_REL_NEW,
+            HELPDESK_NATIVE_REL_CLOSED,
+            HELPDESK_NATIVE_REL_UNASSIGNED,
+        );
         if ($cap == HELPDESK_CAP_ASK) {
             return $relations;
         }
@@ -603,6 +606,10 @@ class helpdesk_native extends helpdesk {
         case HELPDESK_NATIVE_REL_REPORTEDBY:
             $search->status = $this->get_status_ids(true, false, false);
             $search->submitter = $current_hd_user->hd_userid;
+            break;
+        case HELPDESK_NATIVE_REL_WATCHING:
+            $search->status = $this->get_status_ids(true, false, false);
+            $search->watcher = $current_hd_user->hd_userid;
             break;
         case HELPDESK_NATIVE_REL_NEW:
             $search->status[] = get_field('block_helpdesk_status', 'id', 'name', 'new');
@@ -732,6 +739,7 @@ class helpdesk_native extends helpdesk {
         $tmp->answerer          = $data->answerer;
         $tmp->status            = $data->status;
         $tmp->submitter         = $data->submitter;
+        $tmp->watcher           = $data->watcher;
         $data                   = $tmp;
 
         // We need to search tickets and related values for the anded values of
@@ -782,6 +790,9 @@ class helpdesk_native extends helpdesk {
         // START BEWARE - The order of these checks is critical to performance.
         $andwhere = array();
 
+        if (!empty($data->watcher)) {
+            $andwhere[] = "EXISTS (SELECT 1 FROM {$CFG->prefix}block_helpdesk_watcher w WHERE w.ticketid = t.id AND w.hd_userid = $data->watcher)";
+        }
         if(!empty($data->submitter)) {
             $andwhere[] = "t.hd_userid = $data->submitter";
         }
