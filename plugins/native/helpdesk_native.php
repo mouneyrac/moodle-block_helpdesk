@@ -426,7 +426,6 @@ class helpdesk_native extends helpdesk {
             if (isset($user->token)) {
                 $url = "{$userticketurl}&token={$user->token}";
             } else {
-                $userticketurl->remove_params('token');
                 $url = $userticketurl;
             }
             $link = "<a href=\"$url\">$url</a>";
