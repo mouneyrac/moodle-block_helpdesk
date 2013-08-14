@@ -192,7 +192,8 @@ abstract class helpdesk {
             'searchstring' => '',
             'answerer' => -1,
             'status' => array(),
-            'submitter' => 0
+            'submitter' => 0,
+            'watcher' => 0,
         );
     }
 }

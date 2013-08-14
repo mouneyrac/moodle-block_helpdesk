@@ -116,7 +116,7 @@ class block_helpdesk extends block_base {
         // Grab the tickets to display and add to the content.
         $hd_user = helpdesk_get_user($USER->id);
         $so = $hd->new_search_obj();
-        $so->submitter = $hd_user->hd_userid;
+        $so->watcher = $hd_user->hd_userid;
         $so->status = $hd->get_status_ids(true, false);
         $tickets = $hd->search($so, 5, 0);
         if (!empty($tickets->count)) {
