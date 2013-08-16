@@ -85,7 +85,7 @@ if (is_numeric($remove)) {
     redirect($url->out(), get_string('tagadded', 'block_helpdesk'));
 }
 
-helpdesk_print_header(build_navigation($nav), $title);
+helpdesk_print_header($nav, $title);
 print_heading(get_string('helpdesk', 'block_helpdesk'));
 
 $form->display();

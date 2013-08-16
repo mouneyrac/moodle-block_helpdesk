@@ -78,7 +78,7 @@ if ($user_form->is_cancelled()) {
     }
     redirect($url->out());
 }
-helpdesk_print_header(build_navigation($nav), $title);
+helpdesk_print_header($nav, $title);
 if (!$toform = get_record('block_helpdesk_hd_user', 'id', $id)) {
     error(get_string('nouser', 'block_helpdesk'));
 }

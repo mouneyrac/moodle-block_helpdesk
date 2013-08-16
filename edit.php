@@ -90,7 +90,7 @@ if ( $form->is_submitted() and ($data = $form->get_data())) {
     redirect($url, get_string('ticketedited', 'block_helpdesk'));
 }
 
-helpdesk_print_header(build_navigation($nav), $title);
+helpdesk_print_header($nav, $title);
 print_heading(get_string('updateticketoverview', 'block_helpdesk'));
 
 $form->display();

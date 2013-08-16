@@ -419,7 +419,7 @@ class helpdesk_native extends helpdesk {
             }
 
             // Don't send an email if the user can't see a hidden update.
-            if ($lastupdate->hidden and (isset($user->token) or !helpdesk_is_capable(HELPDESK_CAP_ANSWER, false, $user))) {
+            if ($lastupdate->hidden and !helpdesk_is_capable(HELPDESK_CAP_ANSWER, false, $user)) {
                 continue;
             }
 
@@ -456,14 +456,18 @@ class helpdesk_native extends helpdesk {
             if (isset($w->userid)) {
                 $w = get_record('user', 'id', $w->userid);
             } else {
-                if (!isset($CFG->block_helpdesk_external_user_tokens) or !$CFG->block_helpdesk_external_user_tokens) {
+                if (empty($CFG->block_helpdesk_external_user_tokens)) {
                     continue;
                 }
                 if (!strlen($w->token)) {
                     $w->token = helpdesk_generate_token();
-                    update_record('block_helpdesk_watcher', $w);
                 }
+                $w->token_last_issued = time();
+                update_record('block_helpdesk_watcher', $w);
                 unset($w->id);  # Moodle's email functions thinks this is a user.id
+
+                $w->mailformat = 1;             # it's 2013, send html messages
+                $w->helpdesk_external = true;
             }
             $processed[] = $w;
         }
@@ -568,7 +572,7 @@ class helpdesk_native extends helpdesk {
         // that an asker has, we'll add these now.
         $relations = array(
             HELPDESK_NATIVE_REL_WATCHING,
-            HELPDESK_NATIVE_REL_REPORTEDBY,
+//            HELPDESK_NATIVE_REL_REPORTEDBY,
             HELPDESK_NATIVE_REL_ALL,
             HELPDESK_NATIVE_REL_NEW,
             HELPDESK_NATIVE_REL_CLOSED,
@@ -908,11 +912,13 @@ class helpdesk_native extends helpdesk {
      * @return object
      */
     function update_ticket_form($data) {
-        global $CFG;
+        global $CFG, $USER;
 
-        $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/update.php");
-        $url->param('id', $data->get_idstring());
-        $form = new update_ticket_form($url->out(), null, 'post');
+        $url = "$CFG->wwwroot/blocks/helpdesk/update.php?id={$data->get_idstring()}";
+        if (!empty($USER->helpdesk_token)) {
+            $url .= "&token=$USER->helpdesk_token";
+        }
+        $form = new update_ticket_form($url, null, 'post');
         $form->add_status($data);
         if (helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
             $form->add_hidden();

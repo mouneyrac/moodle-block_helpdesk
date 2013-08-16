@@ -591,5 +591,15 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $result = $result && add_field($table, $field);
     }
 
+    if ($result && $oldversion < 2013081500) {
+        /// Define field token_last_issued to be added to block_helpdesk_watcher
+        $table = new XMLDBTable('block_helpdesk_watcher');
+        $field = new XMLDBField('token_last_issued');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '20', XMLDB_UNSIGNED, null, null, null, null, null, 'token');
+
+        /// Launch add field token_last_issued
+        $result = $result && add_field($table, $field);
+    }
+
     return $result;
 }
