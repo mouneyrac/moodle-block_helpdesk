@@ -24,6 +24,13 @@ div.right2div {
 div.clear {
     clear: both;
 }
+div.external {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    margin-top: 1em;
+    margin-right: 1.5em;
+}
 li {
     min-width: 1px;
 }

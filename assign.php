@@ -77,12 +77,6 @@ if (!empty($remove)) {
     if(!$ticket->remove_assignment($uid)) {
         error(get_string('cannotremoveassignment', 'block_helpdesk'));
     }
-    if ($CFG->block_helpdesk_assigned_auto_watch) {
-        $user = helpdesk_get_user($uid);
-        if (!$ticket->remove_watcher($user->hd_userid)) {
-            error(get_string('cannotremovewatcher', 'block_helpdesk'));
-        }
-    }
     $str_unassigned = get_string('hasbeenunassigned', 'block_helpdesk');
     $str_username = fullname(helpdesk_get_user($uid));
     $url = new moodle_url("$CFG->wwwroot/user/view.php");
@@ -121,17 +115,11 @@ if (!empty($uid)) {
     if(!$ticket->add_assignment($uid)) {
         error(get_string('cannotaddassignment', 'block_helpdesk'));
     }
-    if ($CFG->block_helpdesk_assigned_auto_watch) {
-        $user = helpdesk_get_user($uid);
-        if (!$ticket->add_watcher($user->hd_userid)) {
-            error(get_string('cannotaddwatcher', 'block_helpdesk'));
-        }
-    }
     redirect($returnurl, get_string('assignmentadded', 'block_helpdesk'));
 }
 
 // No user selected, so its time to find us one.
-helpdesk_print_header(build_navigation($nav), $title);
+helpdesk_print_header($nav, $title);
 print_heading(get_string('helpdesk', 'block_helpdesk'));
 
 // We are starting from scratch here!

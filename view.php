@@ -34,22 +34,18 @@ require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 $id = required_param('id', PARAM_INT);
 $token = optional_param('token', '', PARAM_ALPHANUM);
 
-if ($CFG->block_helpdesk_external_user_tokens and strlen($token)) {
-    if (!$watcher = get_record('block_helpdesk_watcher', 'token', $token, 'ticketid', $id)) {
-        error(get_string('invalidtoken', 'block_helpdesk'));
-    }
-    $USER = helpdesk_get_hd_user($watcher->hd_userid);
-    $readonly = true;   # todo: setting to allow external users to make updates
+if (strlen($token)) {
+    helpdesk_authenticate_token($id, $token);
+    $readonly = empty($CFG->block_helpdesk_external_updates);
 } else {
     require_login(0, false);
     $readonly = false;
 }
 
-$url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $nav = array(
     array(
         'name' => get_string('helpdesk', 'block_helpdesk'),
-        'link' => $url->out()
+        'link' => "$CFG->wwwroot/blocks/helpdesk/search.php"
     ),
     array(
         'name' => get_string('ticketviewer', 'block_helpdesk')
@@ -57,10 +53,9 @@ $nav = array(
 );
 
 $title = get_string('helpdeskticketviewer', 'block_helpdesk');
-$heading = get_string('ticketviewer', 'block_helpdesk');
+helpdesk_print_header($nav, $title);
 
-helpdesk_print_header(build_navigation($nav), $title);
-print_heading($heading);
+print_heading(get_string('ticketviewer', 'block_helpdesk'));
 
 // Let's construct our helpdesk.
 $hd = helpdesk::get_helpdesk();
@@ -72,4 +67,4 @@ if (!$ticket) {
 }
 $hd->display_ticket($ticket, $readonly);
 
-print_footer();
+helpdesk_print_footer();

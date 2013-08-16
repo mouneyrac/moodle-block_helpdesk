@@ -46,6 +46,16 @@ $settings->add(new admin_setting_configcheckbox('block_helpdesk_external_user_to
     get_string('allowexternaltokensdesc', 'block_helpdesk'),
     '0', '1', '0'));
 
+$settings->add(new admin_setting_configtext('block_helpdesk_token_exp',
+    get_string('tokenexp', 'block_helpdesk'),
+    get_string('tokenexpdesc', 'block_helpdesk'),
+    HELPDESK_DEFAULT_TOKEN_EXP, PARAM_INT));
+
+$settings->add(new admin_setting_configcheckbox('block_helpdesk_external_updates',
+    get_string('allowexternalupdates', 'block_helpdesk'),
+    get_string('allowexternalupdatesdesc', 'block_helpdesk'),
+    '0', '1', '0'));
+
 $hd = helpdesk::get_helpdesk();
 if (method_exists($hd, 'plugin_settings')) {
     $hd->plugin_settings($settings);

@@ -58,9 +58,10 @@ define('HELPDESK_UPDATE_TYPE_DETAILED', 'update_type_detailed');
 define('HELPDESK_UPDATE_TYPE_SYSTEM', 'update_type_system');
 
 /**
- * Token entropy in bytes
+ * Token stuff
  */
-define('HELPDESK_TOKEN_LENGTH', 32);
+define('HELPDESK_TOKEN_LENGTH', 32);        # entropy in bytes
+define('HELPDESK_DEFAULT_TOKEN_EXP', 7);    # default token expiration in days
 
 /**
  * Helpdesk userlist functions
@@ -103,26 +104,20 @@ function print_table_head($string, $width='95%') {
  * @param bool  $require Makes the capability check a requirement to pass.
  * @return bool
  */
-function helpdesk_is_capable($capability=null, $require=false, $user=null, $allow_external = false) {
-    global $CFG;
-    # check for external user
-    $token = optional_param('token', '', PARAM_ALPHANUM);
-    if ($allow_external and $CFG->block_helpdesk_external_user_tokens and strlen($token)) {
-        $tid = required_param('id', PARAM_INT);
-        if (!$watcher = get_record('block_helpdesk_watcher', 'token', $token, 'ticketid', $tid)) {
-            return false;
-        }
+function helpdesk_is_capable($capability=null, $require=false, $user=null) {
+    global $CFG, $USER;
+
+    if (empty($user)) {
+        $user = $USER;
+    }
+
+    if (!empty($user->helpdesk_external)) {    # check for external user
         if (!isset($capability)) {
             return HELPDESK_CAP_ASK;
         } else if ($capability == HELPDESK_CAP_ASK) {
             return true;
         }
         return false;
-    }
-
-    if (empty($user)) {
-        global $USER;
-        $user = $USER;
     }
 
     if (is_numeric($user)) {
@@ -226,7 +221,7 @@ function helpdesk_get_hd_user($hd_userid) {
     $sql = "
         SELECT hu.id AS hd_userid, u.id AS userid, COALESCE(u.email, hu.email) AS email,
             COALESCE(u.firstname, hu.name) AS firstname, COALESCE(u.lastname, '') AS lastname,
-            COALESCE(u.phone1, u.phone2, hu.phone) AS phone
+            COALESCE(u.phone1, u.phone2, hu.phone) AS phone, hu.type
         FROM {$CFG->prefix}block_helpdesk_hd_user AS hu
         LEFT JOIN {$CFG->prefix}user AS u ON u.id = hu.userid
         WHERE hu.id = $hd_userid
@@ -239,7 +234,7 @@ function helpdesk_get_hd_user($hd_userid) {
 }
 
 function helpdesk_user_link($user) {
-    global $CFG;
+    global $CFG, $USER;
     $type = '';
     if (isset($user->userid)) {
         $url = new moodle_url("$CFG->wwwroot/user/view.php");
@@ -250,12 +245,56 @@ function helpdesk_user_link($user) {
         $url->param('function', HELPDESK_USERLIST_MANAGE_EXTERNAL);
         $type = get_string('nonmoodleuser', 'block_helpdesk');
     }
-    $url = $url->out();
-    return "<a href=\"$url\">" . fullname($user) . "</a> $type";
+    if (!empty($USER->helpdesk_external)) {
+        return fullname($user) . " $type";
+    }
+    return "<a href=\"{$url->out()}\">" . fullname($user) . "</a> $type";
 }
 
 function helpdesk_generate_token() {
     return bin2hex(openssl_random_pseudo_bytes(HELPDESK_TOKEN_LENGTH));
+}
+
+function helpdesk_authenticate_token($ticketid, $token) {
+    global $CFG;
+    if (empty($CFG->block_helpdesk_external_user_tokens)) {
+        error(get_string('invalidtoken', 'block_helpdesk'));
+    }
+    if (!$watcher = get_record('block_helpdesk_watcher', 'token', $token, 'ticketid', $ticketid)) {
+        error(get_string('invalidtoken', 'block_helpdesk'));
+    }
+
+    global $CFG;
+
+    if (!isset($CFG->block_helpdesk_token_exp)) {
+        $token_exp = HELPDESK_DEFAULT_TOKEN_EXP;
+    } else {
+        $token_exp = $CFG->block_helpdesk_token_exp;
+    }
+    if ($token_exp) {   # non-zero (zero is forever)
+        $token_exp = $token_exp * 24 * 60 * 60;                 # days to seconds
+
+        /**
+         * echo "token_exp " . $token_exp . "</br >";
+         * echo "last_issued " . $watcher->token_last_issued . "</br >";
+         * echo "time " . time() . "</br >";
+         * echo "li+exp " . ($watcher->token_last_issued + $token_exp) . "</br >";
+         * echo "li+exp-time " . ($watcher->token_last_issued + $token_exp - time());
+         */
+
+        if (($watcher->token_last_issued + $token_exp) < time()) {
+            error(get_string('invalidtoken', 'block_helpdesk'));
+        }
+    }
+
+    global $USER;
+
+    $USER = helpdesk_get_hd_user($watcher->hd_userid);
+    $USER->ignoresesskey = true;
+    $USER->helpdesk_external = true;
+    $USER->helpdesk_token = $token;
+
+    return;
 }
 
 /**
@@ -313,16 +352,32 @@ function helpdesk_simple_helpbutton($title, $name, $return=true) {
  * Besides, the header is going to be very similar from one page to another with
  * the exception of navigation.
  *
- * @param object        $nav will be a navigation build by build_navigation().
+ * @param array     $nav will be a build_navigation() input array.
  * @return null
  */
 function helpdesk_print_header($nav, $title=null) {
-    global $CFG, $COURSE;
-    $helpdeskstr = get_string('helpdesk', 'block_helpdesk');
-    if (empty($title)) {
-	$title = $helpdeskstr;
-    }
+    global $CFG, $USER;
+
     $meta = "<meta http-equiv=\"x-ua-compatible\" content=\"IE=8\" />\n
 	     <link rel=\"stylesheet\" type=\"text/css\" href=\"$CFG->wwwroot/blocks/helpdesk/style.css\" />\n";
-    print_header($title, $helpdeskstr, $nav, '', $meta);
+
+    if (!empty($USER->helpdesk_external)) {
+        print_header('', '', '', '', $meta);
+        echo "<div class='external'>" . get_string('welcome', 'block_helpdesk') . fullname($USER) . "</div>";
+        print_heading(get_record('course', 'id', SITEID)->fullname . ' ' . get_string('helpdesk', 'block_helpdesk'), '', 1);
+        return;
+    }
+
+    $helpdeskstr = get_string('helpdesk', 'block_helpdesk');
+    if (empty($title)) {
+        $title = $helpdeskstr;
+    }
+    print_header($title, $helpdeskstr, build_navigation($nav), '', $meta);
+}
+
+function helpdesk_print_footer() {
+    global $USER;
+    if (empty($USER->helpdesk_external)) {
+        print_footer();
+    }
 }

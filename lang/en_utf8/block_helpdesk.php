@@ -131,12 +131,14 @@ $string['cannotaddwatcher']     = 'Unable to add watcher.';
 $string['cannotremovewatcher']  = 'Unable to remove watcher.';
 $string['alltickets']           = 'All Questions';
 $string['reportedby']           = 'Active questions asked by user';
+$string['watching']             = 'Active questions watched by user';
 $string['newtickets']           = 'New Questions';
 $string['assignedto']           = 'Questions assigned to user';
 $string['closedtickets']        = 'Closed Questions';
 $string['unassignedtickets']    = 'Unassigned Questions';
 $string['notes']                = 'Notes';
 $string['hideupdate']           = 'Hide Update';
+$string['hideupdateform']           = 'Hide Update (and do not notify user)';
 $string['hidden']               = 'Hidden';
 $string['thisupdateishidden']   = 'This update is hidden';
 $string['assignthisuser']       = 'Assign this user';
@@ -228,6 +230,8 @@ $string['searchall']            = 'Search Internal & External Users';
 $string['searchinternal']            = 'Search Internal Users';
 $string['searchexternal']            = 'Search External Users';
 $string['externaluserupdatefailed'] = 'Could not create/update external user';
+$string['invalidtoken']         = 'Invalid or expired token';
+$string['welcome']              = 'Welcome, ';
 
 /**
  * These are settings.php strings.
@@ -239,6 +243,10 @@ $string['allowexternal']        = 'Allow External Users';
 $string['allowexternaldesc']    = 'Allow helpdesk answerers to manager external users and create tickets for them.';
 $string['allowexternaltokens']        = 'External User Token Access';
 $string['allowexternaltokensdesc']    = 'Send ticket updates to external users and allow them to view tickets they are watching with an access token.';
+$string['tokenexp']             = 'Token Expiration';
+$string['tokenexpdesc']             = 'Time in days before external token expires. 0 indicates that tokens should never expire.';
+$string['allowexternalupdates'] = 'Allow updates from external users';
+$string['allowexternalupdatesdesc'] = 'Allow external users with valid tokens to make updates to tickets they are watching.';
 $string['assignedaswatchers']   = 'Add/remove assigned users as watchers';
 $string['assignedaswatchersdesc'] = 'When a user is assigned to/removed from a ticket, automatically add/remove them as a watcher.';
 $string['usertypesconfig']      = 'External User Types';

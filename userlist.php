@@ -127,7 +127,7 @@ $nav[] = array (
 );
 
 $url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/userlist.php");
-helpdesk_print_header(build_navigation($nav));
+helpdesk_print_header($nav);
 print_heading($title);
 
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);

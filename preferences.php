@@ -38,7 +38,7 @@ $nav = array (
     array ('name' => get_string('helpdesk', 'block_helpdesk'), 'link' => $baseurl->out()),
     array ('name' => get_string('preferences')),
 );
-helpdesk_print_header(build_navigation($nav));
+helpdesk_print_header($nav);
 
 require_login();
 

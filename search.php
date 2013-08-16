@@ -56,7 +56,7 @@ if(!helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
 }
 
 $title = get_string('helpdesksearch', 'block_helpdesk');
-helpdesk_print_header(build_navigation($nav), $title);
+helpdesk_print_header($nav, $title);
 print_heading(get_string('helpdesk', 'block_helpdesk'));
 // Do we have a relation to use? Lets us it!
 if(!$form->is_submitted() and empty($httpdata)) {
@@ -72,7 +72,7 @@ if(!$form->is_submitted() and empty($httpdata)) {
         }
         if($cap !== HELPDESK_CAP_ANSWER) {
             $user = helpdesk_get_user($USER->id);
-            $data->submitter = $user->hd_userid;
+            $data->watcher = $user->hd_userid;
         }
     }
 } else {

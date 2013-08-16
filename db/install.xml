@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/helpdesk/db" VERSION="20130730" COMMENT="XMLDB file for Moodle blocks/helpdesk"
+<XMLDB PATH="blocks/helpdesk/db" VERSION="20130815" COMMENT="XMLDB file for Moodle blocks/helpdesk"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -123,7 +123,8 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="ticketid"/>
         <FIELD NAME="ticketid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="hd_userid"/>
         <FIELD NAME="hd_userid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="ticketid" NEXT="token"/>
-        <FIELD NAME="token" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="hd_userid"/>
+        <FIELD NAME="token" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="hd_userid" NEXT="token_last_issued"/>
+        <FIELD NAME="token_last_issued" TYPE="int" LENGTH="20" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="token"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

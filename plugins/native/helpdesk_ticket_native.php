@@ -66,7 +66,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function display_ticket($readonly=false) {
-        global $CFG;
+        global $CFG, $USER;
 
         $hd = helpdesk::get_helpdesk();
 
@@ -325,8 +325,12 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $updatehelp = helpdesk_simple_helpbutton($updatestr, 'update');
         echo "<div class=\"ticketupdates\">";
 
+
         $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/update.php");
         $url->param('id', $this->get_idstring());
+        if (!empty($USER->helpdesk_token)) {
+            $url->param('token', $USER->helpdesk_token);
+        }
         $url = $url->out();
         $translated = get_string('updateticket', 'block_helpdesk');
 
@@ -656,6 +660,12 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      */
     function add_assignment($userid) {
         global $CFG;
+
+        $assigned = $this->get_assigned();
+        if (isset($assigned[$userid])) {
+            return true;
+        }
+
         $assign = (object) array(
             'userid'    => $userid,
             'ticketid'  => $this->id,
@@ -676,8 +686,14 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             notify(get_string('cantaddupdate', 'block_helpdesk'));
         }
 
-        $this->fetch();
-        $this->store();
+        if (!empty($CFG->block_helpdesk_assigned_auto_watch)) {
+            if (!$this->add_watcher($user->hd_userid)) {
+                error(get_string('cannotaddwatcher', 'block_helpdesk'));
+            }
+        } else {
+            $this->fetch();
+            $this->store();
+        }
         return true;
     }
 
@@ -690,6 +706,13 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function remove_assignment($userid) {
+        global $CFG;
+
+        $assigned = $this->get_assigned();
+        if (!isset($assigned[$userid])) {
+            return true;
+        }
+
         $result = delete_records('block_helpdesk_ticket_assign', 'userid', $userid, 'ticketid', $this->id);
         if ($result) {
             $this->store();
@@ -702,6 +725,12 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
             if(!$this->add_update($update)) {
                 notify(get_string('cantaddupdate', 'block_helpdesk'));
+            }
+        }
+
+        if (!empty($CFG->block_helpdesk_assigned_auto_watch)) {
+            if (!$this->remove_watcher($user->hd_userid)) {
+                error(get_string('cannotremovewatcher', 'block_helpdesk'));
             }
         }
         return $result;
@@ -728,7 +757,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         // At this point we have to process each user. This may sound scary but
         // the number of assigned users is usually low.
         foreach($records as $record) {
-            $users[] = helpdesk_get_user($record->userid);
+            $user = helpdesk_get_user($record->userid);
+            $users[$user->userid] = $user;
         }
 
         return $users;
@@ -741,19 +771,18 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function add_watcher($hd_userid) {
+        $watchers = $this->get_watchers();
+        if (isset($watchers[$hd_userid])) {
+            return true;
+        }
+
         $user = helpdesk_get_hd_user($hd_userid);
 
         $watcher = (object) array(
             'ticketid'  => $this->id,
             'hd_userid' => $hd_userid,
         );
-        if (!isset($user->userid)) {    # external users need tokens
-            $watcher->token = helpdesk_generate_token();
-        }
-
-        if (!insert_record('block_helpdesk_watcher', $watcher)) {
-            return false;
-        }
+        if (!insert_record('block_helpdesk_watcher', $watcher)) { return false; }
 
         // update
         $update = (object) array(
@@ -776,6 +805,11 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @param int       $hd_userid hd_user.id of user being removed
      */
     function remove_watcher($hd_userid) {
+        $watchers = $this->get_watchers();
+        if (!isset($watchers[$hd_userid])) {
+            return true;
+        }
+
         $result = delete_records('block_helpdesk_watcher', 'hd_userid', $hd_userid, 'ticketid', $this->id);
         if ($result) {
             $this->store();
@@ -816,7 +850,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         foreach($records as $record) {
             $user = helpdesk_get_hd_user($record->hd_userid);
             $user = (object) array_merge((array) $user, (array) $record);
-            $users[] = $user;
+            $users[$user->hd_userid] = $user;
         }
 
         return $users;
@@ -840,7 +874,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             return false;
         }
         if (isset($USER->hd_userid)) {
-            $hd_user = helpdesk_get_hd_user($USER->hd_userid);
+            $hd_user = $USER;
         } else {
             $hd_user = helpdesk_get_user($USER->id);
         }
@@ -853,7 +887,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             }
         }
         # Check for permission before proceeding.
-        if (!helpdesk_is_capable(HELPDESK_CAP_ASK, false, null, true) or !($iswatcher or $ticket->hd_userid == $hd_user->hd_userid)) {
+        if (!helpdesk_is_capable(HELPDESK_CAP_ASK) or !$iswatcher) {
             if (!helpdesk_is_capable(HELPDESK_CAP_ANSWER, $permissionhalt)) {
                 return false;
             }
@@ -1079,8 +1113,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $update = $this->process_update($update);
 
         if (!is_object($this->firstcontact) and
-            $this->get_hd_userid() != $USER->id and
-            $isanswerer) {
+            $isanswerer and
+            $this->get_hd_userid() != $USER->id) {
 
             $this->firstcontact = $USER;
         }
@@ -1088,6 +1122,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $dat->notes         = $update->notes;
         if (!empty($update->hd_userid)) {
             $dat->hd_userid = $update->hd_userid;
+        } else if (isset($USER->hd_userid)) {
+            $dat->hd_userid = $USER->hd_userid;
         } else {
             $hd_user = helpdesk_get_user($USER->id);
             $dat->hd_userid = $hd_user->hd_userid;
