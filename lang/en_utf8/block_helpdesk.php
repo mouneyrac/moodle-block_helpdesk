@@ -229,7 +229,8 @@ $string['internal_user']        = 'Internal User';
 $string['searchall']            = 'Search Internal & External Users';
 $string['searchinternal']            = 'Search Internal Users';
 $string['searchexternal']            = 'Search External Users';
-$string['externaluserupdatefailed'] = 'Could not create/update external user';
+$string['externaluserupdatefailed'] = 'Could not update external user';
+$string['externaluserupdatefailed'] = 'Could not create external user';
 $string['invalidtoken']         = 'Invalid or expired token';
 $string['welcome']              = 'Welcome, ';
 
