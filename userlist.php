@@ -51,7 +51,7 @@ $nav = array (
         'link' => $searchurl->out()
     )
 );
-if (is_numeric($ticketid)) {
+if (!empty($ticketid)) {
     $ticketreturn = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
     $ticketreturn->param('id', $ticketid);
     $nav[] = array (

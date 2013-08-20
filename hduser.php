@@ -65,12 +65,14 @@ if ($user_form->is_cancelled()) {
     # can we get the hidden fields from a cancelled form?
 } else if ($user = $user_form->get_data()) {
     if ($user->id) {
-        $rval = update_record('block_helpdesk_hd_user', $user);
+        if (!update_record('block_helpdesk_hd_user', $user)) {
+            error(get_string('externaluserupdatefailed', 'block_helpdesk'));
+        }
+        $rval = $user->id;
     } else {
-        $rval = insert_record('block_helpdesk_hd_user', $user);
-    }
-    if (!$rval) {
-        error(get_string('externaluserupdatefailed', 'block_helpdesk'));
+        if (!$rval = insert_record('block_helpdesk_hd_user', $user)) {
+            error(get_string('externaluserupdatefailed', 'block_helpdesk'));
+        }
     }
     $url = new moodle_url($returnurl);
     if ($paramname) {
