@@ -148,7 +148,7 @@ class block_helpdesk extends block_base {
 
         // Link for submitting a new ticket.
         $url = $hd->default_submit_url()->out();
-        $text = get_string('submitnewticket', 'block_helpdesk');
+        $text =  !empty($CFG->block_helpdesk_submit_text) ? $CFG->block_helpdesk_submit_text: get_string('submitnewticket', 'block_helpdesk');
         $this->content->text .= "<a href=\"$url\">$text</a><br /><br />";
 
         if (helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
