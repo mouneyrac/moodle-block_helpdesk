@@ -264,8 +264,6 @@ function helpdesk_authenticate_token($ticketid, $token) {
         error(get_string('invalidtoken', 'block_helpdesk'));
     }
 
-    global $CFG;
-
     if (!isset($CFG->block_helpdesk_token_exp)) {
         $token_exp = HELPDESK_DEFAULT_TOKEN_EXP;
     } else {

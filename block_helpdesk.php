@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script extends a moodle block_base and is the entry point for all 
+ * This script extends a moodle block_base and is the entry point for all
  * helpdesk  ability.
  *
  * @package     block_helpdesk
@@ -37,7 +37,8 @@ class block_helpdesk extends block_base {
      * @return null
      */
     function init() {
-        $this->title = get_string('helpdesk', 'block_helpdesk');
+        global $CFG;
+        $this->title = !empty($CFG->block_helpdesk_block_name) ? $CFG->block_helpdesk_block_name : get_string('helpdesk', 'block_helpdesk');
         require(dirname(__FILE__) . '/version.php');
         $this->version = $plugin->version;
         $this->cron = 1;
