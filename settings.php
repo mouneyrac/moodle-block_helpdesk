@@ -36,6 +36,11 @@ $settings->add(new admin_setting_configtext('block_helpdesk_block_name',
     get_string('blocknameconfigdesc', 'block_helpdesk'),
     '', PARAM_TEXT));
 
+$settings->add(new admin_setting_configtext('block_helpdesk_submit_text',
+    get_string('submittextconfig', 'block_helpdesk'),
+    get_string('submittextconfigdesc', 'block_helpdesk'),
+    '', PARAM_TEXT));
+
 $settings->add(new admin_setting_configcheckbox('block_helpdesk_allow_external_users',
     get_string('allowexternal', 'block_helpdesk'),
     get_string('allowexternaldesc', 'block_helpdesk'),
