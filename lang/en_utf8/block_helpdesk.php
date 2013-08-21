@@ -240,6 +240,8 @@ $string['welcome']              = 'Welcome, ';
  */
 $string['generalsettings']      = 'General Helpdesk Settings';
 $string['generalsettingsdesc']  = 'These settings affect all helpdesk plugins.';
+$string['blocknameconfig']      = 'Block name';
+$string['blocknameconfigdesc']  = 'Change the block name from the default';
 $string['allowexternal']        = 'Allow External Users';
 $string['allowexternaldesc']    = 'Allow helpdesk answerers to manager external users and create tickets for them.';
 $string['allowexternaltokens']        = 'External User Token Access';
