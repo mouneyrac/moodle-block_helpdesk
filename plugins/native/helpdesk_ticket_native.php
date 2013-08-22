@@ -1112,21 +1112,22 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $status = $this->status;
         $update = $this->process_update($update);
 
-        if (!is_object($this->firstcontact) and
-            $isanswerer and
-            $this->get_hd_userid() != $USER->id) {
-
-            $this->firstcontact = $USER;
+        if (!is_object($this->firstcontact)) {
+            if ($isanswerer and empty($USER->helpdesk_external)) {
+                $current_hd_user = helpdesk_get_user($USER->id);
+                if ($this->get_hd_userid() != $current_hd_user->hd_userid) {
+                    $this->firstcontact = $current_hd_user;
+                }
+            }
         }
 
         $dat->notes         = $update->notes;
         if (!empty($update->hd_userid)) {
             $dat->hd_userid = $update->hd_userid;
-        } else if (isset($USER->hd_userid)) {
+        } else if (!empty($USER->helpdesk_external)) {
             $dat->hd_userid = $USER->hd_userid;
         } else {
-            $hd_user = helpdesk_get_user($USER->id);
-            $dat->hd_userid = $hd_user->hd_userid;
+            $dat->hd_userid = helpdesk_get_user($USER->id)->hd_userid;
         }
         $dat->status        = $update->status;
         $dat->type          = $update->type;
