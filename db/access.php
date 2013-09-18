@@ -33,6 +33,7 @@ if (!defined('HELPDESK_CAP_ANSWER')) {
 }
 
 $capabilities = array (
+    // our custom capabilities
     HELPDESK_CAP_ASK => array (
         'riskbitmask'   => RISK_SPAM,
         'captype'       => 'write',
@@ -53,5 +54,28 @@ $capabilities = array (
         'legecy' => array (
             'admin' => CAP_ALLOW,
         )
-    )
+    ),
+
+    // moodle 2.4 required stuff
+    'block/helpdesk:myaddinstance' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'user' => CAP_ALLOW
+        ),
+
+        'clonepermissionsfrom' => 'moodle/my:manageblocks'
+    ),
+    'block/helpdesk:addinstance' => array(
+        'riskbitmask' => RISK_SPAM | RISK_XSS,
+
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_BLOCK,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ),
+
+        'clonepermissionsfrom' => 'moodle/site:manageblocks'
+    ),
 );
