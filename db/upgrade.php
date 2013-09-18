@@ -243,4 +243,56 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         // helpdesk savepoint reached
         upgrade_block_savepoint(true, 2013022800, 'helpdesk');
     }
+
+    if ($oldversion < 2013083000) {
+        $tickets = $DB->get_records_sql("
+            SELECT t.id, t.status
+            FROM {block_helpdesk_ticket} t
+            LEFT JOIN {block_helpdesk_ticket_update} u ON u.ticketid = t.id
+            WHERE t.status <> u.newticketstatus
+            AND u.id = (
+                SELECT u2.id FROM
+                {block_helpdesk_ticket_update} u2
+                WHERE u2.ticketid = t.id
+                AND u2.newticketstatus IS NOT NULL
+                ORDER BY timecreated DESC
+                LIMIT 1
+            )
+
+            UNION
+
+            SELECT t2.id, t2.status
+            FROM {block_helpdesk_ticket} t2
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM {block_helpdesk_ticket_update} u3
+                WHERE u3.ticketid = t2.id
+                AND u3.newticketstatus = t2.status
+            )
+            AND t2.status IN (3,4)
+        ");
+        if ($tickets) {
+            require_once("$CFG->dirroot/blocks/helpdesk/plugins/native/lib_native.php");
+            foreach ($tickets as $t) {
+                $sql = "
+                    SELECT *
+                    FROM {block_helpdesk_ticket_update} u
+                    WHERE u.ticketid = ?
+                    AND u.status IN ('".HELPDESK_NATIVE_UPDATE_STATUS."','".HELPDESK_NATIVE_UPDATE_DETAILS."')
+                    ORDER BY u.timecreated DESC
+                    LIMIT 1
+                ";
+                if (!$update = $DB->get_record_sql($sql, array($t->id))) {
+                    echo "No update found to fix newticketstatus bug (ticket.id: $t->id) :(</ br>\n";
+                    continue;
+                }
+                $update->newticketstatus = $t->status;
+                echo "updating ticket_update: $update->id with newticketstatus $t->status";
+                if (!$DB->update_record('block_helpdesk_ticket_update', $update)) {
+                    echo "Couldn't update ticket_update rec (ticket_update.id: $update->id) :(</ br>\n";
+                }
+            }
+        }
+        upgrade_block_savepoint(true, 2013083000, 'helpdesk');
+    }
 }

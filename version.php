@@ -26,7 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2013052300;
+$plugin->version = 2013083000;
 $plugin->requires  = 2012062500;        // Requires this Moodle 2.3
 $plugin->component = 'block_helpdesk';
 $plugin->maturity = MATURITY_STABLE;
