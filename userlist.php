@@ -71,6 +71,7 @@ if (!isset($userset)) {
 }
 switch ($function) {
 case HELPDESK_USERLIST_NEW_SUBMITTER:
+    $thisurl->param('tid', $ticketid);
     $returnurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/edit.php");
     $returnurl->param('id', $ticketid);
     $paramname = 'newuser';
@@ -85,6 +86,7 @@ case HELPDESK_USERLIST_NEW_SUBMITTER:
     $title = get_string('helpdeskchangeuser', 'block_helpdesk');
     break;
 case HELPDESK_USERLIST_NEW_WATCHER:
+    $thisurl->param('tid', $ticketid);
     $returnurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/manage_watchers.php");
     $returnurl->param('tid', $ticketid);
     $paramname = 'hd_userid';
@@ -117,6 +119,7 @@ case HELPDESK_USERLIST_SUBMIT_AS:
     $title = get_string('helpdeskselectticketuser', 'block_helpdesk');
     break;
 case HELPDESK_USERLIST_PLUGIN:
+    $thisurl->param('returnurl', $returnurl);
     $returnurl = new moodle_url($returnurl);
     break;
 default:
