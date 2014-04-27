@@ -63,7 +63,7 @@ if(!$ticket->add_assignment($USER->id)) {
     error(get_string('unabletoaddassignment', 'block_helpdesk'));
 }
 
-$url = new moodle_url('/blocks/helpdesk/view.php');
+$url = new moodle_url($CFG->wwwroot . '/blocks/helpdesk/view.php');
 $url->param('id', $ticket->get_idstring());
 
 redirect($url->out(), get_string('questiongrabbed', 'block_helpdesk') . ': ' . $ticket->get_summary());
