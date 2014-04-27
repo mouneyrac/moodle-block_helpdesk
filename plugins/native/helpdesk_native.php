@@ -719,7 +719,7 @@ class helpdesk_native extends helpdesk {
         }
 
         $selectsearch   = 'SELECT DISTINCT t.id, t.summary, t.detail, t.timemodified';
-        $selectcount    = 'SELECT COUNT(DISTINCT t.*)';
+        $selectcount    = 'SELECT COUNT(DISTINCT t.id)';
         $selectusers    = 'SELECT u.id, u.firstname, u.lastname, u.email';
         $assignon       = 't.id = hta.ticketid';
 
