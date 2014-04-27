@@ -37,7 +37,7 @@ $block_helpdesk_capabilities = array (
         'riskbitmask'   => RISK_SPAM,
         'captype'       => 'write',
         'contextlevel'  => CONTEXT_SYSTEM,
-        'legecy'        => array (
+        'legacy'        => array (
             'guest'             => CAP_ALLOW,
             'student'           => CAP_ALLOW,
             'teacher'           => CAP_ALLOW,
@@ -50,7 +50,7 @@ $block_helpdesk_capabilities = array (
         'riskbitmask'   => RISK_PERSONAL + RISK_SPAM,
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'legecy' => array (
+        'legacy' => array (
             'admin' => CAP_ALLOW,
         )
     )
