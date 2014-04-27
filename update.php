@@ -30,6 +30,7 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
 require_login(0, false);
+$context = context_system::instance();
 
 $id = required_param('id', PARAM_INT);
 $baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");

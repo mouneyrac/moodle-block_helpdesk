@@ -24,7 +24,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname']            = 'Help Desk';
+$string['pluginname']           = 'Help Desk';
 $string['blockname']            = 'Help Desk';
 $string['helpdesk:answer']      = 'Help Desk Answerer';
 $string['block/helpdesk:answer']= $string['helpdesk:answer'];
@@ -32,6 +32,9 @@ $string['answerer']             = 'Answerer';
 $string['anyanswerer']          = 'Any answerer';
 $string['helpdesk:ask']         = 'Help Desk Asker';
 $string['block/helpdesk:ask']   = $string['helpdesk:ask'];
+$string['helpdesk:view']        = 'View a helpdesk ticket';
+$string['helpdesk:addinstance'] = 'Add a helpdesk block';
+$string['helpdesk:myaddinstance'] = 'Add a helpdesk block to My Moodle';
 $string['helpdesk']             = 'Help Desk';
 $string['ticketinfo']           = 'Question Details';
 $string['ticketid']             = 'Question ID';
@@ -56,7 +59,7 @@ $string['submitticket']         = 'Submit Question';
 $string['ticketview']           = 'View Question';
 $string['timemodified']         = 'Updated On';
 $string['newticketform']        = 'New Question';
-$string['newticketmsg']         = 'Your question has been successfully submitted.';
+$string['newticketnotes']       = 'Your question has been successfully submitted.';
 $string['newticket']            = 'New Question';
 $string['viewalltickets']       = 'View all Questions';
 $string['submitnewticket']      = 'Submit a new question';
@@ -163,7 +166,7 @@ $string['unabletochangeuseronquestion'] = 'Unable to change the user on this que
 $string['useronquestionchanged'] = 'User on this question has been changed.';
 $string['changeuseronquestion'] = 'Change the user on this question.';
 $string['newuserselected']      = 'New user has been selected.';
-$string['selectauser']           = 'Select a User';
+$string['selectauser']          = 'Select a User';
 $string['selectuser']           = 'Select User';
 $string['changedusernotice']    = 'Notice: You must save the question before the new user will be saved.';
 $string['firstcontactuser']     = 'First Contact';
@@ -190,6 +193,7 @@ $string['questiongrabbed']      = 'Question grabbed';
 $string['showupdate']           = 'Show update';
 $string['updatewillnowbeshown'] = 'Update will now be shown';
 $string['updatewillnowbehidden']= 'Update will now be hidden';
+$string['unabletoadddetailtoticket']= 'Unable to update the detail fields during ticket creation';
 
 /**
  * These are settings.php strings.
@@ -238,7 +242,7 @@ $string['includeagent']         = 'Include HTTP agent string';
 $string['includeagentdesc']     = 'This includes the submitters HTTP agent string and operating system as tags when a ticket is submitted.';
 
 // Email defaults
-$string['emaildefaultmsgtext']  = <<<EOF
+$string['emaildefaultnotestext']= <<<EOF
 Hello !username!,
 
 You are being notfified because one of your questions have been updated and may require your attention.
@@ -249,7 +253,7 @@ You question was updated at !updatetime!.
 Thank you,
 !supportname!
 EOF;
-$string['emaildefaultsubject']  = 'Ticket #!ticketid! Updated';
+$string['emaildefaultsubject']      = 'Ticket #!ticketid! Updated';
 
 // Help strings
 $string['assigned']                 = 'Question Assignments';

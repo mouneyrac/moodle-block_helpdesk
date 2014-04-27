@@ -78,7 +78,7 @@ if (is_numeric($remove)) {
     $data->ticketid = $tid;
     $tag = $ticket->parse_tag($data);
     if(!$ticket->add_tag($tag)) {
-        error(get_string('unabletoaddtag'));
+        print_error(get_string('unabletoaddtag'));
     }
     // At this point, the new tag has been added.
     $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");

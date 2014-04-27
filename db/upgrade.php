@@ -295,4 +295,39 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         }
         upgrade_block_savepoint(true, 2013083000, 'helpdesk');
     }
+
+    if ($oldversion < 2014041902) {
+
+        // Define field detailformat to be added to block_helpdesk_ticket.
+        $table = new xmldb_table('block_helpdesk_ticket');
+        $field = new xmldb_field('detailformat', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '1', 'detail');
+
+        // Conditionally launch add field detailformat.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field notesformat to be added to block_helpdesk_ticket_update.
+        $table = new xmldb_table('block_helpdesk_ticket_update');
+        $field = new xmldb_field('notesformat', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '1', 'notes');
+
+        // Conditionally launch add field notesformat.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field valueformat to be added to block_helpdesk_ticket_tag.
+        $table = new xmldb_table('block_helpdesk_ticket_tag');
+        $field = new xmldb_field('valueformat', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '1', 'value');
+
+        // Conditionally launch add field valueformat.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Helpdesk savepoint reached.
+        upgrade_block_savepoint(true, 2014041902, 'helpdesk');
+    }
+
+    return true;
 }

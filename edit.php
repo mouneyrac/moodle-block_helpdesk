@@ -29,6 +29,7 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
 require_login(0, false);
+$context = context_system::instance();
 
 $id = required_param('id', PARAM_INT);
 $newuser = optional_param('newuser', null, PARAM_INT);
@@ -71,6 +72,10 @@ if ($newuser != null ) {
 $form = $hd->change_overview_form($ticket);
 
 if ( $form->is_submitted() and ($data = $form->get_data())) {
+    $editoroptions = array('maxfiles'=> 99, 'maxbytes'=>$CFG->maxbytes, 'context'=>$context);
+    $data->detail = '';
+    $data = file_postupdate_standard_editor($data, 'detail', $editoroptions, $context,
+        'block_helpdesk', 'ticketdetail', $id);
     $ticket->set_summary($data->summary);
     $ticket->set_detail($data->detail);
     if ($ticket->get_status()->id != $data->status) {
@@ -80,7 +85,7 @@ if ( $form->is_submitted() and ($data = $form->get_data())) {
         $newstatus = null;
     }
     $ticket->set_userid($data->userid);
-    if (!$ticket->store_edit($data->msg, $newstatus)) {
+    if (!$ticket->store_edit($data->notes_editor, $newstatus)) {
         error(get_string('cannotaddupdate', 'block_helpdesk'));
     }
     $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");

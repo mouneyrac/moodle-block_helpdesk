@@ -33,19 +33,23 @@ class new_ticket_form extends moodleform {
         global $CFG;
 
         $mform =& $this->_form;
+        $editoroptions = $this->_customdata['editoroptions'];
+        $ticket = $this->_customdata['ticket'];
 
         $mform->addElement('header', 'frm', get_string('newticketform', 'block_helpdesk'));
         $mform->addElement('text', 'summary', get_string('summary', 'block_helpdesk'));
         $mform->addRule('summary', null, 'required', 'server');
+        $mform->setType('summary', PARAM_TEXT);
 
-        $htmleditorparams = array (
-            'rows'              => 30,
-            'cols'              => 75,
-            );
-        $mform->addElement('htmleditor', 'detail', get_string('detail', 'block_helpdesk'), $htmleditorparams);
-        $mform->setType('detail', PARAM_RAW);
-        $mform->addRule('detail', null, 'required', 'server');
+        $mform->addElement('editor', 'detail_editor', get_string('detail', 'block_helpdesk'),
+            null, $editoroptions);
+        $mform->setType('detail_editor', PARAM_RAW);
+        $mform->addRule('detail_editor', null, 'required', 'server');
+
         $mform->addElement('submit', 'submitbutton', get_string('submitticket', 'block_helpdesk'));
+
+        $this->set_data($ticket);
+
     }
 
     function validation($data, $files) {

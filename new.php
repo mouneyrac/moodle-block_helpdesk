@@ -31,6 +31,7 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once($CFG->dirroot . '/blocks/helpdesk/lib.php');
 
 require_login(0, false);
+$context = context_system::instance();
 
 // User should be logged in, no guests.
 
@@ -67,11 +68,21 @@ helpdesk::page_init($title, $nav, $url);
 $hd = helpdesk::get_helpdesk();
 
 // Get new ticket form to get data or the form itself.
+$ticket = new stdClass();
+$ticket->detail = "";
+$ticket->detailformat = FORMAT_HTML;
+$editoroptions = array('maxfiles'=> 99, 'maxbytes'=>$CFG->maxbytes, 'context'=>$context);
+$ticket = file_prepare_standard_editor($ticket, 'detail', $editoroptions, $context,
+    'block_helpdesk', 'ticketdetail', 0);
 if (!empty($taglist)) {
-    $form = $hd->new_ticket_form(array('tags' => $taglist));
+    $ticket->tags = $taglist;
 } else {
-    $form = $hd->new_ticket_form(array('tags' => array()));
+    $ticket->tags = array();
 }
+$form = $hd->new_ticket_form(array('ticket' => $ticket, 'editoroptions' => $editoroptions,
+    'tags' => $ticket->tags));
+
+
 
 // If the form is submitted (or not) we gotta do stuff.
 if (!$form->is_submitted() or !($data = $form->get_data())) {
@@ -83,13 +94,23 @@ if (!$form->is_submitted() or !($data = $form->get_data())) {
 
 // At this point we know that we have a ticket to add.
 $ticket = $hd->new_ticket();
+
 if (!$ticket->parse($data)) {
-    error(get_string("cannotparsedata", 'block_helpdesk'));
+    print_error(get_string("cannotparsedata", 'block_helpdesk'));
 }
 if (!$ticket->store()) {
-    error(get_string('unabletostoreticket', 'block_helpdesk'));
+    print_error(get_string('unabletostoreticket', 'block_helpdesk'));
 }
 $id = $ticket->get_idstring();
+
+// Save the editor files in the ticketdetail filearea and update the detail/detailformat field of the ticket.
+$data->id = $id;
+$data = file_postupdate_standard_editor($data, 'detail', $editoroptions, $context,
+    'block_helpdesk', 'ticketdetail', $id);
+$ticket->parse($data);
+if (!$ticket->store()) {
+    print_error('unabletoadddetailtoticket', 'block_helpdesk');
+}
 
 if (!empty($data->tags)) {
     $taglist = array();
@@ -116,4 +137,4 @@ if (!empty($data->tags)) {
 $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
 $url->param('id', $id);
 $url = $url->out();
-redirect($url, get_string('newticketmsg', 'block_helpdesk'));
+redirect($url, get_string('newticketnotes', 'block_helpdesk'));

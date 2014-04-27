@@ -399,7 +399,7 @@ class helpdesk_native extends helpdesk {
         $html = get_config(null, 'block_helpdesk_email_htmlcontent');
         $emailsubject = get_config(null, 'block_helpdesk_email_subject');
         if(empty($text)) {
-            $text = get_string('emaildefaultmsgtext', 'block_helpdesk');
+            $text = get_string('emaildefaultnotestext', 'block_helpdesk');
             set_config('block_helpdesk_email_content', $text);
         }
         if(empty($html) or strlen($html) == 0) {
@@ -508,17 +508,16 @@ class helpdesk_native extends helpdesk {
         $settings->add(new admin_setting_configtext('block_helpdesk_email_subject',
                                                     get_string('emailsubject', 'block_helpdesk'),
                                                     get_string('emailsubjectdesc', 'block_helpdesk'),
-                                                    '', PARAM_TEXT));
+                                                    get_string('emaildefaultsubject', 'block_helpdesk'),
+                                                    PARAM_TEXT));
 
         $settings->add(new admin_setting_configtextarea('block_helpdesk_email_content',
                                                         get_string('emailcontent', 'block_helpdesk'),
                                                         get_string('emailcontentdesc', 'block_helpdesk'),
-                                                        '', PARAM_RAW));
+                                                        get_string('emaildefaultnotestext', 'block_helpdesk'),
+                                                        PARAM_RAW));
 
-        $base = 'admin_setting_config';
-        // $class = ($CFG->version >= 2007101590.00) ? "{$base}htmltextarea" : "{$base}textarea";
-        $class = "{$base}htmleditor";
-        $settings->add(new $class('block_helpdesk_email_htmlcontent',
+        $settings->add(new admin_setting_confightmleditor('block_helpdesk_email_htmlcontent',
                                   get_string('emailrtfcontent', 'block_helpdesk'),
                                   get_string('emailrtfcontentdesc', 'block_helpdesk'),
                                   '', PARAM_RAW));
@@ -820,19 +819,19 @@ class helpdesk_native extends helpdesk {
         $url->param('id', $ticket->get_idstring());
 
         $user = $DB->get_record('user', array('id'=>$ticket->get_userid()));
+        $context = context_system::instance();
 
-        $form = new change_overview_form($url->out(), null, 'post', '', null, true, $ticket);
+        // Prepare the form file area.
+        $editoroptions = array('maxfiles'=> 99, 'maxbytes'=>$CFG->maxbytes, 'context'=>$context);
+        $ticket = file_prepare_standard_editor($ticket, 'detail', $editoroptions, $context,
+            'block_helpdesk', 'ticketdetail', $id);
+        $ticket->notes = '';
+        $ticket->notesformat = FORMAT_HTML;
+        $ticket = file_prepare_standard_editor($ticket, 'notes', $editoroptions, $context,
+            'block_helpdesk', 'ticketnotes', 0);
+        $ticket->username = fullname($user);
+        $form = new change_overview_form($url->out(), array('ticket' => $ticket, 'editoroptions' => $editoroptions));
 
-        if (!$form->is_submitted()) {
-            $data = array(
-                'summary' => $ticket->get_summary(),
-                'detail' => $ticket->get_detail(),
-                'status' => $ticket->get_status(),
-                'userid' => $ticket->get_userid(),
-                'username' => fullname($user)
-                );
-            $form->set_data($data);
-        }
         return $form;
     }
 
@@ -844,7 +843,7 @@ class helpdesk_native extends helpdesk {
     function new_ticket_form($data=null) {
         global $CFG;
         $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/new.php");
-        $form = new new_ticket_form($url);
+        $form = new new_ticket_form($url, $data);
         if (!is_array($data)) {
             // Do nothing.
         } elseif (!empty($data['tags'])) {
@@ -882,12 +881,14 @@ class helpdesk_native extends helpdesk {
 
         $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/update.php");
         $url->param('id', $data->get_idstring());
-        $form = new update_ticket_form($url->out(), null, 'post');
-        $form->add_status($data);
-        if (helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
-            $form->add_hidden();
-        }
-        $form->add_submit();
+        $context = context_system::instance();
+        $editoroptions = array('maxfiles'=> 99, 'maxbytes'=>$CFG->maxbytes, 'context'=>$context);
+        $data->notes = '';
+        $data->notesformat = FORMAT_HTML;
+        $data = file_prepare_standard_editor($data, 'notes', $editoroptions, $context,
+            'block_helpdesk', 'ticketnotes', 0);
+        $form = new update_ticket_form($url->out(),
+            array('ticket' => $data, 'editoroptions' => $editoroptions), 'post');
         return $form;
     }
 
@@ -902,7 +903,14 @@ class helpdesk_native extends helpdesk {
         global $CFG;
         $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/tag.php");
         $url->param('tid', $ticketid);
-        $form = new tag_ticket_form($url->out(), null, 'post');
+        $context = context_system::instance();
+        $editoroptions = array('maxfiles'=> 99, 'maxbytes'=>$CFG->maxbytes, 'context'=>$context);
+        $tag = new stdClass();
+        $tag->value = '';
+        $tag->valueformat = FORMAT_HTML;
+        file_prepare_standard_editor($tag, 'value', $editoroptions, $context,
+            'block_helpdesk', 'tickettag', 0);
+        $form = new tag_ticket_form($url->out(), array('editoroptions' => $editoroptions), 'post');
         return $form;
     }
 

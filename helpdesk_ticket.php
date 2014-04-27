@@ -291,9 +291,9 @@ abstract class helpdesk_ticket {
      * be stored in the database. Some cases a help desk may do extra things on
      * a ticket edit.
      *
-     * @param string    $msg is the message to leave in the update associated
-     *                  with this edit.
+     * @param array    $noteseditor is the message to leave in the update associated
+     *                  with this edit. It is the editor field (text + format).
      * @return bool
      */
-    abstract function store_edit($msg=null);
+    abstract function store_edit($noteseditor=null);
 }

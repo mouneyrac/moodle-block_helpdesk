@@ -31,7 +31,7 @@ class search_form extends moodleform {
     function definition() {
         global $DB, $CFG;
 
-        $context = get_context_instance(CONTEXT_SYSTEM);
+        $context = context_system::instance();
 
         // Return all that have rows, but not on the join itself.
         // We want to populate the answerers list with only users who have
@@ -72,6 +72,7 @@ class search_form extends moodleform {
         // Elements
         $mform->addElement('header', 'frm', get_string('search'));
         $mform->addElement('text', 'searchstring', $searchphrase . $help);
+        $mform->setType('searchstring', PARAM_TEXT);
 
         $adv = array();
         $statuselement =& $mform->createElement('select', 'status', $statusstr, $statuslist);
@@ -89,6 +90,7 @@ class search_form extends moodleform {
         $mform->setDefault('status', $statusdefault);
         $mform->addElement('submit', 'submitbutton', get_string('search'));
         $mform->addElement('hidden', 'submitter', '');
+        $mform->setType('submitter', PARAM_INT);
     }
 
     function validation($data, $files) {

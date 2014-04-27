@@ -28,19 +28,20 @@
 
 class helpdesk_ticket_native extends helpdesk_ticket {
     // Ticket db fields.
-    protected $id;
-    protected $summary;
-    protected $status;
-    protected $detail;
-    protected $timecreated;
-    protected $timemodified;
-    protected $userid;
-    protected $firstcontact;
+    public $id;
+    public $summary;
+    public $status;
+    public $detail;
+    public $detailformat;
+    public $timecreated;
+    public $timemodified;
+    public $userid;
+    public $firstcontact;
 
     // All child db tables that have a relation with this ticket object.
-    protected $tags;
-    protected $updates;
-    protected $users;
+    public $tags;
+    public $updates;
+    public $users;
 
     /**
      * Constructor for native help desk ticket. This makes empty ticket with
@@ -160,7 +161,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
         $row = array();
         $row[] = get_string('detail', 'block_helpdesk');
-        $row[] = $this->get_detail();
+        $row[] = file_rewrite_pluginfile_urls($this->get_detail(), 'pluginfile.php',
+            context_system::instance()->id, 'block_helpdesk', 'ticketdetail', $this->get_idstring());
         $details_table->data[] = $row;
 
         /**
@@ -280,7 +282,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 }
                 $tags_table->data[] = array(
                     $tag->name . $remove,
-                    $tag->value
+                    file_rewrite_pluginfile_urls($tag->value, 'pluginfile.php',
+                        context_system::instance()->id, 'block_helpdesk', 'tickettag', $tag->id)
                 );
             }
         } else {
@@ -405,7 +408,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 // Update Note.
                 $row = array();
                 $row[] = get_string('note', 'block_helpdesk');
-                $row[] = $update->notes;
+                $row[] = file_rewrite_pluginfile_urls($update->notes, 'pluginfile.php',
+                    context_system::instance()->id, 'block_helpdesk', 'ticketnotes', $update->id);
                 $update_table->data[] = $row;
                 $update_list_table->data[] = array(html_writer::table($update_table));
                 //echo '<br />';
@@ -644,8 +648,9 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $urecord        = $DB->get_record('user', array('id' => $userid));
         $dat            = new stdClass;
         $dat->ticketid  = $this->id;
-        $dat->notes     = fullname($urecord) . ' '
+        $dat->notes_editor['text'] = fullname($urecord) . ' '
                           . get_string('wasassigned', 'block_helpdesk');
+        $dat->notes_editor['format'] = FORMAT_HTML;
         $dat->status    = HELPDESK_NATIVE_UPDATE_ASSIGN;
         $dat->type      = HELPDESK_UPDATE_TYPE_DETAILED;
         if(!$this->add_update($dat)) {
@@ -673,8 +678,9 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $urecord            = $DB->get_record('user', array('id' => $userid));
             $dat                = new stdClass;
             $dat->ticketid      = $this->id;
-            $dat->notes         = fullname($urecord) . ' ' .
+            $dat->notes_editor['text'] = fullname($urecord) . ' ' .
                                   get_string('wasunassigned', 'block_helpdesk');
+            $dat->notes_editor['format'] = FORMAT_HTML;
             $dat->status        = HELPDESK_NATIVE_UPDATE_UNASSIGN;
             $dat->type          = HELPDESK_UPDATE_TYPE_DETAILED;
 
@@ -764,6 +770,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $dataobject                     = new stdClass;
         $dataobject->summary            = $this->summary;
         $dataobject->detail             = $this->detail;
+        $dataobject->detailformat       = $this->detailformat;
 
         if (!is_numeric($this->timecreated)) {
             $this->set_timecreated();
@@ -871,7 +878,14 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if (isset($data->id)) {
             $this->id           = $data->id;
         }
+        if(!isset($data->detail)) {
+            $data->detail = '';
+        }
+        if(!isset($data->detailformat)) {
+            $data->detailformat = FORMAT_HTML;
+        }
         $this->detail           = $data->detail;
+        $this->detailformat     = $data->detailformat;
         $this->summary          = $data->summary;
         if (empty($data->userid)) {
             $this->userid = $USER->id;
@@ -905,6 +919,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         }
         $this->id               = $record->id;
         $this->detail           = stripslashes($record->detail);
+        $this->detailformat     = stripslashes($record->detailformat);
         $this->summary          = stripslashes($record->summary);
         $this->userid           = $record->userid;
         $this->timecreated      = $record->timecreated;
@@ -926,7 +941,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function add_update($update) {
-        global $USER, $DB;
+        global $USER, $DB, $CFG;
         $hd = helpdesk::get_helpdesk();
         $isanswerer = helpdesk_is_capable(HELPDESK_CAP_ANSWER);
         if (!is_object($update)) {
@@ -950,7 +965,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $this->firstcontact = $USER;
         }
 
-        $dat->notes         = $update->notes;
+        $dat->notes         = '';
+        $dat->notesformat   = FORMAT_HTML;
         $dat->userid        = !empty($dat->userid) ? $dat->userid : $USER->id;
         $dat->status        = $update->status;
         $dat->type          = $update->type;
@@ -961,7 +977,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $dat->newticketstatus   = $update->newticketstatus;
         }
 
-        if ( $DB->insert_record('block_helpdesk_ticket_update', $dat) ) {
+        if ( $updateid = $DB->insert_record('block_helpdesk_ticket_update', $dat) ) {
             $usefirstcontact = get_config(null, 'block_helpdesk_firstcontact');
             $isanswerer = helpdesk_is_capable(HELPDESK_CAP_ANSWER);
             if ($usefirstcontact and $isanswerer and $this->firstcontact == true) {
@@ -983,6 +999,16 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             if($dat->type == HELPDESK_UPDATE_TYPE_USER) {
                 $rval = $hd->email_update($this);
             }
+
+            // Need to update the notes.
+            $context = context_system::instance();
+            $editoroptions = array('maxfiles'=> 99, 'maxbytes'=>$CFG->maxbytes, 'context'=>$context);
+            $dat->id = $updateid;
+            $dat->notes_editor = $update->notes_editor;
+            $dat = file_postupdate_standard_editor($dat, 'notes', $editoroptions, $context,
+                'block_helpdesk', 'ticketnotes', $updateid);
+            $DB->update_record('block_helpdesk_ticket_update', $dat);
+
             return true;
         }
 
@@ -1015,7 +1041,15 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function update_tag($tag) {
-        global $DB;
+        global $DB, $CFG;
+
+        // Update the tag
+        $context = context_system::instance();
+        $editoroptions = array('maxfiles'=> 99, 'maxbytes'=>$CFG->maxbytes, 'context'=>$context);
+        $tag->value = '';
+        $tag = file_postupdate_standard_editor($tag, 'value', $editoroptions, $context,
+            'block_helpdesk', 'tickettag', $tag->id);
+
         if (!$DB->update_record('block_helpdesk_ticket_tag', $tag)) {
             return false;
         }
@@ -1037,20 +1071,24 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             return false;
         }
         if (!isset($tag->name) or
-            !isset($tag->value) or
+            !isset($tag->value_editor) or
             isset($tag->id)){
 
             return false;
         }
 
-        if (!$DB->insert_record('block_helpdesk_ticket_tag', $tag)) {
+        $tag->value = '';
+        if (!$tag->id = $DB->insert_record('block_helpdesk_ticket_tag', $tag)) {
             return false;
         }
+
+        $this->update_tag($tag);
 
         // Lets make an update saying we added this tag.
         $dat = new stdClass;
         $dat->ticketid  = $this->id;
-        $dat->notes     = get_string('tagaddedwithnameof', 'block_helpdesk') . $tag->name;
+        $dat->notes_editor = array('text' => get_string('tagaddedwithnameof', 'block_helpdesk') . $tag->name,
+            'format' => FORMAT_HTML);
         $dat->status    = HELPDESK_NATIVE_UPDATE_TAG;
         $dat->type      = HELPDESK_UPDATE_TYPE_DETAILED;
 
@@ -1086,7 +1124,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
         $dat = new stdClass;
         $dat->ticketid      = $this->id;
-        $dat->notes         = get_string('tagremovewithnameof', 'block_helpdesk') . $tag->name;
+        $dat->notes_editor  = array('text' => get_string('tagremovewithnameof', 'block_helpdesk') . $tag->name,
+        'format' => FORMAT_HTML);
         $dat->status        = HELPDESK_NATIVE_UPDATE_UNTAG;
         $dat->type          = HELPDESK_UPDATE_TYPE_DETAILED;
 
@@ -1141,7 +1180,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 $tag->id = $data->id;
             }
             $tag->name          = $data->name;
-            $tag->value         = $data->value;
+            $tag->value_editor  = $data->value_editor;
             $tag->ticketid      = $data->ticketid;
             return $tag;
         } elseif (is_array($data)) {
@@ -1161,18 +1200,18 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * This is calld when an already existing ticket is edited. This allows us
      * to make an updated associated with this edit.
      *
-     * @param string    $msg is a message to leave in the update.
+     * @param string    $notes is a message to leave in the update.
      * @return bool
      */
-    function store_edit($msg=null, $newstatus=null) {
+    function store_edit($noteseditor=null, $newstatus=null) {
         if(!$this->store()) {
             return false;
         }
         $update = new stdClass;
-        $update->ticketid  = $this->id;
-        $update->notes     = $msg;
-        $update->status    = HELPDESK_NATIVE_UPDATE_DETAILS;
-        $update->type      = HELPDESK_UPDATE_TYPE_DETAILED;
+        $update->ticketid = $this->id;
+        $update->notes_editor = $noteseditor;
+        $update->status = HELPDESK_NATIVE_UPDATE_DETAILS;
+        $update->type = HELPDESK_UPDATE_TYPE_DETAILED;
         if (isset($newstatus)) {
             $update->newticketstatus = $newstatus;
         }

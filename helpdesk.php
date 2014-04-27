@@ -17,7 +17,7 @@ abstract class helpdesk {
     public static function page_init($title, $nav=array(), $url=null) {
         global $PAGE;
         // Set up the page
-        $PAGE->set_context(get_context_instance(CONTEXT_SYSTEM));
+        $PAGE->set_context(context_system::instance());
         $PAGE->set_heading($title);
         $PAGE->set_title($title);
         $PAGE->set_pagelayout('standard');

@@ -36,19 +36,20 @@ class tag_ticket_form extends moodleform {
         global $CFG;
 
         $mform =& $this->_form;
+        $editoroptions = $this->_customdata['editoroptions'];
 
         // Status Array
 
         $mform->addElement('header', 'frm', get_string('tickettag', 'block_helpdesk'));
         $mform->addElement('text', 'name', get_string('tagname', 'block_helpdesk'));
+        $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', 'server');
-        $htmleditorparams = array (
-            'rows' => 10,
-            'cols' => 75
-        );
-        $mform->addElement('htmleditor', 'value', get_string('tagcontent', 'block_helpdesk'), $htmleditorparams);
-        $mform->setType('value', PARAM_RAW);
-        $mform->addRule('value', null, 'required', 'server');
+
+        $mform->addElement('editor', 'value_editor', get_string('tagcontent', 'block_helpdesk'),
+            null, $editoroptions);
+        $mform->setType('value_editor', PARAM_RAW);
+        $mform->addRule('value_editor', get_string('required'), 'required', null, 'client');
+
         $mform->addElement('submit', 'submitbutton', get_string('addtag', 'block_helpdesk'));
     }
 

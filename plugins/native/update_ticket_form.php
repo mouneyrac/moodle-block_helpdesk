@@ -30,9 +30,11 @@ require_once("$CFG->libdir/formslib.php");
 
 class update_ticket_form extends moodleform {
     function definition() {
-        global $CFG;
+        global $CFG, $DB;
 
         $mform =& $this->_form;
+        $editoroptions = $this->_customdata['editoroptions'];
+        $ticket = $this->_customdata['ticket'];
 
         // Status Array
         $status = array();
@@ -41,37 +43,21 @@ class update_ticket_form extends moodleform {
         $hd = helpdesk::get_helpdesk();
 
         $mform->addElement('header', 'frm', get_string('updateticket', 'block_helpdesk'));
-        $htmleditorparams = array (
-            'rows' => 30,
-            'cols' => 75
-        );
-        $mform->addElement('htmleditor', 'notes', get_string('notes', 'block_helpdesk'), $htmleditorparams);
-        $mform->setType('notes', PARAM_RAW);
-        $mform->addRule('notes', null, 'required', 'server');
-    }
+        $mform->addElement('editor', 'notes_editor', get_string('notes', 'block_helpdesk'), null, $editoroptions);
+        $mform->setType('notes_editor', PARAM_RAW);
+        $mform->addRule('notes_editor', get_string('required'), 'required', null, 'client');
 
-    // I wanted to do this so status was above the submit button.
-    function add_submit() {
-        $mform =& $this->_form;
-        $mform->addElement('submit', 'submitbutton', get_string('updateticket', 'block_helpdesk'));
-    }
-
-    function add_status($ticket=null) {
-        global $CFG, $DB;
+        // Add status
         if (!is_object($ticket)) {
             error('add_status() requires a ticket object when called.');
         }
-
         $status = $ticket->get_status();
-
         // Okay! New statuses so we have to to figure out status paths for
         // a given capability. (This sounds worse than it really is.)
         $cap = helpdesk_is_capable();
-
         if($cap == false) {
             error('Unable to get capability for statuses.');
         }
-
         $sql = "SELECT s.id, s.*
                 FROM {block_helpdesk_status} AS s
                     JOIN {block_helpdesk_status_path} AS sp
@@ -79,33 +65,22 @@ class update_ticket_form extends moodleform {
                 WHERE sp.fromstatusid = ?
                     AND sp.capabilityname = ?
                 GROUP BY s.id";
-
-
         $pstatuses = $DB->get_records_sql($sql, array($status->id, $cap));
-
         if (empty($pstatuses)) {
             error('No paths from this status!');
         }
-
         $statuslist[HELPDESK_NATIVE_UPDATE_COMMENT] = get_string(HELPDESK_NATIVE_UPDATE_COMMENT,
-                                                                 'block_helpdesk');
+            'block_helpdesk');
         foreach($pstatuses as $pstatus) {
             $statuslist[$pstatus->id] = $ticket->get_status_string($pstatus);
         }
-
-        $mform =& $this->_form;
-
         $mform->addElement('select', 'status', get_string('updatestatus', 'block_helpdesk'), $statuslist);
-    }
 
-    function add_ticket_id($id) {
-        $mform =& $this->_form;
-        $mform->addElement('hidden', 'ticketid', $id);
-    }
+        if (helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
+            $mform->addElement('checkbox', 'hidden', get_string('hideupdate', 'block_helpdesk'));
+        }
 
-    function add_hidden() {
-        $mform =& $this->_form;
-        $mform->addElement('checkbox', 'hidden', get_string('hideupdate', 'block_helpdesk'));
+        $mform->addElement('submit', 'submitbutton', get_string('updateticket', 'block_helpdesk'));
     }
 
     function validation($data, $files) {

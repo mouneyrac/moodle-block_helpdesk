@@ -39,7 +39,6 @@ $nav = array (
     array ('name' => get_string('preferences')),
 );
 helpdesk::page_init(get_string('helpdeskpreferences', 'block_helpdesk'), $nav);
-helpdesk::page_header();
 
 require_login();
 
@@ -57,6 +56,7 @@ $form = new helpdesk_pref_form(qualified_me(), null, 'post');
 
 // If not submitted, show form with current values.
 if (!$form->is_submitted()) {
+    helpdesk::page_header();
     $form->set_data($preferences);
     $form->display();
     helpdesk::page_footer();
@@ -71,4 +71,3 @@ foreach($data as $key => $value) {
 }
 
 redirect($CFG->wwwroot, get_string('preferencesupdated', 'block_helpdesk'));
-helpdesk::page_footer();

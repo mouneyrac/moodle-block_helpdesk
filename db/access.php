@@ -38,22 +38,19 @@ $capabilities = array (
         'riskbitmask'   => RISK_SPAM,
         'captype'       => 'write',
         'contextlevel'  => CONTEXT_SYSTEM,
-        'legecy'        => array (
+        'archetypes'        => array (
             'guest'             => CAP_ALLOW,
             'student'           => CAP_ALLOW,
             'teacher'           => CAP_ALLOW,
             'editingteacher'    => CAP_ALLOW,
-            'coursecreator'     => CAP_ALLOW,
-            'admin'             => CAP_ALLOW
+            'coursecreator'     => CAP_ALLOW
         )
     ),
     HELPDESK_CAP_ANSWER => array (
         'riskbitmask'   => RISK_PERSONAL + RISK_SPAM,
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'legecy' => array (
-            'admin' => CAP_ALLOW,
-        )
+        'archetypes' => array ()
     ),
 
     // moodle 2.4 required stuff
@@ -65,6 +62,13 @@ $capabilities = array (
         ),
 
         'clonepermissionsfrom' => 'moodle/my:manageblocks'
+    ),
+    'block/helpdesk:view' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'user' => CAP_ALLOW
+        )
     ),
     'block/helpdesk:addinstance' => array(
         'riskbitmask' => RISK_SPAM | RISK_XSS,

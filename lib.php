@@ -97,7 +97,7 @@ function helpdesk_is_capable($capability=null, $require=false, $user=null) {
 	$user = $DB->get_record('user', array('id' => $user));
     }
 
-    $context = get_context_instance(CONTEXT_SYSTEM);
+    $context = context_system::instance();
     if (empty($capability)) {
         // When returning which capability applies for the user, we can't
         // require this. The type that is returned is *mixed*.
@@ -216,4 +216,89 @@ function helpdesk_print_header($nav, $title) {
 function helpdesk_print_footer() {
     debugging('helpdesk_print_footer() has been deprecated. Do not use this function call.');
     helpdesk::page_footer();
+}
+
+/**
+ * Serves the helpdesk files.
+ *
+ * @package  block_helpdesk
+ * @category files
+ * @param stdClass $course course object
+ * @param stdClass $cm course module
+ * @param stdClass $context context object
+ * @param string $filearea file area
+ * @param array $args extra arguments
+ * @param bool $forcedownload whether or not force download
+ * @param array $options additional options affecting the file serving
+ * @return bool false if file not found, does not return if found - just send the file
+ */
+function block_helpdesk_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options=array()) {
+    global $DB, $USER;
+
+    // The context is the system.
+    if ($context->contextlevel != CONTEXT_SYSTEM) {
+        return false;
+    }
+
+    // User must be logged in.
+    // Note: if ever the block_helpdesk_email_htmlcontent admin setting comes to support files,
+    //       then you will need to allow public access to its specific filearea.
+    require_login();
+
+    // User must have the helpdesk view capability.
+    if (!has_capability('block/helpdesk:view', $context)) {
+        return false;
+    }
+
+    // We are going to check if the user is allowed to view the ticket/notes/tag.
+    $itemid = (int)array_shift($args);
+    $tablesuffix = '';
+    switch ($filearea) {
+        case 'ticketnotes':
+            $tablesuffix = '_update';
+            break;
+        case 'tickettag':
+            $tablesuffix = '_tag';
+            break;
+        case 'ticketdetail':
+            break;
+    }
+
+    // Check that the item exists.
+    if (!($item = $DB->get_record('block_helpdesk_ticket' . $tablesuffix, array('id'=>$itemid)))) {
+        return false;
+    }
+
+    // Check if the user is admin.
+    if (!is_siteadmin()) {
+        // Check if the user is the creator.
+        switch ($filearea) {
+            case 'ticketnotes':
+            case 'tickettag':
+                $creatorid = $DB->get_field('block_helpdesk_ticket', 'userid', array('id' => $item->ticketid));
+                break;
+            case 'ticketdetail':
+                $creatorid = $itemid;
+                break;
+        }
+        if ($USER->id !== $creatorid) {
+            // Check if the user has the capability to answer.
+            if (!has_capability('HELPDESK_CAP_ANSWER', $context)) {
+                    // The user has no permissions to download the file.
+                    return false;
+            }
+        }
+    }
+
+    // Check the file exists in the moodledata folder.
+    $fs = get_file_storage();
+    $relativepath = implode('/', $args);
+    $fullpath = "/$context->id/block_helpdesk/$filearea/$itemid/$relativepath";
+    if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+        return false;
+    }
+
+    // finally send the file
+    // for folder module, we force download file all the time
+    send_stored_file($file, 0, 0, true, $options);
 }

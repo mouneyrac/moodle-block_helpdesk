@@ -41,7 +41,7 @@ $count  = optional_param('count', null, PARAM_INT);
 $count  = ($count == null ? 10 : $count);
 $page   = ($page == null ? 0 : $page);
 
-$context = get_context_instance(CONTEXT_SYSTEM);
+$context = context_system::instance();
 
 $qurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
 $viewurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
@@ -127,6 +127,8 @@ $OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
 // We are starting from scratch here!
 $offset = $page * $count;
 $assignables = get_users_by_capability($context, HELPDESK_CAP_ANSWER, 'u.*', 'u.lastname ASC', $offset, $count);
+// Add admin users to assignable users.
+$allassignables = $assignables + get_admins();
 $table = new html_table();
 $table->head = array (
     get_string('name'),
@@ -134,7 +136,7 @@ $table->head = array (
     ''
 );
 $table->data = array();
-foreach($assignables as $user) {
+foreach($allassignables as $user) {
     $userurl = new moodle_url("$CFG->wwwroot/user/view.php");
     $userurl->param('id', $user->id);
     $emailurl = new moodle_url("mailto:$user->email");

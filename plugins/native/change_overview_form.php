@@ -25,39 +25,32 @@
  */
 
 class change_overview_form extends moodleform {
-    private $ticket;
-
-    function change_overview_form($action=null, $customdata=null, $method='post',
-                                  $target='', $attributes=null, $editable=true,
-                                  $ticket=null) {
-        $this->ticket = $ticket;
-        parent::moodleform($action, $customdata, $method, $target, $attributes,
-                            $editable);
-    }
 
     function definition() {
         $mform =& $this->_form;
+        $editoroptions = $this->_customdata['editoroptions'];
+        $ticket = $this->_customdata['ticket'];
 
         $mform->addElement('header', 'frm', get_string('updateticketoverview', 'block_helpdesk'));
         $userparams = array('readonly' => 'readonly', 'disabled' => 'disabled');
         $mform->addElement('text', 'username', get_string('submittedby', 'block_helpdesk'), $userparams);
+        $mform->setType('username', PARAM_USERNAME);
         $mform->addElement('hidden', 'userid', '0');
+        $mform->setType('userid', PARAM_INT);
         $mform->addElement('text', 'summary', get_string('summary', 'block_helpdesk'));
         $mform->addRule('summary', null, 'required', 'server');
+        $mform->setType('summary', PARAM_TEXT);
 
-        $htmleditorparams = array (
-            'rows'              => 10,
-            'cols'              => 75,
-            );
-        $mform->addElement('htmleditor', 'detail', get_string('detail', 'block_helpdesk'), $htmleditorparams);
-        $mform->setType('detail', PARAM_RAW);
-        $mform->addRule('detail', null, 'required', 'server');
+        $mform->addElement('editor', 'detail_editor', get_string('detail', 'block_helpdesk'),
+            null, $editoroptions);
+        $mform->setType('detail_editor', PARAM_RAW);
+        $mform->addRule('detail_editor', get_string('required'), 'required', null, 'client');
 
         // New Status Code
         $statuses = get_ticket_statuses();
         $statuslist = array();
 
-        $currentstatus = $this->ticket->get_status();
+        $currentstatus = $ticket->get_status();
         $statuslist[$currentstatus->id] = get_status_string($currentstatus);
         foreach($statuses as $status) {
             if ($status->id != $currentstatus->id) {
@@ -67,17 +60,20 @@ class change_overview_form extends moodleform {
 
         $mform->addElement('select', 'status', get_string('updatestatus', 'block_helpdesk'),
                            $statuslist);
-        $this->set_current_status($this->ticket->get_status());
+        $this->set_current_status($ticket->get_status());
 
         // New Status Code _END_
 
-        $mform->closeHeaderBefore('msgheader');
-        $mform->addElement('header', 'msgheader', get_string('extrainformation', 'block_helpdesk'));
-        $mform->addElement('htmleditor', 'msg', get_string('updatemessage', 'block_helpdesk'));
-        $mform->setType('msg', PARAM_RAW);
-        $mform->addRule('msg', null, 'required', 'server');
+        $mform->closeHeaderBefore('notesheader');
+        $mform->addElement('header', 'notesheader', get_string('extrainformation', 'block_helpdesk'));
+        $mform->addElement('editor', 'notes_editor', get_string('updatemessage', 'block_helpdesk'), null,
+            $editoroptions);
+        $mform->setType('notes_editor', PARAM_RAW);
+        $mform->addRule('notes_editor', get_string('required'), 'required', null, 'client');
         $mform->closeHeaderBefore('submitbutton');
         $mform->addElement('submit', 'submitbutton', get_string('savequestion', 'block_helpdesk'));
+
+        $this->set_data($ticket);
     }
 
     function set_current_status($status) {
