@@ -300,5 +300,5 @@ function block_helpdesk_pluginfile($course, $cm, $context, $filearea, $args, $fo
 
     // finally send the file
     // for folder module, we force download file all the time
-    send_stored_file($file, 0, 0, true, $options);
+    send_stored_file($file, 0, 0, true);
 }
