@@ -7,9 +7,15 @@ Developers:
     Jon Doane <jdoane@vlacs.org>
     David Zaharee <dzaharee@vlacs.org>
 
-Supported Moodle versions:
-    * 1.9.5+
+Supported Moodle versions of the MOODLE_22_STABLE branch:
+    * 2.2+
     * 2.3+
+    * 2.4+
+    
+Supported Moodle versions of the MOODLE_25_STABLE branch:
+    * 2.5+
+    * 2.6+
+    * master
 
 Introduction:
     If you run a help center and need a ticket tracking system, and especially
