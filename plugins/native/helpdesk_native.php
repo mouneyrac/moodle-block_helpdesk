@@ -26,10 +26,8 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
 
 class helpdesk_native extends helpdesk {
-
     /**
      * helpdesk_native constructor. Nothing special, but this isn't called
      * directly. Help Desk base class has a factory function for construction.
@@ -153,7 +151,11 @@ class helpdesk_native extends helpdesk {
 
         return $rval;
     }
-    
+
+    function is_installed() {
+        return record_exists('block_helpdesk_status', 'core', 1);
+    }
+
     /**
      * Gets language string associated with a relation.
      *
@@ -167,7 +169,7 @@ class helpdesk_native extends helpdesk {
     /**
      * This creates a path from one status to another based on capability.
      *
-     * @param object    $from is a status record. This defines the inital 
+     * @param object    $from is a status record. This defines the inital
      *                  status.
      * @param object    $to is a status record of the possible next status.
      * @param string    $capability is a capability string to check users by.
@@ -191,8 +193,8 @@ class helpdesk_native extends helpdesk {
     }
 
     /**
-     * This method gets the possible status changes from a given status. Can 
-     * also manually specify a specific capability. User's capability will be 
+     * This method gets the possible status changes from a given status. Can
+     * also manually specify a specific capability. User's capability will be
      * used if $cap is null.
      *
      * @param mixed     $status is a status id or status object.
@@ -212,7 +214,7 @@ class helpdesk_native extends helpdesk {
         if (is_null($cap)) {
             $cap = helpdesk_is_capable();
         }
-        
+
         $capid = get_field('capabilities', 'id', 'name', $cap);
     }
 
@@ -242,27 +244,29 @@ class helpdesk_native extends helpdesk {
 
         // We must email assignees only.
         $admin = get_admin();
+        $admin->hd_userid = helpdesk_ensure_hd_user($admin->id);
         foreach($tickets as $ticket) {
             $this->email_idle_notification($ticket);
             $update = new stdClass();
             $update->type = HELPDESK_UPDATE_TYPE_SYSTEM;
             $update->notes = get_string('idleemailsent', 'block_helpdesk');
             $update->status = HELPDESK_NATIVE_UPDATE_COMMENT;
-            $update->userid = $admin->id;
+            $update->hd_userid = $admin->hd_userid;
             $update->hidden = false;
             $ticket->add_update($update);
         }
         return true;
     }
 
-    private function get_idle_tickets($userid=null, $offset='', $count='') {
+    private function get_idle_tickets($hd_userid=null, $offset='', $count='') {
         // Askers can get their own tickets only.
         $duration = get_config(null, 'block_helpdesk_ticket_idle_dur');
         if ($duration === 0 or $duration == false) {
             return true;
         }
 
-        if ($userid == $USER->id) {
+        $hd_user = helpdesk_get_user($USER->id);
+        if ($hd_user->hd_userid == $hd_userid) {
             helpdesk_is_capable(HELPDESK_CAP_ASK, true);
         } else {
             helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
@@ -272,14 +276,14 @@ class helpdesk_native extends helpdesk {
         $before = $now - (3600 * $duration);
 
         $where = "timemodified <= $before";
-        
-        if ($userid != null) {
-            $where .= " AND userid = $userid";
+
+        if ($hd_userid != null) {
+            $where .= " AND hd_userid = $hd_userid";
         }
 
         $records = get_records_select('block_helpdesk_ticket', $where, 'timemodified DESC',
                                       'id, status', $offset, $count);
-        
+
         if (empty($records)) {
             return false;
         }
@@ -293,7 +297,7 @@ class helpdesk_native extends helpdesk {
             $tickets[] = $ticket;
         }
         return $tickets;
-    }  
+    }
 
     /**
      * Checks to see if an update is hidden or not.
@@ -319,7 +323,7 @@ class helpdesk_native extends helpdesk {
      */
     function email_idle_notification($ticket) {
         global $CFG;
-        if(get_config(null, 'block_helpdesk_ticket_idle_dur') == false) {
+        if (get_config(null, 'block_helpdesk_ticket_idle_dur') == false) {
             return true;
         }
         $supportuser = new stdClass;
@@ -332,21 +336,18 @@ class helpdesk_native extends helpdesk {
         $html = get_config(null, 'block_helpdesk_idle_htmlcontent');
         $emailsubject = get_config(null, 'block_helpdesk_idle_subject');
 
-        $users = array();
-        $users[] = $ticket->get_user_object();
-        $assigned = $ticket->get_assigned();
-        if (!empty($assigned)) {
-            foreach($assigned as $user) {
-                $users[] = $user;
-            }
-        }
+        $users = $this->process_watchers_to_email($ticket->get_watchers());
 
-        $userticketurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
-        $userticketurl->param('id', $ticket->get_idstring());
-        $url = $userticketurl->out();
-        $link = "<a href=\"$url\">$url</a>";
+        $userticketurl = "$CFG->wwwroot/blocks/helpdesk/view.php?id={$ticket->get_idstring()}";
 
         foreach($users as $user) {
+            if (isset($user->token)) {
+                $url = "{$userticketurl}&token={$user->token}";
+            } else {
+                $url = $userticketurl;
+            }
+            $link = "<a href=\"$url\">$url</a>";
+
             $emailtext = str_replace('!username!', fullname($user), $text);
             $emailhtml = str_replace('!username!', fullname($user), $html);
             $emailtext = str_replace('!ticketlink!', $url, $emailtext);
@@ -404,33 +405,31 @@ class helpdesk_native extends helpdesk {
         }
         $emailsubject = str_replace('!ticketid!', $ticket->get_idstring(), $emailsubject);
 
-        $users = array();
-        $users[] = $ticket->get_user_object();
-        $assigned = $ticket->get_assigned();
-        if (!empty($assigned)) {
-            foreach($assigned as $user) {
-                $users[] = $user;
-            }
-        }
+        $users = $this->process_watchers_to_email($ticket->get_watchers());
 
-        $userticketurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
-        $userticketurl->param('id', $ticket->get_idstring());
-        $url = $userticketurl->out();
-        $link = "<a href=\"$url\">$url</a>";
+        $userticketurl = "$CFG->wwwroot/blocks/helpdesk/view.php?id={$ticket->get_idstring()}";
 
         $updates = $ticket->get_updates(true);
         $lastupdate = end($updates);
 
         foreach($users as $user) {
             // Dont send an email to the person making the update.
-            if($user->id == $USER->id) {
+            if ($user->id == $USER->id) {
                 continue;
             }
+
             // Don't send an email if the user can't see a hidden update.
-            if (!helpdesk_is_capable(HELPDESK_CAP_ANSWER, false, $user) AND
-                $lastupdate->hidden == true) {
+            if ($lastupdate->hidden and !helpdesk_is_capable(HELPDESK_CAP_ANSWER, false, $user)) {
                 continue;
             }
+
+            if (isset($user->token)) {
+                $url = "{$userticketurl}&token={$user->token}";
+            } else {
+                $url = $userticketurl;
+            }
+            $link = "<a href=\"$url\">$url</a>";
+
             $emailtext = str_replace('!username!', fullname($user), $text);
             $emailhtml = str_replace('!username!', fullname($user), $html);
             $emailtext = str_replace('!ticketlink!', $url, $emailtext);
@@ -439,7 +438,7 @@ class helpdesk_native extends helpdesk {
             $emailhtml = str_replace('!supportname!', $supportuser->firstname, $emailhtml);
             $emailtext = str_replace('!updatetime!', helpdesk_get_date_string(time()), $emailtext);
             $emailhtml = str_replace('!updatetime!', helpdesk_get_date_string(time()), $emailhtml);
-            
+
             $rval = email_to_user($user, $supportuser, $emailsubject, $emailtext, $emailhtml);
             if ($rval === false) {
                 notify(get_string('failedtosendemail', 'block_helpdesk'));
@@ -449,11 +448,37 @@ class helpdesk_native extends helpdesk {
         return true;
     }
 
+    private function process_watchers_to_email($watchers) {
+        global $CFG;
+
+        $processed = array();
+        foreach($watchers as $w) {
+            if (isset($w->userid)) {
+                $w = get_record('user', 'id', $w->userid);
+            } else {
+                if (empty($CFG->block_helpdesk_external_user_tokens)) {
+                    continue;
+                }
+                if (!strlen($w->token)) {
+                    $w->token = helpdesk_generate_token();
+                }
+                $w->token_last_issued = time();
+                update_record('block_helpdesk_watcher', $w);
+                unset($w->id);  # Moodle's email functions thinks this is a user.id
+
+                $w->mailformat = 1;             # it's 2013, send html messages
+                $w->helpdesk_external = true;
+            }
+            $processed[] = $w;
+        }
+        return $processed;
+    }
+
     /**
-     * This provides extra fields for the block configuration that are specific 
+     * This provides extra fields for the block configuration that are specific
      * to the plugin.
      *
-     * @param object    $settings is a reference to the settings variable in the 
+     * @param object    $settings is a reference to the settings variable in the
      *                  help desk settings.php file.
      * @return bool
      */
@@ -464,11 +489,16 @@ class helpdesk_native extends helpdesk {
                                                  get_string('pluginsettings', 'block_helpdesk'),
                                                  get_string('pluginsettingsdesc', 'block_helpdesk')));
 
+        $settings->add(new admin_setting_configcheckbox('block_helpdesk_assigned_auto_watch',
+                                                        get_string('assignedaswatchers', 'block_helpdesk'),
+                                                        get_string('assignedaswatchersdesc', 'block_helpdesk'),
+                                                        '1', '1', '0'));
+
         $settings->add(new admin_setting_configcheckbox('block_helpdesk_show_firstcontact',
                                                         get_string('showfirstcontact', 'block_helpdesk'),
                                                         get_string('showfirstcontactdesc', 'block_helpdesk'),
                                                         '0', '1', '0'));
-        
+
         $settings->add(new admin_setting_configcheckbox('block_helpdesk_send_update_email',
                                                         get_string('sendemailupdate', 'block_helpdesk'),
                                                         get_string('sendemailupdatedesc', 'block_helpdesk'),
@@ -540,11 +570,14 @@ class helpdesk_native extends helpdesk {
         // All users (except empty($cap) ones) get this.
         // Since we only have askers and answerers and answers have all the caps
         // that an asker has, we'll add these now.
-        $relations = array(HELPDESK_NATIVE_REL_REPORTEDBY);
-        $relations[] = HELPDESK_NATIVE_REL_ALL;
-        $relations[] = HELPDESK_NATIVE_REL_NEW;
-        $relations[] = HELPDESK_NATIVE_REL_CLOSED;
-        $relations[] = HELPDESK_NATIVE_REL_UNASSIGNED;
+        $relations = array(
+            HELPDESK_NATIVE_REL_WATCHING,
+//            HELPDESK_NATIVE_REL_REPORTEDBY,
+            HELPDESK_NATIVE_REL_ALL,
+            HELPDESK_NATIVE_REL_NEW,
+            HELPDESK_NATIVE_REL_CLOSED,
+            HELPDESK_NATIVE_REL_UNASSIGNED,
+        );
         if ($cap == HELPDESK_CAP_ASK) {
             return $relations;
         }
@@ -560,7 +593,7 @@ class helpdesk_native extends helpdesk {
     }
 
     /**
-     * Specialized method to convert a relation into a set of search parameters. 
+     * Specialized method to convert a relation into a set of search parameters.
      * This is the roadmap to being able to create custom search presets.
      *
      * @param int       $rel is a relation id.
@@ -572,10 +605,15 @@ class helpdesk_native extends helpdesk {
         $search = $this->new_search_obj();
 
         $currentuser = $USER->id;
+        $current_hd_user = helpdesk_get_user($USER->id);
         switch($rel) {
         case HELPDESK_NATIVE_REL_REPORTEDBY:
             $search->status = $this->get_status_ids(true, false, false);
-            $search->submitter = $USER->id;
+            $search->submitter = $current_hd_user->hd_userid;
+            break;
+        case HELPDESK_NATIVE_REL_WATCHING:
+            $search->status = $this->get_status_ids(true, false, false);
+            $search->watcher = $current_hd_user->hd_userid;
             break;
         case HELPDESK_NATIVE_REL_NEW:
             $search->status[] = get_field('block_helpdesk_status', 'id', 'name', 'new');
@@ -686,7 +724,7 @@ class helpdesk_native extends helpdesk {
      * if unsucessful, or an array of tickets if we find matches.
      *
      * @param object    $data is an object with search attributes.
-     * @return object   contains 3 attributes, results, count, and httpdata (or 
+     * @return object   contains 3 attributes, results, count, and httpdata (or
      *                  false for no failed search.)
      */
     function search($data, $count=10, $page=0) {
@@ -705,6 +743,7 @@ class helpdesk_native extends helpdesk {
         $tmp->answerer          = $data->answerer;
         $tmp->status            = $data->status;
         $tmp->submitter         = $data->submitter;
+        $tmp->watcher           = $data->watcher;
         $data                   = $tmp;
 
         // We need to search tickets and related values for the anded values of
@@ -719,15 +758,12 @@ class helpdesk_native extends helpdesk {
         }
 
         $selectsearch   = 'SELECT DISTINCT t.id, t.summary, t.detail, t.timemodified';
-        $selectcount    = 'SELECT COUNT(DISTINCT t.*)';
-        $selectusers    = 'SELECT u.id, u.firstname, u.lastname, u.email';
-        $assignon       = 't.id = hta.ticketid';
-
-        if($data->answerer > 0) { $assignon .= " AND hta.userid = {$data->answerer}"; }
+        $selectcount    = 'SELECT COUNT(DISTINCT t.id)';
 
         $sqltickets = "
             FROM {$CFG->prefix}block_helpdesk_ticket AS t
-            JOIN {$CFG->prefix}user AS u ON t.userid = u.id
+            JOIN {$CFG->prefix}block_helpdesk_hd_user AS hu ON t.hd_userid = hu.id
+            LEFT JOIN {$CFG->prefix}user AS u ON hu.userid = u.id
             LEFT JOIN {$CFG->prefix}block_helpdesk_ticket_tag AS tt ON t.id = tt.ticketid
         ";
 
@@ -737,7 +773,7 @@ class helpdesk_native extends helpdesk {
         $sqltickets    .= "JOIN {$CFG->prefix}block_helpdesk_ticket_assign AS hta ON t.id = hta.ticketid";
         $sqltickets    .= $data->answerer > 0 ? " AND hta.userid = $data->answerer " : '';
 
-        $wheretickets   = array('t.summary', 't.detail', 'tt.value', 'u.firstname', 'u.lastname');
+        $wheretickets   = array('t.summary', 't.detail', 'tt.value', 'u.firstname', 'u.lastname', 'hu.name');
 
         $ticketsearchgroups = array();
         foreach($words as $word) {
@@ -758,8 +794,11 @@ class helpdesk_native extends helpdesk {
         // START BEWARE - The order of these checks is critical to performance.
         $andwhere = array();
 
+        if (!empty($data->watcher)) {
+            $andwhere[] = "EXISTS (SELECT 1 FROM {$CFG->prefix}block_helpdesk_watcher w WHERE w.ticketid = t.id AND w.hd_userid = $data->watcher)";
+        }
         if(!empty($data->submitter)) {
-            $andwhere[] = "t.userid = $data->submitter";
+            $andwhere[] = "t.hd_userid = $data->submitter";
         }
         $andwhere[] = 't.status IN ('.implode(', ', $data->status).')';
 
@@ -809,7 +848,7 @@ class helpdesk_native extends helpdesk {
         $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/edit.php");
         $url->param('id', $ticket->get_idstring());
 
-        $user = get_record('user', 'id', $ticket->get_userid());
+        $user = helpdesk_get_hd_user($ticket->get_hd_userid());
 
         $form = new change_overview_form($url->out(), null, 'post', '', null, true, $ticket);
 
@@ -818,7 +857,7 @@ class helpdesk_native extends helpdesk {
                 'summary' => $ticket->get_summary(),
                 'detail' => $ticket->get_detail(),
                 'status' => $ticket->get_status(),
-                'userid' => $ticket->get_userid(),
+                'hd_userid' => $ticket->get_hd_userid(),
                 'username' => fullname($user)
                 );
             $form->set_data($data);
@@ -837,14 +876,19 @@ class helpdesk_native extends helpdesk {
         $form = new new_ticket_form($url);
         if (!is_array($data)) {
             // Do nothing.
-        } elseif (!empty($data['tags'])) {
-            foreach ($data['tags'] as $key => $tag) {
-                $form->addHidden($key, $tag);
-                #$url->param($key, $tag);
+        } else {
+            if (!empty($data['tags'])) {
+                foreach ($data['tags'] as $key => $tag) {
+                    $form->addHidden($key, $tag);
+                    #$url->param($key, $tag);
+                }
+                $tags = implode(',', array_flip($data['tags']));
+                $form->addHidden('tags', $tags);
+                #$url->param('tags', $tags);
             }
-            $tags = implode(',', array_flip($data['tags']));
-            $form->addHidden('tags', $tags);
-            #$url->param('tags', $tags);
+            if (isset($data['hd_userid'])) {
+                $form->addHidden('hd_userid', $data['hd_userid']);
+            }
         }
         return $form;
     }
@@ -868,11 +912,13 @@ class helpdesk_native extends helpdesk {
      * @return object
      */
     function update_ticket_form($data) {
-        global $CFG;
+        global $CFG, $USER;
 
-        $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/update.php");
-        $url->param('id', $data->get_idstring());
-        $form = new update_ticket_form($url->out(), null, 'post');
+        $url = "$CFG->wwwroot/blocks/helpdesk/update.php?id={$data->get_idstring()}";
+        if (!empty($USER->helpdesk_token)) {
+            $url .= "&token=$USER->helpdesk_token";
+        }
+        $form = new update_ticket_form($url, null, 'post');
         $form->add_status($data);
         if (helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
             $form->add_hidden();
@@ -942,8 +988,4 @@ class helpdesk_native extends helpdesk {
         }
         return $url;
     }
-
 }
-
-
-?>

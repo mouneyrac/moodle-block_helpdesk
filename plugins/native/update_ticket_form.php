@@ -25,11 +25,10 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
+
 require_once("$CFG->libdir/formslib.php");
 
 class update_ticket_form extends moodleform {
-
     function definition() {
         global $CFG;
 
@@ -65,7 +64,7 @@ class update_ticket_form extends moodleform {
 
         $status = $ticket->get_status();
 
-        // Okay! New statuses so we have to to figure out status paths for 
+        // Okay! New statuses so we have to to figure out status paths for
         // a given capability. (This sounds worse than it really is.)
         $cap = helpdesk_is_capable();
 
@@ -104,7 +103,7 @@ class update_ticket_form extends moodleform {
 
     function add_hidden() {
         $mform =& $this->_form;
-        $mform->addElement('checkbox', 'hidden', get_string('hideupdate', 'block_helpdesk'));
+        $mform->addElement('checkbox', 'hidden', get_string('hideupdateform', 'block_helpdesk'));
     }
 
     function validation($data) {
@@ -112,4 +111,3 @@ class update_ticket_form extends moodleform {
         return array();
     }
 }
-?>

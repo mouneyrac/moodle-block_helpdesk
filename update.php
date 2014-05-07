@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script handles the updating of tickets by managing the UI and entry 
+ * This script handles the updating of tickets by managing the UI and entry
  * level functions for the task.
  *
  * @package     block_helpdesk
@@ -29,32 +29,15 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 // We are also Helpdesk, so we shall also become a helpdesk.
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
-require_login(0, false);
-
-global $CFG;
-
 $id = required_param('id', PARAM_INT);
-$baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
-$searchurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
-$url = clone $baseurl;
-$url->param('id', $id);
-$nav = array (
-    array (
-        'name' => get_string('helpdesk', 'block_helpdesk'),
-        'link' => $searchurl->out()
-          ),
-    array (
-        'name' => get_string('ticketview', 'block_helpdesk'),
-        'link' => $url->out()
-    ),
-    array (
-        'name' => get_string('updateticket', 'block_helpdesk')
-        )
-    );
+$token = optional_param('token', '', PARAM_ALPHANUM);
 
-$title = get_string('helpdeskupdateticket', 'block_helpdesk');
-helpdesk_print_header(build_navigation($nav), $title);
-print_heading(get_string('updateticket', 'block_helpdesk'));
+if (strlen($token) and !empty($CFG->block_helpdesk_external_updates)) {
+    helpdesk_authenticate_token($id, $token);
+} else {
+    require_login(0, false);
+}
+
 
 $hd = helpdesk::get_helpdesk();
 
@@ -65,19 +48,36 @@ if (!$ticket) {
 
 $form = $hd->update_ticket_form($ticket);
 
-if ( $form->is_submitted() and ($data = $form->get_data())) {
-        $data->type = HELPDESK_UPDATE_TYPE_USER;
-        if($ticket->add_update($data)) {
-            $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
-            $url->param('id', $id);
-            $url = $url->out();
-            redirect($url, get_string('updateadded', 'block_helpdesk'));
-        } else {
-            error(get_string('cannotaddupdate', 'block_helpdesk'));
+if ($form->is_submitted() and ($data = $form->get_data())) {
+    $data->type = HELPDESK_UPDATE_TYPE_USER;
+    if($ticket->add_update($data)) {
+        $url = "$CFG->wwwroot/blocks/helpdesk/view.php?id=$id";
+        if (!empty($USER->helpdesk_token)) {
+            $url .= "&token=$USER->helpdesk_token";
         }
+        redirect($url, get_string('updateadded', 'block_helpdesk'));
+    } else {
+        error(get_string('cannotaddupdate', 'block_helpdesk'));
+    }
 }
+
+$nav = array (
+    array (
+        'name' => get_string('helpdesk', 'block_helpdesk'),
+        'link' => "$CFG->wwwroot/blocks/helpdesk/search.php",
+    ),
+    array (
+        'name' => get_string('ticketview', 'block_helpdesk'),
+        'link' => "$CFG->wwwroot/blocks/helpdesk/view.php?id=$id",
+    ),
+    array (
+        'name' => get_string('updateticket', 'block_helpdesk')
+    )
+);
+$title = get_string('helpdeskupdateticket', 'block_helpdesk');
+helpdesk_print_header($nav, $title);
+
 $form->display();
 $hd->display_ticket($ticket, true);
 
-print_footer();
-?>
+helpdesk_print_footer();

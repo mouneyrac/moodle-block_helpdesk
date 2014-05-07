@@ -55,4 +55,3 @@ $block_helpdesk_capabilities = array (
         )
     )
 );
-?>

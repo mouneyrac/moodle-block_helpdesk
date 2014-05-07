@@ -24,10 +24,10 @@
  */
 
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
-global $CFG;
-require_once("$CFG->libdir/formslib.php");
-class search_form extends moodleform {
 
+require_once("$CFG->libdir/formslib.php");
+
+class search_form extends moodleform {
     function definition() {
         global $CFG;
 
@@ -99,4 +99,3 @@ class search_form extends moodleform {
         $mform->setDefault('status', $array);
     }
 }
-?>

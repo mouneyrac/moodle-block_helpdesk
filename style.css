@@ -21,10 +21,55 @@ div.right2div {
     width: 49%;
     float: right;
 }
+div.clear {
+    clear: both;
+}
+div.external {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    margin-top: 1em;
+    margin-right: 1.5em;
+}
 li {
     min-width: 1px;
 }
 table {
-    table-layout: fixed;
     word-wrap: break-word;
+}
+
+table.helpdesktable {
+    width: 100%;
+}
+
+table.detailstable tr td:first-child {
+    width: 30%;
+}
+
+table.tagstable tr td:first-child {
+    width: 30%;
+}
+
+table.assigntable tr td:first-child {
+    width: 70%;
+}
+
+table.watchertable tr td:first-child {
+    width: 70%;
+}
+
+table.updatelisttable>tbody>tr>td {
+    padding: 0;
+}
+
+table.updatetable {
+    margin: 0;
+}
+
+table.updatetable th {
+    text-align: left;
+}
+
+table.updatetable tr td:first-child {
+    width: 30%;
 }
