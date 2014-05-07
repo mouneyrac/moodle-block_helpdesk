@@ -880,10 +880,12 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         }
         $watchers = get_records('block_helpdesk_watcher', 'ticketid', $this->id);
         $iswatcher = false;
-        foreach ($watchers as $w) {
-            if ($w->hd_userid == $hd_user->hd_userid) {
-                $iswatcher = true;
-                break;
+        if (!empty($watchers)) {
+            foreach ($watchers as $w) {
+                if ($w->hd_userid == $hd_user->hd_userid) {
+                    $iswatcher = true;
+                    break;
+                }
             }
         }
         # Check for permission before proceeding.

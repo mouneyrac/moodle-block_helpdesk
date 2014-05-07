@@ -47,6 +47,7 @@ if(!helpdesk_is_capable()) {
 }
 
 // By default, these are disabled (false).
+$preferences = new stdClass();
 $preferences->showsystemupdates = (bool) helpdesk_get_session_var('showsystemupdates');
 $preferences->showdetailedupdates = (bool) helpdesk_get_session_var('showdetailedupdates');
 

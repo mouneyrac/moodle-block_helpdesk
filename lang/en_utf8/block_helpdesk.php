@@ -233,6 +233,7 @@ $string['externaluserupdatefailed'] = 'Could not update external user';
 $string['externaluserupdatefailed'] = 'Could not create external user';
 $string['invalidtoken']         = 'Invalid or expired token';
 $string['welcome']              = 'Welcome, ';
+$string['nowatchers']            = 'No watchers';
 
 /**
  * These are settings.php strings.
