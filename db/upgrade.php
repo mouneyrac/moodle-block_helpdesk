@@ -441,19 +441,6 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
             }
         }
 
-
-        /**
-         * Add not null requirement for helpdesk_ticket_update.hd_userid
-         */
-
-        // Define field id to be added to block_helpdesk_ticket_update
-        $table = new XMLDBTable('block_helpdesk_ticket_update');
-        $field = new XMLDBField('id');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null);
-
-        $result = $result && add_field($table, $field);
-
-
         /**
          * Drop the index on helpdesk_ticket.userid
          */
