@@ -239,7 +239,18 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $result = $result && rename_table($table, 'block_helpdesk_rule_email');
     }
 
-    if ($result && $oldversion < 2013072300) {
+    // Check if the some upgrade code has already been run.
+    // We backported 20 commits from master-19 in MOODLE_19_STABLE.
+    // So we must ignore the 3 nex IF conditions when we upgrade a master-19 to MOODLE_19_STABLE.
+    if ($result) {
+        $blockhelpdeskhdusertable = new XMLDBTable('block_helpdesk_hd_user');
+        $hdusertableupgraded = false;
+        if (table_exists($blockhelpdeskhdusertable)) {
+            $hdusertableupgraded = true;
+        }
+    }
+
+    if ($result && $oldversion < 2013082906 && !$hdusertableupgraded) {
         /**
          * Create helpdesk_hd_user
          */
@@ -335,18 +346,20 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
 
         $watchers = array();
         $tickets = get_records('block_helpdesk_ticket');
-        foreach ($tickets as $ticket) {
-            # set createdby, hd_userid
-            $ticket->createdby = $ticket->hd_userid = $user2hd_user[$ticket->userid];
-            update_record('block_helpdesk_ticket', $ticket);
+        if (!empty($tickets)) {
+            foreach ($tickets as $ticket) {
+                # set createdby, hd_userid
+                $ticket->createdby = $ticket->hd_userid = $user2hd_user[$ticket->userid];
+                update_record('block_helpdesk_ticket', $ticket);
 
-            # create watcher rec
-            $watcher = (object) array(
-                'ticketid' => $ticket->id,
-                'hd_userid' => $user2hd_user[$ticket->userid],
-            );
-            insert_record('block_helpdesk_watcher', $watcher);
-            $watchers[$ticket->id . ',' . $user2hd_user[$ticket->userid]] = true;
+                # create watcher rec
+                $watcher = (object) array(
+                    'ticketid' => $ticket->id,
+                    'hd_userid' => $user2hd_user[$ticket->userid],
+                );
+                insert_record('block_helpdesk_watcher', $watcher);
+                $watchers[$ticket->id . ',' . $user2hd_user[$ticket->userid]] = true;
+            }
         }
 
 
@@ -355,15 +368,17 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
          */
 
         $ticket_assigns = get_records('block_helpdesk_ticket_assign');
-        foreach ($ticket_assigns as $assignment) {
-            $key = $assignment->ticketid . ',' . $user2hd_user[$assignment->userid];
-            if (!isset($watchers[$key])) {
-                $watcher = (object) array(
-                    'ticketid' => $assignment->ticketid,
-                    'hd_userid' => $user2hd_user[$assignment->userid],
-                );
-                insert_record('block_helpdesk_watcher', $watcher);
-                $watchers[$key] = true;
+        if (!empty($ticket_assigns)) {
+            foreach ($ticket_assigns as $assignment) {
+                $key = $assignment->ticketid . ',' . $user2hd_user[$assignment->userid];
+                if (!isset($watchers[$key])) {
+                    $watcher = (object) array(
+                        'ticketid' => $assignment->ticketid,
+                        'hd_userid' => $user2hd_user[$assignment->userid],
+                    );
+                    insert_record('block_helpdesk_watcher', $watcher);
+                    $watchers[$key] = true;
+                }
             }
         }
 
@@ -419,9 +434,11 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
          */
 
         $ticket_updates = get_records('block_helpdesk_ticket_update');
-        foreach ($ticket_updates as $update) {
-            $update->hd_userid = $user2hd_user[$update->userid];
-            update_record('block_helpdesk_ticket_update', $update);
+        if (!empty($ticket_updates)) {
+            foreach ($ticket_updates as $update) {
+                $update->hd_userid = $user2hd_user[$update->userid];
+                update_record('block_helpdesk_ticket_update', $update);
+            }
         }
 
 
@@ -581,7 +598,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $result = $result && add_index($table, $index);
     }
 
-    if ($result && $oldversion < 2013072900) {
+    if ($result && $oldversion < 2013082906 && !$hdusertableupgraded) {
         /// Define field type to be added to block_helpdesk_hd_user
         $table = new XMLDBTable('block_helpdesk_hd_user');
         $field = new XMLDBField('type');
@@ -591,7 +608,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $result = $result && add_field($table, $field);
     }
 
-    if ($result && $oldversion < 2013081500) {
+    if ($result && $oldversion < 2013082906 && !$hdusertableupgraded) {
         /// Define field token_last_issued to be added to block_helpdesk_watcher
         $table = new XMLDBTable('block_helpdesk_watcher');
         $field = new XMLDBField('token_last_issued');
@@ -601,7 +618,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
         $result = $result && add_field($table, $field);
     }
 
-    if ($result && $oldversion < 2013082905) {
+    if ($result && $oldversion < 2013082906 && !$hdusertableupgraded) {
         $tickets = get_records_sql("
             SELECT t.id, t.status
             FROM {$CFG->prefix}block_helpdesk_ticket t
