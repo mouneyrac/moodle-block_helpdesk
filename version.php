@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 defined('MOODLE_INTERNAL') || die();
-$plugin->version  = 2014042801;
+$plugin->version  = 2014042802;
 $plugin->requires = 2011120500;
 $plugin->component = 'block_helpdesk';
 

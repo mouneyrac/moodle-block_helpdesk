@@ -665,7 +665,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
     }
 
     // We are adding system roles.
-    if ($result && $oldversion < 2014042801) {
+    if ($result && $oldversion < 2014042802) {
 
         if (!$DB->count_records('role', array('shortname' => 'helpdeskmanager'))) {
 
@@ -732,7 +732,7 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
             $DB->insert_record('role_capabilities', $cap);
 
             // Helpdesk savepoint reached.
-            upgrade_block_savepoint(true, 2014042801, 'helpdesk');
+            upgrade_block_savepoint(true, 2014042802, 'helpdesk');
 
         }
     }
