@@ -483,9 +483,16 @@ function block_helpdesk_pluginfile($course, $cm, $context, $filearea, $args, $fo
 function fullname_nowarnings($user) {
     global $CFG;
 
-    $debugdeveloper_backup = $CFG->debugdeveloper;
-    $CFG->debugdeveloper = false;
-    $fullname = fullname($user);
-    $CFG->debugdeveloper = $debugdeveloper_backup;
+    // As except this case, Moodle 2.5 is the exact same version than 2.6/2.7,
+    // in order to avoid to create a branch specific to 2.5 for this "hack" ,let's check the Moodle version.
+    if ($CFG->version >= 2013111800) {
+        $debugdeveloper_backup = $CFG->debugdeveloper;
+        $CFG->debugdeveloper = false;
+        $fullname = fullname($user);
+        $CFG->debugdeveloper = $debugdeveloper_backup;
+    } else {
+        // Moodle version earlier than to 2.6.
+        $fullname = fullname($user);
+    }
     return $fullname;
 }
