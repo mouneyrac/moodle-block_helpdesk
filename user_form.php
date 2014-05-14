@@ -44,26 +44,32 @@ class helpdesk_user_form extends moodleform {
         $mform->addElement('header', 'title', get_string($this->new_user ? 'new_user' : 'editexternal', 'block_helpdesk'));
         $mform->addElement('text', 'name', get_string('fullname'), 'size="40"');
         $mform->addRule('name', null, 'required');
+        $mform->setType('name', PARAM_TEXT);
         $mform->addElement('text', 'email', get_string('email', 'block_helpdesk'), 'size="40"');
+        // PARAM_EMAIL is the correct value but for backward compatibility let's put PARAM_TEXT.
+        $mform->setType('email', PARAM_TEXT);
         $mform->addElement('text', 'phone', get_string('phone'), 'size="20"');
+        $mform->setType('phone', PARAM_TEXT);
 
         $type_options = array_map(function ($option) {
                 return trim($option);
             }, explode(',', $CFG->block_helpdesk_user_types));
         $type_options = array_combine($type_options, $type_options);
         $mform->addElement('select', 'type', get_string('usertype', 'block_helpdesk'), $type_options);
+        $mform->setType('type', PARAM_TEXT);
 
         $mform->addElement('submit', 'submitbutton', get_string('submit'));
 
-        $hidden_fields = array(
-            'function',
-            'returnurl',
-            'paramname',
-            'ticketid',
-            'id',
-        );
-        foreach ($hidden_fields as $hf) {
-            $mform->addElement('hidden', $hf);
-        }
+
+        $mform->addElement('hidden', 'function');
+        $mform->setType('function', PARAM_ALPHANUMEXT);
+        $mform->addElement('hidden', 'returnurl');
+        $mform->setType('returnurl', PARAM_URL);
+        $mform->addElement('hidden', 'paramname');
+        $mform->setType('paramname', PARAM_ALPHANUMEXT);
+        $mform->addElement('hidden', 'ticketid');
+        $mform->setType('ticketid', PARAM_INT);
+        $mform->addElement('hidden', 'id');
+        $mform->setType('id', PARAM_INT);
     }
 }

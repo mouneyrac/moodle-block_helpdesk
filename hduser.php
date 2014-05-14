@@ -66,7 +66,7 @@ if ($user_form->is_cancelled()) {
     # todo: redirect
     # can we get the hidden fields from a cancelled form?
 } else if ($user = $user_form->get_data()) {
-    if ($user->id) {
+    if (!empty($user->id)) {
         if (!$DB->update_record('block_helpdesk_hd_user', $user)) {
             print_error('externaluserupdatefailed', 'block_helpdesk');
         }
