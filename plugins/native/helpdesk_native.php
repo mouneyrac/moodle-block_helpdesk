@@ -361,8 +361,8 @@ class helpdesk_native extends helpdesk {
             }
             $link = "<a href=\"$url\">$url</a>";
 
-            $emailtext = str_replace('!username!', fullname($user), $text);
-            $emailhtml = str_replace('!username!', fullname($user), $html);
+            $emailtext = str_replace('!username!', fullname_nowarnings($user), $text);
+            $emailhtml = str_replace('!username!', fullname_nowarnings($user), $html);
             $emailtext = str_replace('!ticketlink!', $url, $emailtext);
             $emailhtml = str_replace('!ticketlink!', $link, $emailhtml);
             $emailtext = str_replace('!supportname!', $supportuser->firstname, $emailtext);
@@ -443,8 +443,8 @@ class helpdesk_native extends helpdesk {
             }
             $link = "<a href=\"$url\">$url</a>";
 
-            $emailtext = str_replace('!username!', fullname($user), $text);
-            $emailhtml = str_replace('!username!', fullname($user), $html);
+            $emailtext = str_replace('!username!', fullname_nowarnings($user), $text);
+            $emailhtml = str_replace('!username!', fullname_nowarnings($user), $html);
             $emailtext = str_replace('!ticketlink!', $url, $emailtext);
             $emailhtml = str_replace('!ticketlink!', $link, $emailhtml);
             $emailtext = str_replace('!supportname!', $supportuser->firstname, $emailtext);
@@ -888,7 +888,7 @@ class helpdesk_native extends helpdesk {
         $ticket->notesformat = FORMAT_HTML;
         $ticket = file_prepare_standard_editor($ticket, 'notes', $editoroptions, $context,
                 'block_helpdesk', 'ticketnotes', 0);
-        $ticket->username = fullname($user);
+        $ticket->username = fullname_nowarnings($user);
         $form = new change_overview_form($url->out(), array('ticket' => $ticket, 'editoroptions' => $editoroptions));
 
         return $form;

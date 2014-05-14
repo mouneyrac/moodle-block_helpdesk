@@ -250,9 +250,9 @@ function helpdesk_user_link($user) {
         $type = get_string('nonmoodleuser', 'block_helpdesk');
     }
     if (!empty($USER->helpdesk_external)) {
-        return fullname($user) . " $type";
+        return fullname_nowarnings($user) . " $type";
     }
-    return "<a href=\"{$url->out()}\">" . fullname($user) . "</a> $type";
+    return "<a href=\"{$url->out()}\">" . fullname_nowarnings($user) . "</a> $type";
 }
 
 function helpdesk_generate_token() {
@@ -367,7 +367,7 @@ function helpdesk_print_header($nav, $title=null) {
         $PAGE->set_heading('');
         $PAGE->set_focuscontrol('');
         echo $OUTPUT->header();
-        echo "<div class='external'>" . get_string('welcome', 'block_helpdesk') . fullname($USER) . "</div>";
+        echo "<div class='external'>" . get_string('welcome', 'block_helpdesk') . fullname_nowarnings($USER) . "</div>";
         echo $OUTPUT->heading($DB->get_record('course', array('id' => SITEID))->fullname . ' ' . get_string('helpdesk', 'block_helpdesk'), 1);
         return;
     }
@@ -472,4 +472,20 @@ function block_helpdesk_pluginfile($course, $cm, $context, $filearea, $args, $fo
     // finally send the file
     // for folder module, we force download file all the time
     send_stored_file($file, 0, 0, true, $options);
+}
+
+/**
+ * Evil function that eats the fullname() warnings because we can't bother to rewrite every single
+ * user requests to include all missing name fields, and we are annoyed by these name warnings in debug mode :P
+ * @param $user
+ * $return string fullname
+ */
+function fullname_nowarnings($user) {
+    global $CFG;
+
+    $debugdeveloper_backup = $CFG->debugdeveloper;
+    $CFG->debugdeveloper = false;
+    $fullname = fullname($user);
+    $CFG->debugdeveloper = $debugdeveloper_backup;
+    return $fullname;
 }

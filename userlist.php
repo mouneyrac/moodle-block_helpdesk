@@ -293,7 +293,7 @@ foreach($users as $user) {
     }
     $returnurl->param($paramname, $user->hd_userid);
 
-    $changelink = fullname($user) . ' <small>(<a href="' . $returnurl->out() . '">' .
+    $changelink = fullname_nowarnings($user) . ' <small>(<a href="' . $returnurl->out() . '">' .
             $selecttext . '</a>)</small>';
     $table->data[] = array(
         $changelink,

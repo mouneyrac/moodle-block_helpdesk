@@ -85,7 +85,7 @@ class update_ticket_form extends moodleform {
         $mform->addElement('submit', 'submitbutton', get_string('updateticket', 'block_helpdesk'));
     }
 
-    function validation($data) {
+    function validation($data, $files) {
         // If we need to do more here we will.
         return array();
     }

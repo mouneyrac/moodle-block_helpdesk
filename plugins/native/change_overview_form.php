@@ -87,7 +87,7 @@ class change_overview_form extends moodleform {
         return true;
     }
 
-    function validation($data) {
+    function validation($data, $files) {
         // Maybe at some point. Defaults work well already.
         return array();
     }

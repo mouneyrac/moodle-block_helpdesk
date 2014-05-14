@@ -51,7 +51,7 @@ class new_ticket_form extends moodleform {
         $this->set_data($ticket);
     }
 
-    function validation($data) {
+    function validation($data, $files) {
         // At some point we could do custom validation, but moodleform defaults
         // do just fine.
         return array();

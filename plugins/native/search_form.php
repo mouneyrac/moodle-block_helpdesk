@@ -56,7 +56,7 @@ class search_form extends moodleform {
             0 => get_string('noanswerers', 'block_helpdesk')
         );
         foreach($answerers as $a) {
-            $answererlist[$a->id] = fullname($a);
+            $answererlist[$a->id] = fullname_nowarnings($a);
         }
 
         $mform =& $this->_form;
@@ -90,7 +90,7 @@ class search_form extends moodleform {
         $mform->setType('submitter', PARAM_INT);
     }
 
-    function validation() {
+    function validation($date, $files) {
         // Add something at some point.
     }
 

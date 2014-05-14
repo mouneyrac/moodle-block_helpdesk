@@ -1,40 +1,40 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/helpdesk/db" VERSION="20130815" COMMENT="XMLDB file for Moodle blocks/helpdesk"
+<XMLDB PATH="blocks/helpdesk/db" VERSION="20140514" COMMENT="XMLDB file for Moodle blocks/helpdesk"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="block_helpdesk_ticket" COMMENT="This is the ticket table for the Help Desk block." NEXT="block_helpdesk_ticket_tag">
+    <TABLE NAME="block_helpdesk_ticket" COMMENT="This is the ticket table for the Help Desk block.">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="summary"/>
-        <FIELD NAME="summary" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Summary of a submitted ticket." PREVIOUS="id" NEXT="detail"/>
-        <FIELD NAME="detail" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Detailed description of a ticket." PREVIOUS="summary" NEXT="detailformat"/>
-        <FIELD NAME="detailformat" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="detail" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="Time Created, self explanatory." PREVIOUS="detailformat" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="timecreated" NEXT="hd_userid"/>
-        <FIELD NAME="hd_userid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="timemodified" NEXT="assigned_refs"/>
-        <FIELD NAME="assigned_refs" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="Keep track of the number of assignment references to this ticket." PREVIOUS="hd_userid" NEXT="firstcontact"/>
-        <FIELD NAME="firstcontact" TYPE="int" LENGTH="20" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="First person who touches the ticket other than the submitter." PREVIOUS="assigned_refs" NEXT="groupid"/>
-        <FIELD NAME="groupid" TYPE="int" LENGTH="20" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="Group this ticket belongs to." PREVIOUS="firstcontact" NEXT="status"/>
-        <FIELD NAME="status" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="groupid" NEXT="createdby"/>
-        <FIELD NAME="createdby" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="status"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="summary" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Summary of a submitted ticket."/>
+        <FIELD NAME="detail" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Detailed description of a ticket."/>
+        <FIELD NAME="detailformat" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="Time Created, self explanatory."/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="hd_userid" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="assigned_refs" TYPE="int" LENGTH="2" NOTNULL="true" SEQUENCE="false" COMMENT="Keep track of the number of assignment references to this ticket."/>
+        <FIELD NAME="firstcontact" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="First person who touches the ticket other than the submitter."/>
+        <FIELD NAME="groupid" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Group this ticket belongs to."/>
+        <FIELD NAME="status" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="createdby" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="block_helpdesk_ticket_h_ix" UNIQUE="false" FIELDS="hd_userid" NEXT="block_helpdesk_ticket_f_ix"/>
-        <INDEX NAME="block_helpdesk_ticket_f_ix" UNIQUE="false" FIELDS="firstcontact" PREVIOUS="block_helpdesk_ticket_h_ix" NEXT="block_helpdesk_ticket_st_ix"/>
-        <INDEX NAME="block_helpdesk_ticket_st_ix" UNIQUE="false" FIELDS="status" PREVIOUS="block_helpdesk_ticket_f_ix"/>
+        <INDEX NAME="block_helpdesk_ticket_h_ix" UNIQUE="false" FIELDS="hd_userid"/>
+        <INDEX NAME="block_helpdesk_ticket_f_ix" UNIQUE="false" FIELDS="firstcontact"/>
+        <INDEX NAME="block_helpdesk_ticket_st_ix" UNIQUE="false" FIELDS="status"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="block_helpdesk_ticket_tag" COMMENT="A table that holds individual custom tags per ticket." PREVIOUS="block_helpdesk_ticket" NEXT="block_helpdesk_ticket_update">
+    <TABLE NAME="block_helpdesk_ticket_tag" COMMENT="A table that holds individual custom tags per ticket.">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="128" NOTNULL="true" SEQUENCE="false" COMMENT="Name of the tag." PREVIOUS="id" NEXT="value"/>
-        <FIELD NAME="value" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Value of the tag." PREVIOUS="name" NEXT="valueformat"/>
-        <FIELD NAME="valueformat" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="value" NEXT="ticketid"/>
-        <FIELD NAME="ticketid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="Id of the ticket that this particular tag belongs to." PREVIOUS="valueformat"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="128" NOTNULL="true" SEQUENCE="false" COMMENT="Name of the tag."/>
+        <FIELD NAME="value" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Value of the tag."/>
+        <FIELD NAME="valueformat" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="ticketid" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="Id of the ticket that this particular tag belongs to."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -43,19 +43,19 @@
         <INDEX NAME="block_helpdesk_ticket_tag_t_ix" UNIQUE="false" FIELDS="ticketid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="block_helpdesk_ticket_update" COMMENT="Every time a ticket is updated with a new status, it gets put here. This table will contain the full history of each ticket." PREVIOUS="block_helpdesk_ticket_tag" NEXT="block_helpdesk_ticket_assign">
+    <TABLE NAME="block_helpdesk_ticket_update" COMMENT="Every time a ticket is updated with a new status, it gets put here. This table will contain the full history of each ticket.">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="ticketid"/>
-        <FIELD NAME="ticketid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The ticket ID of the ticket that this update belongs to." PREVIOUS="id" NEXT="notes"/>
-        <FIELD NAME="notes" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Comment that the updater leaves for the user." PREVIOUS="ticketid" NEXT="notesformat"/>
-        <FIELD NAME="notesformat" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="notes" NEXT="hd_userid"/>
-        <FIELD NAME="hd_userid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="notesformat" NEXT="status"/>
-        <FIELD NAME="status" TYPE="char" LENGTH="128" NOTNULL="true" SEQUENCE="false" COMMENT="The state of the ticket." PREVIOUS="hd_userid" NEXT="newticketstatus"/>
-        <FIELD NAME="newticketstatus" TYPE="int" LENGTH="20" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="if the ticket's status changes we may want to record what is was changed to here." PREVIOUS="status" NEXT="type"/>
-        <FIELD NAME="type" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="type of update, not all are the same." PREVIOUS="newticketstatus" NEXT="hidden"/>
-        <FIELD NAME="hidden" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="type" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="Time this ticket update was created." PREVIOUS="hidden" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="Time that this particular update was modified." PREVIOUS="timecreated"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="ticketid" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The ticket ID of the ticket that this update belongs to."/>
+        <FIELD NAME="notes" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Comment that the updater leaves for the user."/>
+        <FIELD NAME="notesformat" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="hd_userid" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="128" NOTNULL="true" SEQUENCE="false" COMMENT="The state of the ticket."/>
+        <FIELD NAME="newticketstatus" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="if the ticket's status changes we may want to record what is was changed to here."/>
+        <FIELD NAME="type" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="type of update, not all are the same."/>
+        <FIELD NAME="hidden" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="Time this ticket update was created."/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Time that this particular update was modified."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -64,78 +64,78 @@
         <INDEX NAME="block_helpdesk_ticket_update_t_ix" UNIQUE="false" FIELDS="ticketid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="block_helpdesk_ticket_assign" COMMENT="Assignment relations to relate a user with id to be related to a ticket with id." PREVIOUS="block_helpdesk_ticket_update" NEXT="block_helpdesk_status">
+    <TABLE NAME="block_helpdesk_ticket_assign" COMMENT="Assignment relations to relate a user with id to be related to a ticket with id.">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="userid"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="ID of the user being assigned to a ticket." PREVIOUS="id" NEXT="ticketid"/>
-        <FIELD NAME="ticketid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="ID of the ticket that a user is being assigned." PREVIOUS="userid" NEXT="iswatcher"/>
-        <FIELD NAME="iswatcher" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="A watcher is a lesser assignment." PREVIOUS="ticketid"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the user being assigned to a ticket."/>
+        <FIELD NAME="ticketid" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the ticket that a user is being assigned."/>
+        <FIELD NAME="iswatcher" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" COMMENT="A watcher is a lesser assignment."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="block_helpdesk_ticket_assign_t_ix" UNIQUE="false" FIELDS="ticketid" NEXT="block_helpdesk_ticket_assign_u_ix"/>
-        <INDEX NAME="block_helpdesk_ticket_assign_u_ix" UNIQUE="false" FIELDS="userid" PREVIOUS="block_helpdesk_ticket_assign_t_ix"/>
+        <INDEX NAME="block_helpdesk_ticket_assign_t_ix" UNIQUE="false" FIELDS="ticketid"/>
+        <INDEX NAME="block_helpdesk_ticket_assign_u_ix" UNIQUE="false" FIELDS="userid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="block_helpdesk_status" COMMENT="Ticket status table, where core and additional statuses are defined." PREVIOUS="block_helpdesk_ticket_assign" NEXT="block_helpdesk_status_path">
+    <TABLE NAME="block_helpdesk_status" COMMENT="Ticket status table, where core and additional statuses are defined.">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Name of the status." PREVIOUS="id" NEXT="displayname"/>
-        <FIELD NAME="displayname" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Name that will be displayed (overrides core get_string() calls.)" PREVIOUS="name" NEXT="core"/>
-        <FIELD NAME="core" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="If this is a core status. Only the help desk should create these, do not add more." PREVIOUS="displayname" NEXT="whohasball"/>
-        <FIELD NAME="whohasball" TYPE="int" LENGTH="20" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="These should be defined in the code such as SUBMITTER, ASSIGNED, and FIRSTCONTACT." PREVIOUS="core" NEXT="ticketdefault"/>
-        <FIELD NAME="ticketdefault" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="Is this the default status for new tickets?" PREVIOUS="whohasball" NEXT="active"/>
-        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="Is this status active? (closed and resolved are examples of inactive questions.)" PREVIOUS="ticketdefault"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Name of the status."/>
+        <FIELD NAME="displayname" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Name that will be displayed (overrides core get_string() calls.)"/>
+        <FIELD NAME="core" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" COMMENT="If this is a core status. Only the help desk should create these, do not add more."/>
+        <FIELD NAME="whohasball" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="These should be defined in the code such as SUBMITTER, ASSIGNED, and FIRSTCONTACT."/>
+        <FIELD NAME="ticketdefault" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" COMMENT="Is this the default status for new tickets?"/>
+        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" COMMENT="Is this status active? (closed and resolved are examples of inactive questions.)"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="block_helpdesk_status_path" COMMENT="What statuses can change to and who can change them." PREVIOUS="block_helpdesk_status" NEXT="block_helpdesk_hd_user">
+    <TABLE NAME="block_helpdesk_status_path" COMMENT="What statuses can change to and who can change them.">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="fromstatusid"/>
-        <FIELD NAME="fromstatusid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="What status are we coming from?" PREVIOUS="id" NEXT="tostatusid"/>
-        <FIELD NAME="tostatusid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="which status can we change to?" PREVIOUS="fromstatusid" NEXT="capabilityname"/>
-        <FIELD NAME="capabilityname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="different paths map to different capabilities. we are forced to use names since capabilities are not setup at the time this table is populated." PREVIOUS="tostatusid"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="fromstatusid" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="What status are we coming from?"/>
+        <FIELD NAME="tostatusid" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="which status can we change to?"/>
+        <FIELD NAME="capabilityname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="different paths map to different capabilities. we are forced to use names since capabilities are not setup at the time this table is populated."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="block_helpdesk_hd_user" COMMENT="Default comment for the table, please edit me" PREVIOUS="block_helpdesk_status_path" NEXT="block_helpdesk_watcher">
+    <TABLE NAME="block_helpdesk_hd_user" COMMENT="Helpdesk user.">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="userid"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="20" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="email"/>
-        <FIELD NAME="email" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" PREVIOUS="userid" NEXT="phone"/>
-        <FIELD NAME="phone" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" PREVIOUS="email" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" PREVIOUS="phone" NEXT="type"/>
-        <FIELD NAME="type" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="name"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="email" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="phone" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="type" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="block_helpdesk_hd_user_u_ix" UNIQUE="false" FIELDS="userid" NEXT="block_helpdesk_hd_user_e_ix"/>
-        <INDEX NAME="block_helpdesk_hd_user_e_ix" UNIQUE="false" FIELDS="email" PREVIOUS="block_helpdesk_hd_user_u_ix"/>
+        <INDEX NAME="block_helpdesk_hd_user_u_ix" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="block_helpdesk_hd_user_e_ix" UNIQUE="false" FIELDS="email"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="block_helpdesk_watcher" COMMENT="Default comment for the table, please edit me" PREVIOUS="block_helpdesk_hd_user">
+    <TABLE NAME="block_helpdesk_watcher" COMMENT="Default comment for the table, please edit me">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="ticketid"/>
-        <FIELD NAME="ticketid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="hd_userid"/>
-        <FIELD NAME="hd_userid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="ticketid" NEXT="token"/>
-        <FIELD NAME="token" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="hd_userid" NEXT="token_last_issued"/>
-        <FIELD NAME="token_last_issued" TYPE="int" LENGTH="20" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="token"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="ticketid" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="hd_userid" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="token" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="token_last_issued" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="block_helpdesk_watcher_t_ix" UNIQUE="false" FIELDS="ticketid" NEXT="block_helpdesk_watcher_h_ix"/>
-        <INDEX NAME="block_helpdesk_watcher_h_ix" UNIQUE="false" FIELDS="hd_userid" PREVIOUS="block_helpdesk_watcher_t_ix" NEXT="block_helpdesk_watcher_th_ux"/>
-        <INDEX NAME="block_helpdesk_watcher_th_ux" UNIQUE="true" FIELDS="ticketid, hd_userid" PREVIOUS="block_helpdesk_watcher_h_ix"/>
+        <INDEX NAME="block_helpdesk_watcher_t_ix" UNIQUE="false" FIELDS="ticketid"/>
+        <INDEX NAME="block_helpdesk_watcher_h_ix" UNIQUE="false" FIELDS="hd_userid"/>
+        <INDEX NAME="block_helpdesk_watcher_th_ux" UNIQUE="true" FIELDS="ticketid, hd_userid"/>
       </INDEXES>
     </TABLE>
   </TABLES>

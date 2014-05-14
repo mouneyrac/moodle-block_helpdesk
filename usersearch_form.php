@@ -56,16 +56,16 @@ class helpdesk_usersearch_form extends moodleform {
         $mform->addElement('header', 'usersearch', $header);
 
         $mform->addElement('text', 'search', '', 'size="40"');
+        $mform->setType('search', PARAM_TEXT);
         $mform->addElement('submit', 'submitbutton', get_string('search'));
 
-        $hidden_fields = array(
-            'function',
-            'returnurl',
-            'paramname',
-            'tid',
-        );
-        foreach ($hidden_fields as $hf) {
-            $mform->addElement('hidden', $hf);
-        }
+        $mform->addElement('hidden', 'function');
+        $mform->setType('function', PARAM_ALPHANUMEXT);
+        $mform->addElement('hidden', 'returnurl');
+        $mform->setType('returnurl', PARAM_URL);
+        $mform->addElement('hidden', 'paramname');
+        $mform->setType('paramname', PARAM_ALPHANUMEXT);
+        $mform->addElement('hidden', 'tid');
+        $mform->setType('tid', PARAM_INT);
     }
 }

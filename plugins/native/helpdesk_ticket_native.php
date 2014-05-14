@@ -690,7 +690,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             'status'    => HELPDESK_NATIVE_UPDATE_ASSIGN,
             'type'      => HELPDESK_UPDATE_TYPE_DETAILED,
         );
-        $update->notes_editor['text'] = fullname($user) . ' '
+        $update->notes_editor['text'] = fullname_nowarnings($user) . ' '
             . get_string('wasassigned', 'block_helpdesk');
         $update->notes_editor['format'] = FORMAT_HTML;
         if(!$this->add_update($update)) {
@@ -733,7 +733,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 'status'    => HELPDESK_NATIVE_UPDATE_UNASSIGN,
                 'type'      => HELPDESK_UPDATE_TYPE_DETAILED,
             );
-            $update->notes_editor['text'] = fullname($user) . ' ' .
+            $update->notes_editor['text'] = fullname_nowarnings($user) . ' ' .
                 get_string('wasunassigned', 'block_helpdesk');
             $update->notes_editor['format'] = FORMAT_HTML;
 
@@ -804,7 +804,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
         // update
         $update = (object) array(
-            'notes_editor' => array('text' => fullname($user) . get_string('startwatching', 'block_helpdesk'),
+            'notes_editor' => array('text' => fullname_nowarnings($user) . get_string('startwatching', 'block_helpdesk'),
                 'format' => FORMAT_HTML),
             'status'    => HELPDESK_NATIVE_UPDATE_WATCHING,
             'type'      => HELPDESK_UPDATE_TYPE_DETAILED,
@@ -836,7 +836,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $this->store();
             $user = helpdesk_get_hd_user($hd_userid);
             $update = (object) array(
-                'notes_editor' => array('text' => fullname($user) . get_string('notwatching', 'block_helpdesk'),
+                'notes_editor' => array('text' => fullname_nowarnings($user) . get_string('notwatching', 'block_helpdesk'),
                     'format' => FORMAT_HTML),
                 'status'    => HELPDESK_NATIVE_UPDATE_NOTWATCHING,
                 'type'      => HELPDESK_UPDATE_TYPE_DETAILED,

@@ -98,7 +98,7 @@ if (!$form->is_submitted() or !($data = $form->get_data())) {
     echo $OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
     if ($hd_userid) {
         $user = helpdesk_get_hd_user($hd_userid);
-        echo $OUTPUT->heading(get_string('submittingas', 'block_helpdesk') . fullname($user));
+        echo $OUTPUT->heading(get_string('submittingas', 'block_helpdesk') . fullname_nowarnings($user));
     }
     $form->display();
     echo $OUTPUT->footer();

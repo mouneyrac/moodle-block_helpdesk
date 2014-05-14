@@ -78,7 +78,7 @@ if (!empty($remove)) {
         print_error('cannotremoveassignment', 'block_helpdesk');
     }
     $str_unassigned = get_string('hasbeenunassigned', 'block_helpdesk');
-    $str_username = fullname(helpdesk_get_user($uid));
+    $str_username = fullname_nowarnings(helpdesk_get_user($uid));
     $url = new moodle_url("$CFG->wwwroot/user/view.php");
     $url->param('id', $uid);
     $url = $url->out();
@@ -101,7 +101,7 @@ if (!empty($uid)) {
             $userurl = new moodle_url("$CFG->wwwroot/user/view.php");
             $userurl->param('id', $uid);
             $userurl = $userurl->out();
-            $text = "<a href=\"$userurl\">" . fullname(helpdesk_get_user($element->userid)) .
+            $text = "<a href=\"$userurl\">" . fullname_nowarnings(helpdesk_get_user($element->userid)) .
                     "</a> " . get_string('isalreadyassigned', 'block_helpdesk');
             redirect($returnurl, $text);
             // Here a footer gets printed and the script stops.
@@ -142,7 +142,7 @@ foreach($allassignables as $user) {
     $emailurl = new moodle_url("mailto:$user->email");
     $email = $emailurl->out();
     $url = $userurl->out();
-    $fullname = fullname($user);
+    $fullname = fullname_nowarnings($user);
     $assignurl = new moodle_url(qualified_me());
     $assignurl->param('uid', $user->id);
     $assign = $assignurl->out();
