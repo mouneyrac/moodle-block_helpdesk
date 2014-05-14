@@ -620,8 +620,8 @@ function xmldb_block_helpdesk_upgrade($oldversion = 0) {
             $hdusertableupgraded = true;
         }
     }
-    if (!$hdusertableupgraded and $oldversion < 2014042801) {
-        addwatchertable(2014042801, $dbman);
+    if (!$hdusertableupgraded and $oldversion < 2013082906 ) {
+        addwatchertable(2013082906 , $dbman);
         $hdusertableupgraded = true;
     }
 
