@@ -45,22 +45,22 @@ $id = required_param('id', PARAM_INT);
 $ticket = $hd->get_ticket($id);
 
 if(empty($ticket)) {
-    error(get_string('noticket', 'block_helpdesk'));
+    print_error('noticket', 'block_helpdesk');
 }
 
 $fc = $ticket->get_firstcontact();
 
 if(!empty($fc)) {
-    error(get_string('notavailabletograb', 'block_helpdesk'));
+    print_error('notavailabletograb', 'block_helpdesk');
 }
 
 $ticket->set_firstcontact($USER->id);
 if(!$ticket->store()) {
-    error(get_string('unabletostoreticket', 'block_helpdesk'));
+    print_error('unabletostoreticket', 'block_helpdesk');
 }
 
 if(!$ticket->add_assignment($USER->id)) {
-    error(get_string('unabletoaddassignment', 'block_helpdesk'));
+    print_error('unabletoaddassignment', 'block_helpdesk');
 }
 
 $url = new moodle_url($CFG->wwwroot . '/blocks/helpdesk/view.php');

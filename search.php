@@ -19,7 +19,7 @@
  * entire helpdesk.
  *
  * @package     block_helpdesk
- * @copyright   2010 VLACS
+ * @copyright   2010-2011 VLACS
  * @author      Jonathan Doane <jdoane@vlacs.org>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,6 +29,10 @@ require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
 require_login(0, false);
 
+$context = context_system::instance();
+$PAGE->set_context($context);
+$PAGE->set_url('/blocks/helpdesk/search.php');
+
 $nav = array (
     array (
         'name' => get_string('helpdesk', 'block_helpdesk'),
@@ -37,9 +41,6 @@ $nav = array (
         'name' => get_string('search'),
     )
 );
-$title = get_string('helpdesksearch', 'block_helpdesk');
-helpdesk::page_init($title, $nav);
-
 $hd             = helpdesk::get_helpdesk();
 $cap            = helpdesk_is_capable();
 
@@ -53,28 +54,31 @@ $rel            = optional_param('rel', $defaultrel, PARAM_TEXT);
 $form           = $hd->search_form();
 $data           = $form->get_data();
 
+if (!isset($data)) { $data = new stdClass; }
 if(!helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
-    if (!isset($data)) { $data = new stdClass; }
     $data->submitter = $USER->id;
 }
 
-helpdesk::page_header();
-//echo $OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
-
+$title = get_string('helpdesksearch', 'block_helpdesk');
+//helpdesk_print_header($nav, $title);
+helpdesk::page_init($title, $nav);
+echo $OUTPUT->header();
+echo $OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
 // Do we have a relation to use? Lets us it!
 if(!$form->is_submitted() and empty($httpdata)) {
     // TODO: Use search preset from database.
     // TODO: Implement all of this.
     if(is_numeric($rel)) {
-        error("This feature has not been implemented.");
+        print_error("This feature has not been implemented.");
     }
     if(is_string($rel)) {
         $data = $hd->get_ticket_relation_search($rel);
         if(!$data) {
-            error(get_string('relationnosearchpreset', 'block_helpdesk'));
+            print_error('relationnosearchpreset', 'block_helpdesk');
         }
         if($cap !== HELPDESK_CAP_ANSWER) {
-            $data->submitter = $USER->id;
+            $user = helpdesk_get_user($USER->id);
+            $data->watcher = $user->hd_userid;
         }
     }
 } else {
@@ -90,13 +94,15 @@ if(!empty($httpdata)) {
 }
 
 $fd = clone $data;
-$fd->status = implode(',', $fd->status);
+if (!empty($fd->status)) {
+    $fd->status = implode(',', $fd->status);
+}
 unset($fd->submitter);
 $form->set_data($fd);
 
 $options = $hd->get_ticket_relations($cap);
 if ($options == false) {
-    error(get_string('nocapabilities', 'block_helpdesk'));
+    print_error('nocapabilities', 'block_helpdesk');
 }
 
 // At this point we have an $options with all the available ticket relation
@@ -108,10 +114,8 @@ if ($options == false) {
 // We want to have links for all relations except for the current one.
 
 // Let's use a table!
-$str = get_string('relations', 'block_helpdesk');
-$relhelp = helpdesk_simple_helpbutton($str, 'relations');
+$relhelp = $OUTPUT->help_icon('relations', 'block_helpdesk');
 $table = new html_table();
-$table->width = '100%';
 $table->head = array(get_string('changerelation', 'block_helpdesk') . $relhelp);
 $table->data = array();
 
@@ -142,7 +146,7 @@ if ($form->is_validated() or !empty($httpdata) or $rel !== null) {
     $tickets = $result->results;
 
     if (empty($result->count)) {
-        notify(get_string('noticketstodisplay', 'block_helpdesk'));
+        echo $OUTPUT->notification(get_string('noticketstodisplay', 'block_helpdesk'));
     } else {
         // We want paging and page counts at the front AND back.
         $url = new moodle_url(qualified_me());
@@ -154,7 +158,8 @@ if ($form->is_validated() or !empty($httpdata) or $rel !== null) {
         }
         if ($count != 10) { $url->param('count', $count); }
         if ($count > 10) {
-            echo $OUTPUT->paging_bar($result->count, $page, $count, $url);
+            $pagingbar = new paging_bar($result->count, $page, $count, $url, 'page');
+            echo $OUTPUT->render($pagingbar);
         }
         $qppstring = get_string('questionsperpage', 'block_helpdesk');
         $defaultcounts = array(10, 25, 50, 100, 250);
@@ -179,7 +184,6 @@ if ($form->is_validated() or !empty($httpdata) or $rel !== null) {
         $lastupdatedstr = get_string('lastupdated', 'block_helpdesk');
         $userstr = get_string('user');
         $table = new html_table();
-        $table->width = '100%';
         $head = array();
         $head[] = $ticketnamestr;
         $head[] = $userstr;
@@ -188,23 +192,20 @@ if ($form->is_validated() or !empty($httpdata) or $rel !== null) {
         $table->head = $head;
 
         foreach ($tickets as $ticket) {
-            $user       = helpdesk_get_user($ticket->get_userid());
-            $userurl    = new moodle_url("$CFG->wwwroot/user/view.php");
-            $userurl->param('id', $user->id);
-            $userurl    = $userurl->out();
-            $user       = fullname($user);
+            $user       = helpdesk_get_hd_user($ticket->get_hd_userid());
             $url        = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
             $url->param('id', $ticket->get_idstring());
             $url        = $url->out();
             $row        = array();
             $row[]      = "<a href=\"$url\">" . $ticket->get_summary() . '</a>';
-            $row[]      = "<a href=\"$userurl\">$user</a>";
+            $row[]      = helpdesk_user_link($user);
             $row[]      = $ticket->get_status_string();
             $row[]      = helpdesk_get_date_string($ticket->get_timemodified());
             $table->data[] = $row;
         }
+        echo '<div class=\'questionlisttable\'>';
         echo html_writer::table($table);
-
+        echo '</div>';
         $url = new moodle_url(qualified_me());
         $url->remove_params(); // We don't really care about what we don't have.
         if ($rel !== null) {
@@ -213,11 +214,12 @@ if ($form->is_validated() or !empty($httpdata) or $rel !== null) {
             $url->param('sd', $result->httpdata);
         }
         if ($count != 10) { $url->param('count', $count); }
-        echo $OUTPUT->paging_bar($result->count, $page, $count, $url);
+        $pagingbar = new paging_bar($result->count, $page, $count, $url, 'page');
+        echo $OUTPUT->render($pagingbar);
         if ($result->count >= 25) {
             print "<p style=\"text-align: center;\">{$qppstring}: " . implode(', ', $links) . '</p>';
         }
     }
 }
 
-helpdesk::page_footer();
+echo $OUTPUT->footer();

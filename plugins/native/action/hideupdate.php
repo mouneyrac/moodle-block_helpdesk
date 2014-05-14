@@ -32,7 +32,7 @@ $id = required_param('id', PARAM_INT); // this is a ticket update id.
 $update = $DB->get_record('block_helpdesk_ticket_update', array('id' => $id), 'id, hidden, ticketid');
 $update->hidden = 1;
 if(!$DB->update_record('block_helpdesk_ticket_update', $update)) {
-    error(get_string('unabletohideupdate', 'block_helpdesk'));
+    print_error('unabletohideupdate', 'block_helpdesk');
 }
 
 $url = new moodle_url("{$CFG->wwwroot}/blocks/helpdesk/view.php");

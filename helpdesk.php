@@ -6,61 +6,12 @@
  * @copyright   2010 VLACS
  * @author      Jonathan Doane <jdoane@vlacs.org>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     block_helpdesk
  */
 abstract class helpdesk {
-    /**
-     * Unique to Moodle 2.x. This is one of the first things we do on any page
-     * and that is configure the $PAGE. We don't want to output the header yet
-     * because there could be redirections that will rely on the set URL in this
-     * method. --jdoane 20121105
-     */
-    public static function page_init($title, $nav=array(), $url=null) {
-        global $PAGE;
-        // Set up the page
-        $PAGE->set_context(context_system::instance());
-        $PAGE->set_heading($title);
-        $PAGE->set_title($title);
-        $PAGE->set_pagelayout('standard');
-        $PAGE->set_url(isset($url) ? $url : qualified_me());
-        $PAGE->requires->css('/blocks/helpdesk/style.css');
-
-        // Set up navigation, there are a couple different things we can do
-        // here. :)
-        $crumb_nav =& $PAGE->navbar;
-        foreach($nav as $navitem) {
-            if(empty($navitem['link'])) {
-                $navitem['link'] = null;
-            }
-            $crumb_nav->add($navitem['name'], $navitem['link']);
-        }
-
-        // We also have this neat navigation inside the navigation block which
-        // is configured as a tree, we will want to use this to provide some
-        // "easy to access" help desk links that are not related to the Help
-        // Desk context.
-        $hd_nav = $PAGE->navigation->add(get_string('helpdesk', 'block_helpdesk'));
-
-        // TODO: Add some more cool stuff here. --jdoane 20121105
-    }
 
     /**
-     * Help Desk wrapper for $OUTPUT->header()
-     */
-    public static function page_header() {
-        global $OUTPUT;
-        print $OUTPUT->header();
-    }
-
-    /**
-     * Help Desk wrapper for $OUTPUT->header()
-     */
-    public static function page_footer() {
-        global $OUTPUT;
-        print $OUTPUT->footer();
-    }
-
-    /**
-     * Every helpdesk has access to the moodle cron for this block. This method
+     * Every helpdesk has access to the moodle cron for this block. This method 
      * gets called every time cron hits the block.
      *
      * @return true
@@ -76,8 +27,6 @@ abstract class helpdesk {
     function install() {
         return true;
     }
-
-    abstract function is_installed();
 
     /**
      * Depending on the helpdesk being used, we want to check to see if an
@@ -111,7 +60,7 @@ abstract class helpdesk {
      * @param string     $string Search string.
      * @return mixed
      */
-    abstract function search($string);
+    abstract function search($data, $count=10, $page=0);    # todo: check to see if we should change this
 
     /**
      * Abstract methods that returns a new ticket form for the helpdesk's
@@ -156,6 +105,40 @@ abstract class helpdesk {
     abstract function change_overview_form($ticket);
 
     /**
+     * Unique to Moodle 2.x. This is one of the first things we do on any page
+     * and that is configure the $PAGE. We don't want to output the header yet
+     * because there could be redirections that will rely on the set URL in this
+     * method. --jdoane 20121105
+     */
+    public static function page_init($title, $nav=array(), $url=null) {
+        global $PAGE;
+        // Set up the page
+        $PAGE->set_context(context_system::instance());
+        $PAGE->set_heading($title);
+        $PAGE->set_title($title);
+        $PAGE->set_url(isset($url) ? $url : qualified_me());
+        $PAGE->requires->css('/blocks/helpdesk/style.css');
+
+        // Set up navigation, there are a couple different things we can do
+        // here. :)
+        $crumb_nav =& $PAGE->navbar;
+        foreach($nav as $navitem) {
+            if(empty($navitem['link'])) {
+                $navitem['link'] = null;
+            }
+            $crumb_nav->add($navitem['name'], $navitem['link']);
+        }
+
+        // We also have this neat navigation inside the navigation block which
+        // is configured as a tree, we will want to use this to provide some
+        // "easy to access" help desk links that are not related to the Help
+        // Desk context.
+        $hd_nav = $PAGE->navigation->add(get_string('helpdesk', 'block_helpdesk'));
+
+        // TODO: Add some more cool stuff here. --jdoane 20121105
+    }
+
+    /**
      * A factory function to return a constructed helpdesk from a selected plugin
      * in the configuration of the helpdesk.
      *
@@ -172,7 +155,7 @@ abstract class helpdesk {
         $initpath = "{$CFG->dirroot}/blocks/helpdesk/plugins/$plugin/init.php";
 
         if (!file_exists($initpath)){
-            error(get_string('missingpluginfile', 'helpdesk_block') . ": init.php");
+            print_error('missingpluginfile', 'helpdesk_block');
         }
 
         require_once($initpath);
@@ -243,7 +226,8 @@ abstract class helpdesk {
             'searchstring' => '',
             'answerer' => -1,
             'status' => array(),
-            'submitter' => 0
+            'submitter' => 0,
+            'watcher' => 0,
         );
     }
 }

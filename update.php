@@ -29,54 +29,58 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 // We are also Helpdesk, so we shall also become a helpdesk.
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
-require_login(0, false);
-$context = context_system::instance();
-
 $id = required_param('id', PARAM_INT);
-$baseurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
-$searchurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
-$url = clone $baseurl;
-$url->param('id', $id);
-$nav = array (
-    array (
-        'name' => get_string('helpdesk', 'block_helpdesk'),
-        'link' => $searchurl->out()
-    ),
-    array (
-        'name' => get_string('ticketview', 'block_helpdesk'),
-        'link' => $url->out()
-    ),
-    array (
-        'name' => get_string('updateticket', 'block_helpdesk')
-    )
-);
+$token = optional_param('token', '', PARAM_ALPHANUM);
+
+if (strlen($token) and !empty($CFG->block_helpdesk_external_updates)) {
+    helpdesk_authenticate_token($id, $token);
+    $nav = array ();
+} else {
+    require_login(0, false);
+    $nav = array (
+        array (
+            'name' => get_string('helpdesk', 'block_helpdesk'),
+            'link' => "$CFG->wwwroot/blocks/helpdesk/search.php",
+        ),
+        array (
+            'name' => get_string('ticketview', 'block_helpdesk'),
+            'link' => "$CFG->wwwroot/blocks/helpdesk/view.php?id=$id",
+        ),
+        array (
+            'name' => get_string('updateticket', 'block_helpdesk')
+        )
+    );
+}
 
 $title = get_string('helpdeskupdateticket', 'block_helpdesk');
 helpdesk::page_init($title, $nav);
-$OUTPUT->heading(get_string('updateticket', 'block_helpdesk'));
+
 
 $hd = helpdesk::get_helpdesk();
 
 $ticket = $hd->get_ticket($id);
 if (!$ticket) {
-    error(get_string('invalidticketid', 'block_helpdesk'));
+    print_error('invalidticketid', 'block_helpdesk');
 }
 
 $form = $hd->update_ticket_form($ticket);
 
-if ( $form->is_submitted() and ($data = $form->get_data())) {
-        $data->type = HELPDESK_UPDATE_TYPE_USER;
-        if($ticket->add_update($data)) {
-            $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
-            $url->param('id', $id);
-            $url = $url->out();
-            redirect($url, get_string('updateadded', 'block_helpdesk'));
-        } else {
-            error(get_string('cannotaddupdate', 'block_helpdesk'));
+if ($form->is_submitted() and ($data = $form->get_data())) {
+    $data->type = HELPDESK_UPDATE_TYPE_USER;
+    if($ticket->add_update($data)) {
+        $url = "$CFG->wwwroot/blocks/helpdesk/view.php?id=$id";
+        if (!empty($USER->helpdesk_token)) {
+            $url .= "&token=$USER->helpdesk_token";
         }
+        redirect($url, get_string('updateadded', 'block_helpdesk'));
+    } else {
+        print_error('cannotaddupdate', 'block_helpdesk');
+    }
 }
 
-helpdesk::page_header();
+echo $OUTPUT->header();
+
 $form->display();
 $hd->display_ticket($ticket, true);
-helpdesk::page_footer();
+
+helpdesk_print_footer();

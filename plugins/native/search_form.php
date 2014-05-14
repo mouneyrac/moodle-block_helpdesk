@@ -29,20 +29,19 @@ require_once("$CFG->libdir/formslib.php");
 
 class search_form extends moodleform {
     function definition() {
-        global $DB, $CFG;
+        global $DB, $OUTPUT;
 
         $context = context_system::instance();
 
         // Return all that have rows, but not on the join itself.
-        // We want to populate the answerers list with only users who have
-        $sql = "
-            SELECT u.*
+        // We want to populate the answerers list with only users who have 
+        $answerers = $DB->get_records_sql("
+            SELECT DISTINCT (u.*)
             FROM {user} AS u
             LEFT JOIN {block_helpdesk_ticket_assign} AS hta ON u.id = hta.userid
             WHERE hta.ticketid IS NOT NULL
             ORDER BY u.lastname, u.firstname ASC
-        ";
-        $answerers = $DB->get_records_sql($sql);
+        ");
 
         $statuses = get_ticket_statuses();
         $statuslist = array();
@@ -62,9 +61,7 @@ class search_form extends moodleform {
 
         $mform =& $this->_form;
 
-        $searchstr = get_string('search');
-
-        $help = helpdesk_simple_helpbutton($searchstr, 'search');
+        $help = $OUTPUT->help_icon('search', 'block_helpdesk');
         $searchphrase = get_string('searchphrase', 'block_helpdesk');
         $statusstr = get_string('status', 'block_helpdesk');
         $answererstr = get_string('answerer', 'block_helpdesk');
@@ -93,7 +90,7 @@ class search_form extends moodleform {
         $mform->setType('submitter', PARAM_INT);
     }
 
-    function validation($data, $files) {
+    function validation() {
         // Add something at some point.
     }
 

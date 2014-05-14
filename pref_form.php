@@ -31,7 +31,7 @@ require_once("$CFG->libdir/formslib.php");
 
 class helpdesk_pref_form extends moodleform {
     function definition() {
-        global $CFG;
+        global $CFG, $OUTPUT;
 
         $mform =& $this->_form;
 
@@ -41,9 +41,9 @@ class helpdesk_pref_form extends moodleform {
         $mform->closeHeaderBefore('save');
         $updateprefstr  = get_string('resetonlogout', 'block_helpdesk');
         $detailstr      = get_string('showdetailedupdates', 'block_helpdesk');
-        $detailhelp     = helpdesk_simple_helpbutton($detailstr, 'detailedupdates');
+        $detailhelp     = $OUTPUT->help_icon('showdetailedupdates', 'block_helpdesk');
         $systemstr      = get_string('showsystemupdates', 'block_helpdesk');
-        $systemhelp     = helpdesk_simple_helpbutton($systemstr, 'systemupdates');
+        $systemhelp     = $OUTPUT->help_icon('showsystemupdates', 'block_helpdesk');
         $mform->addElement('html', "<p>$updateprefstr</p>");
         $mform->addElement('advcheckbox', 'showdetailedupdates', "$detailstr $detailhelp", '',
                             array('group' => 1), array(0, 1));
