@@ -75,7 +75,7 @@ if ( $form->is_submitted() and ($data = $form->get_data())) {
     $editoroptions = array('maxfiles'=> 99, 'maxbytes'=>$CFG->maxbytes, 'context'=>$context);
     $data->detail = '';
     $data = file_postupdate_standard_editor($data, 'detail', $editoroptions, $context,
-            +        'block_helpdesk', 'ticketdetail', $id);
+                    'block_helpdesk', 'ticketdetail', $id);
     $ticket->set_summary($data->summary);
     $ticket->set_detail($data->detail);
     if ($ticket->get_status()->id != $data->status) {
