@@ -7,6 +7,7 @@
  * @copyright   2010 VLACS
  * @author      Jonathan Doane <jdoane@vlacs.org>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     block_helpdesk
  */
 abstract class helpdesk_ticket {
     /**
@@ -123,12 +124,12 @@ abstract class helpdesk_ticket {
     abstract function set_status($status);
 
     /**
-     * Methods sets the userid of a question.
+     * Methods sets the hd_userid of a question.
      *
-     * @param int       $id is a userid.
+     * @param int       $id is a hd_user.id
      * @return bool
      */
-    abstract function set_userid($id);
+    abstract function set_hd_userid($id);
 
     /**
      * Abstract method used to return an id string. This method should return
@@ -211,7 +212,7 @@ abstract class helpdesk_ticket {
      *
      * @return mixed
      */
-    abstract function get_userid();
+    abstract function get_hd_userid();
 
     /**
      * Abstract method for adding an update to a ticket. This method returns

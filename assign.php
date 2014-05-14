@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is the answerer assignmennt script. Handles all direct assignment
+ * This is the answerer assignmennt script. Handles all direct assignment 
  * operations.
  *
  * @package     block_helpdesk
@@ -30,7 +30,7 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 // We are also Helpdesk, so we shall also become a helpdesk.
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
-require_login(null, false);
+require_login(0, false);
 
 // Grab optional params.
 $tid    = required_param('tid', PARAM_INT);
@@ -62,7 +62,6 @@ $nav = array (
 );
 
 $title = get_string('helpdeskassignuser', 'block_helpdesk');
-helpdesk::page_init($title, $nav);
 helpdesk_is_capable(HELPDESK_CAP_ANSWER, true);
 
 $hd = helpdesk::get_helpdesk();
@@ -76,7 +75,7 @@ if (!empty($remove)) {
 
     // We have data we need, we can continue to remove an assignment.
     if(!$ticket->remove_assignment($uid)) {
-        error(get_string('unabletoremoveassignment', 'block_helpdesk'));
+        print_error('cannotremoveassignment', 'block_helpdesk');
     }
     $str_unassigned = get_string('hasbeenunassigned', 'block_helpdesk');
     $str_username = fullname(helpdesk_get_user($uid));
@@ -96,13 +95,13 @@ if (!empty($uid)) {
     // REMEMBER! One user can be assigned to one ticket, once.
     if (!empty($assigned)) {
         foreach($assigned as $element) {
-            if ($uid != $element->id) {
+            if ($uid != $element->userid) {
                 continue;
             }
             $userurl = new moodle_url("$CFG->wwwroot/user/view.php");
             $userurl->param('id', $uid);
             $userurl = $userurl->out();
-            $text = "<a href=\"$userurl\">" . fullname(helpdesk_get_user($element->id)) .
+            $text = "<a href=\"$userurl\">" . fullname(helpdesk_get_user($element->userid)) .
                     "</a> " . get_string('isalreadyassigned', 'block_helpdesk');
             redirect($returnurl, $text);
             // Here a footer gets printed and the script stops.
@@ -110,19 +109,20 @@ if (!empty($uid)) {
         }
     }
     if(!helpdesk_is_capable(HELPDESK_CAP_ANSWER, false, $uid)) {
-        error(get_string('usernotananswerer', 'block_helpdesk'));
+        print_error('usernotananswerer', 'block_helpdesk');
     }
     // We want to add the assignment here.
     if(!$ticket->add_assignment($uid)) {
-        error(get_string('cannotaddassignment', 'block_helpdesk'));
+        print_error('cannotaddassignment', 'block_helpdesk');
     }
     redirect($returnurl, get_string('assignmentadded', 'block_helpdesk'));
 }
 
 // No user selected, so its time to find us one.
-// There are also no more redirects, lets print out the page!
-helpdesk::page_header();
-$OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
+//helpdesk_print_header($nav, $title);
+helpdesk::page_init($title, $nav);
+echo $OUTPUT->header();
+echo $OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
 
 // We are starting from scratch here!
 $offset = $page * $count;
@@ -160,6 +160,8 @@ $countfield = 'u.id';
 $total = get_users_by_capability($context, HELPDESK_CAP_ANSWER, $countfield);
 $total = count($total);
 $url = new moodle_url(qualified_me());
-echo $OUTPUT->paging_bar($total, $page, $count, $url);
 
-helpdesk::page_footer();
+$pagingbar = new paging_bar($total, $page, $count, $url, 'page');
+echo $OUTPUT->render($pagingbar);
+
+echo $OUTPUT->footer();

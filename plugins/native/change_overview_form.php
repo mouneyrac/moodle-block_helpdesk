@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Update form. This handles updates to a ticket, not updating the ticket
+ * Update form. This handles updates to a ticket, not updating the ticket 
  * itself. Extends moodleform.
  *
  * @package     block_helpdesk
@@ -35,14 +35,14 @@ class change_overview_form extends moodleform {
         $userparams = array('readonly' => 'readonly', 'disabled' => 'disabled');
         $mform->addElement('text', 'username', get_string('submittedby', 'block_helpdesk'), $userparams);
         $mform->setType('username', PARAM_USERNAME);
-        $mform->addElement('hidden', 'userid', '0');
-        $mform->setType('userid', PARAM_INT);
+        $mform->addElement('hidden', 'hd_userid', '0');
+        $mform->setType('hd_userid', PARAM_INT);
         $mform->addElement('text', 'summary', get_string('summary', 'block_helpdesk'));
         $mform->addRule('summary', null, 'required', 'server');
         $mform->setType('summary', PARAM_TEXT);
 
         $mform->addElement('editor', 'detail_editor', get_string('detail', 'block_helpdesk'),
-            null, $editoroptions);
+                    null, $editoroptions);
         $mform->setType('detail_editor', PARAM_RAW);
         $mform->addRule('detail_editor', get_string('required'), 'required', null, 'client');
 
@@ -67,9 +67,10 @@ class change_overview_form extends moodleform {
         $mform->closeHeaderBefore('notesheader');
         $mform->addElement('header', 'notesheader', get_string('extrainformation', 'block_helpdesk'));
         $mform->addElement('editor', 'notes_editor', get_string('updatemessage', 'block_helpdesk'), null,
-            $editoroptions);
+                $editoroptions);
         $mform->setType('notes_editor', PARAM_RAW);
         $mform->addRule('notes_editor', get_string('required'), 'required', null, 'client');
+
         $mform->closeHeaderBefore('submitbutton');
         $mform->addElement('submit', 'submitbutton', get_string('savequestion', 'block_helpdesk'));
 
@@ -86,7 +87,7 @@ class change_overview_form extends moodleform {
         return true;
     }
 
-    function validation($data, $files) {
+    function validation($data) {
         // Maybe at some point. Defaults work well already.
         return array();
     }

@@ -33,7 +33,6 @@ if (!defined('HELPDESK_CAP_ANSWER')) {
 }
 
 $capabilities = array (
-    // our custom capabilities
     HELPDESK_CAP_ASK => array (
         'riskbitmask'   => RISK_SPAM,
         'captype'       => 'write',
@@ -43,32 +42,26 @@ $capabilities = array (
             'student'           => CAP_ALLOW,
             'teacher'           => CAP_ALLOW,
             'editingteacher'    => CAP_ALLOW,
-            'coursecreator'     => CAP_ALLOW
+            'coursecreator'     => CAP_ALLOW,
+            'manager'           => CAP_ALLOW
         )
     ),
     HELPDESK_CAP_ANSWER => array (
         'riskbitmask'   => RISK_PERSONAL + RISK_SPAM,
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => array ()
+        'archetypes' => array (
+            'manager' => CAP_ALLOW,
+        )
     ),
-
-    // moodle 2.4 required stuff
+    // Add some capabilities required in 2.4, it doesn't break 2.2/2.3.
     'block/helpdesk:myaddinstance' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => array(
             'user' => CAP_ALLOW
         ),
-
         'clonepermissionsfrom' => 'moodle/my:manageblocks'
-    ),
-    'block/helpdesk:view' => array(
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => array(
-            'user' => CAP_ALLOW
-        )
     ),
     'block/helpdesk:addinstance' => array(
         'riskbitmask' => RISK_SPAM | RISK_XSS,
@@ -81,5 +74,12 @@ $capabilities = array (
         ),
 
         'clonepermissionsfrom' => 'moodle/site:manageblocks'
+    ),
+    'block/helpdesk:view' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'user' => CAP_ALLOW
+        )
     ),
 );

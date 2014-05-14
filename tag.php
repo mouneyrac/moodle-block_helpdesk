@@ -32,6 +32,10 @@ require_once($CFG->dirroot . '/blocks/helpdesk/lib.php');
 
 require_login(0, false);
 
+$context = context_system::instance();
+$PAGE->set_context($context);
+$PAGE->set_url('/blocks/helpdesk/tag.php');
+
 $tid = optional_param('tid', null, PARAM_INT);
 $tag = optional_param('tagid', null, PARAM_INT);
 $remove = optional_param('remove', null, PARAM_INT);
@@ -57,7 +61,6 @@ $nav[] = array (
 $nav[] = array ('name' => get_string('tags', 'block_helpdesk'));
 
 $title = get_string('helpdesktagticket', 'block_helpdesk');
-helpdesk::page_init($title, $nav);
 
 // Create form and get data. There may be something, then again maybe not.
 // Lets try a cleaner way to do this.
@@ -67,7 +70,7 @@ $ticket = $hd->get_ticket($tid);
 // First, if we're removing a tag, that takes priority over all else.
 if (is_numeric($remove)) {
     if (!$ticket->remove_tag($remove)) {
-        error(get_string('unabletoremovetag', 'block_helpdesk'));
+        print_error('unabletoremovetag', 'block_helpdesk');
     }
     $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
     $url->param('id', $tid);
@@ -78,7 +81,7 @@ if (is_numeric($remove)) {
     $data->ticketid = $tid;
     $tag = $ticket->parse_tag($data);
     if(!$ticket->add_tag($tag)) {
-        print_error(get_string('unabletoaddtag'));
+        print_error('unabletoaddtag');
     }
     // At this point, the new tag has been added.
     $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/view.php");
@@ -86,8 +89,11 @@ if (is_numeric($remove)) {
     redirect($url->out(), get_string('tagadded', 'block_helpdesk'));
 }
 
-helpdesk::page_header();
-$OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
+//helpdesk_print_header($nav, $title);
+helpdesk::page_init($title, $nav);
+echo $OUTPUT->header();
+echo $OUTPUT->heading(get_string('helpdesk', 'block_helpdesk'));
+
 $form->display();
 
-helpdesk::page_footer();
+echo $OUTPUT->footer();

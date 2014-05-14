@@ -42,8 +42,8 @@ class tag_ticket_form extends moodleform {
 
         $mform->addElement('header', 'frm', get_string('tickettag', 'block_helpdesk'));
         $mform->addElement('text', 'name', get_string('tagname', 'block_helpdesk'));
-        $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', 'server');
+        $mform->setType('name', PARAM_TEXT);
 
         $mform->addElement('editor', 'value_editor', get_string('tagcontent', 'block_helpdesk'),
             null, $editoroptions);
@@ -53,7 +53,7 @@ class tag_ticket_form extends moodleform {
         $mform->addElement('submit', 'submitbutton', get_string('addtag', 'block_helpdesk'));
     }
 
-    function validation($data, $files) {
+    function validation($data) {
         // We'll do custom validation if we ever need to.
         return array();
     }

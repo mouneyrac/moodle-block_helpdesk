@@ -8,7 +8,7 @@ div.ticketinfo {
 }
 div#ticketlistoptions {
     display: block;
-    width: 100%;
+    width: 95%;
     min-height: 15em;
 }
 div.left2div {
@@ -20,6 +20,16 @@ div.right2div {
     display: inline-block;
     width: 49%;
     float: right;
+}
+div.clear {
+    clear: both;
+}
+div.external {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    margin-top: 1em;
+    margin-right: 1.5em;
 }
 li {
     min-width: 1px;
@@ -44,6 +54,10 @@ table.assigntable tr td:first-child {
     width: 70%;
 }
 
+table.watchertable tr td:first-child {
+    width: 70%;
+}
+
 table.updatelisttable>tbody>tr>td {
     padding: 0;
 }
@@ -58,4 +72,22 @@ table.updatetable th {
 
 table.updatetable tr td:first-child {
     width: 30%;
+}
+
+#page-blocks-helpdesk-assign .generaltable {
+    margin:0 auto;
+}
+
+#page-blocks-helpdesk-userlist .generaltable {
+    margin:0 auto;
+    width: 85%;
+}
+
+#page-blocks-helpdesk-search .generaltable {
+    margin:0 auto;
+    width: 85%;
+}
+
+#page-blocks-helpdesk-search .questionlisttable {
+    margin-top: 30px;
 }

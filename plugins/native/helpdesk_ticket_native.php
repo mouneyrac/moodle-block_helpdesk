@@ -32,10 +32,10 @@ class helpdesk_ticket_native extends helpdesk_ticket {
     public $summary;
     public $status;
     public $detail;
-    public $detailformat;
     public $timecreated;
     public $timemodified;
-    public $userid;
+    public $hd_userid;
+    public $createdby;
     public $firstcontact;
 
     // All child db tables that have a relation with this ticket object.
@@ -66,7 +66,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function display_ticket($readonly=false) {
-        global $CFG, $DB;
+        global $CFG, $USER, $DB, $OUTPUT;
 
         $hd = helpdesk::get_helpdesk();
 
@@ -79,18 +79,11 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
         $showfirstcontact = get_config(null, 'block_helpdesk_show_firstcontact');
 
-        $user   = $DB->get_record('user', array('id' => $this->get_userid()));
-        $url    = new moodle_url("$CFG->wwwroot/user/view.php");
-        $url->param('id', $user->id);
-        $url    = $url->out();
+        $user = helpdesk_get_hd_user($this->hd_userid);
 
         echo "<div class=\"ticketinfo\">";
-        $details_table = new html_table();
-        $details_table->headspan = array(2);
-        $details_table->attributes = array('class' => 'generaltable helpdesktable detailstable');
-
         $overviewstr = get_string('ticketinfo', 'block_helpdesk');
-        $overviewhelp = helpdesk_simple_helpbutton($overviewstr, 'overview');
+        $overviewhelp = $OUTPUT->help_icon('ticketinfo', 'block_helpdesk');
         $editurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/edit.php");
         $editurl->param('id', $this->get_idstring());
         $editurl = $editurl->out();
@@ -99,50 +92,55 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if (helpdesk_is_capable(HELPDESK_CAP_ANSWER) and !$readonly) {
             $headstr .= "<br /><a href=\"$editurl\">$editstr</a>";
         }
-        $details_table->head = array($headstr);
+
+        $table = new html_table();
+        $table->head = array($headstr);
+        $table->headspan = array(2);
+        $table->size = array('30%');
+        $table->width = '95%';
 
         $row = array();
         $row[] = get_string('ticketid', 'block_helpdesk');
         $row[] = $this->get_idstring();
-        $details_table->data[] = $row;
+        $table->data[] = $row;
 
         $row = array();
-        $str = get_string('submittedby', 'block_helpdesk');
+        $str = get_string('user');
         if ($isanswerer and !$readonly) {
             $newuserurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/userlist.php");
-            $newuserurl->param('returnurl', $editurl);
-            $newuserurl->param('paramname', 'newuser');
+            $newuserurl->param('function', HELPDESK_USERLIST_NEW_SUBMITTER);
             $newuserurl->param('tid', $this->get_idstring());
             $str .="<br /><small><a href=\"" . $newuserurl->out() . "\">" .
                    get_string('changeuser', 'block_helpdesk') . '</a></small>';
         }
         $row[] = $str;
-        $row[] = "<a href=\"$url\">" . fullname($user) . '</a>';
-        $details_table->data[] = $row;
+        $row[] = helpdesk_user_link($user);
+        $table->data[] = $row;
+
+        $createdby = helpdesk_get_hd_user($this->createdby);
+        $row = array();
+        $row[] = get_string('submittedby', 'block_helpdesk');
+        $row[] = helpdesk_user_link($createdby);
+        $table->data[] = $row;
 
         if ($this->firstcontact != null and $showfirstcontact != false) {
-            $url = new moodle_url("$CFG->wwwroot/user/view.php");
-            $url->param('id', $this->firstcontact->id);
-            $url = $url->out();
-
-            $help = helpdesk_simple_helpbutton(get_string('firstcontact', 'block_helpdesk'),
-                                               'firstcontact');
+            $help = $OUTPUT->help_icon('firstcontact', 'block_helpdesk');
 
             $row = array();
             $row[] = get_string('firstcontactuser', 'block_helpdesk') . $help;
-            $row[] = "<a href=\"$url\">" . fullname($this->firstcontact) . '</a>';
-            $details_table->data[] = $row;
+            $row[] = helpdesk_user_link($this->firstcontact);
+            $table->data[] = $row;
         }
 
         $row = array();
         $row[] = get_string('timecreated', 'block_helpdesk');
         $row[] = helpdesk_get_date_string($this->get_timecreated());
-        $details_table->data[] = $row;
+        $table->data[] = $row;
 
         $row = array();
         $row[] = get_string('timemodified', 'block_helpdesk');
         $row[] = helpdesk_get_date_string($this->get_timemodified());
-        $details_table->data[] = $row;
+        $table->data[] = $row;
 
         $row = array();
         $row[] = get_string('status', 'block_helpdesk');
@@ -152,18 +150,18 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         } else {
             $row[] = $status->displayname;
         }
-        $details_table->data[] = $row;
+        $table->data[] = $row;
 
         $row = array();
         $row[] = get_string('summary', 'block_helpdesk');
         $row[] = $this->get_summary();
-        $details_table->data[] = $row;
+        $table->data[] = $row;
 
         $row = array();
         $row[] = get_string('detail', 'block_helpdesk');
         $row[] = file_rewrite_pluginfile_urls($this->get_detail(), 'pluginfile.php',
             context_system::instance()->id, 'block_helpdesk', 'ticketdetail', $this->get_idstring());
-        $details_table->data[] = $row;
+        $table->data[] = $row;
 
         /**
          * TODO: Expand on this.
@@ -173,26 +171,22 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $row = array();
             $row[] = get_string('answerertools', 'block_helpdesk');
             $url = "{$CFG->wwwroot}/blocks/helpdesk/plugins/native/action/grab.php";
-            $grab_help = helpdesk_simple_helpbutton(get_string('grabquestion', 'block_helpdesk'), 'grab');
+            $grab_help = $OUTPUT->help_icon('grabquestion', 'block_helpdesk');
             $row[] = "<form action=\"{$url}\" method=\"get\">"
                 . '<input type="hidden" name="id" value="'
                 . $this->get_idstring() . '" />'
                 . '<input type="submit" value="'
                 . get_string('grabquestion', 'block_helpdesk')
                 . "\" />{$grab_help}</form>";
-            $details_table->data[] = $row;
+            $table->data[] = $row;
         }
 
-        echo html_writer::table($details_table);
+        echo html_writer::table($table, false);
         echo '<br />';
 
-        unset($details_table);
-
-
-        // ASSIGNMENTS
-
+        // Assignments start here.
         $assignedstr = get_string('assignedusers', 'block_helpdesk');
-        $assignedhelp = helpdesk_simple_helpbutton($assignedstr, 'assigned');
+        $assignedhelp = $OUTPUT->help_icon('assignedusers', 'block_helpdesk');
         $thead = $assignedstr . $assignedhelp;
 
         // If the user is a answerer, he can assign people to the ticket.
@@ -203,49 +197,83 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $string = get_string("assignuser", 'block_helpdesk');
             $thead .= "<br /><a href=\"$url\">$string</a>";
         }
-
-        $assign_table = new html_table;
-        $assign_table->headspan = array(2);
-        $assign_table->attributes = array('class' => 'generaltable helpdesktable assigntable');
-        $assign_table->head = array($thead);
+        $table->head = array($thead);
+        $table->headspan = array(2);
 
         $assigned = $this->get_assigned();
 
         if ($assigned === false) {
-            $assign_table->data = array(array(get_string('noneassigned', 'block_helpdesk')));
+            $table->data = array(array(get_string('noneassigned', 'block_helpdesk')));
         } else {
-            $assign_table->data = array();
+            $table->data = array();
 
             foreach($assigned as $user) {
-                $userurl = new moodle_url("$CFG->wwwroot/user/view.php");
-                $userurl->param('id', $user->id);
-                $userurl = $userurl->out();
-
                 $removeurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/assign.php");
                 $removeurl->param('remove', 'true');
-                $removeurl->param('uid', $user->id);
+                $removeurl->param('uid', $user->userid);
                 $removeurl->param('tid', $this->get_idstring());
                 $removeurl = $removeurl->out();
-                $user_string = fullname($user);
 
                 $row = array();
-                $row[] = "<a href=\"$userurl\">$user_string</a>";
+                $row[] = helpdesk_user_link($user);
                 if ($isanswerer and !$readonly) {
                     $row[] = "<a href=\"$removeurl\">" . get_string('remove') . "</a>";
                 }
-                $assign_table->data[] = $row;
+                $table->data[] = $row;
             }
         }
-        echo html_writer::table($assign_table);
+        $table->size = array('70%');
+        echo html_writer::table($table, false);
         echo '<br />';
 
-        unset($assign_table);
+        // Assignments end here.
+
+
+        // WATCHERS
+        // todo: make sure this section works in 1.9
+
+        if ($isanswerer) {
+            $watcherstr = get_string('watchingusers', 'block_helpdesk');
+            $whead = $watcherstr . $OUTPUT->help_icon('watchingusers', 'block_helpdesk');
+            if (!$readonly) {
+                $addurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/userlist.php");
+                $addurl->param('function', HELPDESK_USERLIST_NEW_WATCHER);
+                $addurl->param('tid', $this->get_idstring());
+                $whead .= '<br /><a href="' . $addurl->out() . '">' . get_string('assignwatchers', 'block_helpdesk') . '</a>';
+            }
+            $table->head = array($whead);
+            $table->headspan = array(2);
+
+            //$watcher_table->class = 'generaltable helpdesktable watchertable';
+
+            if (!$watchers = $this->get_watchers()) {
+                $table->data = array(array(get_string('nowatchers', 'block_helpdesk')));
+            } else {
+                $removeurl = new moodle_url("$CFG->wwwroot/blocks/helpdesk/manage_watchers.php");
+                $removeurl->param('tid', $this->get_idstring());
+                $removeurl->param('remove', 'true');
+                $table->data = array();
+                foreach ($watchers as $w) {
+                    $row = array();
+                    $row[] = helpdesk_user_link($w);
+                    if (!$readonly) {
+                        $removeurl->param('hd_userid', $w->hd_userid);
+                        $row[] = '<a href="' . $removeurl->out() . '">'. get_string('remove') . '</a>';
+                    }
+                    $table->data[] = $row;
+                }
+            }
+            $table->size = array('70%');
+            echo html_writer::table($table, false);
+            echo "<br />";
+        }
 
 
         // START TAGS DISPLAY
 
+        $table->size = array('30%');
         $tagstr = get_string('extradetailtags', 'block_helpdesk');
-        $taghelp = helpdesk_simple_helpbutton($tagstr, 'tag');
+        $taghelp = $OUTPUT->help_icon('extradetailtags', 'block_helpdesk');
         $thead = $tagstr . $taghelp;
 
         // If answerer, show link for adding tags.
@@ -257,12 +285,9 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
             $thead .= "<br /><a href=\"$url\">$addtagstr</a>";
         }
+        $table->head = array($thead);
 
-        $tags_table = new html_table();
-        $tags_table->attributes = array('class' => 'generaltable helpdesktable tagstable');
-        $tags_table->headspan = array(2);
-        $tags_table->head = array($thead);
-        $tags_table->data = array();
+        $table->data = array();
         if (!$tags == null) {
             foreach($tags as $tag) {
                 $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/tag.php");
@@ -280,30 +305,32 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 } else {
                     $remove = '';
                 }
-                $tags_table->data[] = array(
+                $table->data[] = array(
                     $tag->name . $remove,
                     file_rewrite_pluginfile_urls($tag->value, 'pluginfile.php',
                         context_system::instance()->id, 'block_helpdesk', 'tickettag', $tag->id)
                 );
             }
         } else {
-            $tags_table->headspan = null;
-            $tags_table->data = array(array(get_string('notags', 'block_helpdesk')));
+            $table->data = array(array(get_string('notags', 'block_helpdesk')));
         }
-        echo html_writer::table($tags_table);
+        echo html_writer::table($table);
+
+        // END TAGS DISPLAY
+
         echo '</div>';
 
-        unset($tags_table);
-
-
-        // UPDATES
-
-        echo "<div class=\"ticketupdates\">";
+        // Updates start here.
         $updatestr = get_string('updates', 'block_helpdesk');
-        $updatehelp = helpdesk_simple_helpbutton($updatestr, 'update');
+        $updatehelp = $OUTPUT->help_icon('updates', 'block_helpdesk');
+        echo "<div class=\"ticketupdates\">";
+
 
         $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/update.php");
         $url->param('id', $this->get_idstring());
+        if (!empty($USER->helpdesk_token)) {
+            $url->param('token', $USER->helpdesk_token);
+        }
         $url = $url->out();
         $translated = get_string('updateticket', 'block_helpdesk');
 
@@ -311,22 +338,20 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if(!$readonly) {
             $thead .= "<br /><a href=\"$url\">$translated</a>";
         }
+        $table->head = array($thead);
 
         // We're going to find out now if we are displaying these updates.
-        $update_list_table = new html_table();
-        $update_list_table->attributes = array('class' => 'generaltable helpdesktable updatelisttable');
-        $update_list_table->head = array($thead);
-        $update_list_table->data = array();
+        $table->data = array();
         $updateprinted = false;
         if (is_array($udata) or is_object($udata)) {
             $update_table = new html_table();
-            $update_table->attributes = array('class' => 'generaltable helpdesktable updatetable');
-
             // If we have system or detailed updates, display them.
             $showdetailed = helpdesk_get_session_var('showdetailedupdates');
             $showsystem = helpdesk_get_session_var('showsystemupdates');
             foreach($udata as $update) {
                 $update_table->data = array();
+                $update_table->width = '100%';
+                $update_table->size = array('80px');
                 if ($update->type == HELPDESK_UPDATE_TYPE_DETAILED and !$showdetailed) {
                     continue;
                 }
@@ -366,19 +391,15 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                     $update_table->head = $row;
                 }
 
-                $user = $DB->get_record('user', array('id' => $update->userid));
+                $user = helpdesk_get_hd_user($update->hd_userid);
                 if (!$user) {
-                    error(getstring('unabletopulluser', 'block_helpdesk'));
+                    print_error(getstring('unabletopulluser', 'block_helpdesk'));
                 }
 
                 // Who submitted the update?
                 $row = array();
-                $user_url = new moodle_url("$CFG->wwwroot/user/view.php");
-                $user_url->param('id', $user->id);
-                $user_url = $user_url->out();
-                $user_name = fullname($user);
                 $row[] = get_string('user', 'block_helpdesk');
-                $row[] = "<a href=\"$user_url\">$user_name</a>";
+                $row[] = helpdesk_user_link($user);
                 $update_table->data[] = $row;
 
                 // Status
@@ -411,18 +432,20 @@ class helpdesk_ticket_native extends helpdesk_ticket {
                 $row[] = file_rewrite_pluginfile_urls($update->notes, 'pluginfile.php',
                     context_system::instance()->id, 'block_helpdesk', 'ticketnotes', $update->id);
                 $update_table->data[] = $row;
-                $update_list_table->data[] = array(html_writer::table($update_table));
-                //echo '<br />';
+                $table->data[] = array(html_writer::table($update_table));
+//                echo '<br />';
             }
         }
         if ($updateprinted === false) {
             $row = array();
             $row[] = get_string('noupdatestoview', 'block_helpdesk');
-            $updates_table->data[] = $row;
-        }
-        echo html_writer::table($update_list_table);
-        echo '</div>';
+            $update_table->data[] = $row;
 
+        }
+
+        echo html_writer::table($table);
+
+        echo '</div>';
         return true;
     }
 
@@ -491,18 +514,24 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      */
     function set_status($status) {
         global $DB;
+
         if (is_numeric($status)) {
             $status = $DB->get_record('block_helpdesk_status', array('id' => $status));
         }
         if (!is_object($status)) {
-            error('Status must be an object or id.');
+            print_error('Status must be an object or id.');
         }
         $this->status = $status;
         return true;
     }
 
-    function set_userid($id) {
-        $this->userid = $id;
+    function set_hd_userid($id) {
+        $this->hd_userid = $id;
+        return true;
+    }
+
+    function set_createdby($id) {
+        $this->createdby = $id;
         return true;
     }
 
@@ -582,14 +611,18 @@ class helpdesk_ticket_native extends helpdesk_ticket {
     }
 
     /**
-     * Gets the id of the user that submitted a particular ticket. The output of
+     * Gets the id of the user that a particular ticket is for. The output of
      * this method varies from plugin to plugin, this case it returns an int for
      * an id.
      *
      * @return int
      */
-    function get_userid() {
-        return $this->userid;
+    function get_hd_userid() {
+        return $this->hd_userid;
+    }
+
+    function get_createdby() {
+        return $this->createdby;
     }
 
     /**
@@ -607,14 +640,14 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * determine the Moodle status string. Returned value is mixed. String if
      * there is a matching string, or false if not.
      *
-     * @param string    $status status to be converted to a native language.
+     * @param object    $status status to be converted to a native language.
      * @return mixed
      */
     function get_status_string($status=null) {
         // Matt thinks this is evil. Now that we're moving statuses to the
         // database, we need this to do some pre-processing of statuses.
         if ($status != null and !is_object($status)) {
-            error('non-object ('.gettype($status).') passed to get_status_string()');
+            print_error('non-object ('.gettype($status).') passed to get_status_string()');
         }
         if ($status == null) {
             $status = $this->get_status();
@@ -634,31 +667,44 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function add_assignment($userid) {
-        global $CFG, $DB;
-        $assign = new stdClass;
-        $assign->userid = $userid;
-        $assign->ticketid = $this->id;
-        $rval = $DB->insert_record('block_helpdesk_ticket_assign', $assign, false);
-        if (!$rval) {
+        global $CFG, $OUTPUT, $DB;
+
+        $assigned = $this->get_assigned();
+        if (isset($assigned[$userid])) {
+            return true;
+        }
+
+        $assign = (object) array(
+            'userid'    => $userid,
+            'ticketid'  => $this->id,
+        );
+        if (!$DB->insert_record('block_helpdesk_ticket_assign', $assign)) {
             return false;
         }
 
         // Now lets add an update for what changed. We want to track things like
         // this from now on.
-        $urecord        = $DB->get_record('user', array('id' => $userid));
-        $dat            = new stdClass;
-        $dat->ticketid  = $this->id;
-        $dat->notes_editor['text'] = fullname($urecord) . ' '
-                          . get_string('wasassigned', 'block_helpdesk');
-        $dat->notes_editor['format'] = FORMAT_HTML;
-        $dat->status    = HELPDESK_NATIVE_UPDATE_ASSIGN;
-        $dat->type      = HELPDESK_UPDATE_TYPE_DETAILED;
-        if(!$this->add_update($dat)) {
-            notify(get_string('cantaddupdate', 'block_helpdesk'));
+        $user = helpdesk_get_user($userid);
+        $update = (object) array(
+            'notes_editor'     => array(),
+            'status'    => HELPDESK_NATIVE_UPDATE_ASSIGN,
+            'type'      => HELPDESK_UPDATE_TYPE_DETAILED,
+        );
+        $update->notes_editor['text'] = fullname($user) . ' '
+            . get_string('wasassigned', 'block_helpdesk');
+        $update->notes_editor['format'] = FORMAT_HTML;
+        if(!$this->add_update($update)) {
+            echo $OUTPUT->notification(get_string('cantaddupdate', 'block_helpdesk'));
         }
 
-        $this->fetch();
-        $this->store();
+        if (!empty($CFG->block_helpdesk_assigned_auto_watch)) {
+            if (!$this->add_watcher($user->hd_userid)) {
+                print_error('cannotaddwatcher', 'block_helpdesk');
+            }
+        } else {
+            $this->fetch();
+            $this->store();
+        }
         return true;
     }
 
@@ -671,24 +717,37 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function remove_assignment($userid) {
-        global $DB;
+        global $CFG, $DB, $OUTPUT;
+
+        $assigned = $this->get_assigned();
+        if (!isset($assigned[$userid])) {
+            return true;
+        }
+
         $result = $DB->delete_records('block_helpdesk_ticket_assign', array('userid' => $userid, 'ticketid' => $this->id));
         if ($result) {
             $this->store();
-            $urecord            = $DB->get_record('user', array('id' => $userid));
-            $dat                = new stdClass;
-            $dat->ticketid      = $this->id;
-            $dat->notes_editor['text'] = fullname($urecord) . ' ' .
-                                  get_string('wasunassigned', 'block_helpdesk');
-            $dat->notes_editor['format'] = FORMAT_HTML;
-            $dat->status        = HELPDESK_NATIVE_UPDATE_UNASSIGN;
-            $dat->type          = HELPDESK_UPDATE_TYPE_DETAILED;
+            $user = helpdesk_get_user($userid);
+            $update = (object) array(
+                'notes_editor'     => array(),
+                'status'    => HELPDESK_NATIVE_UPDATE_UNASSIGN,
+                'type'      => HELPDESK_UPDATE_TYPE_DETAILED,
+            );
+            $update->notes_editor['text'] = fullname($user) . ' ' .
+                get_string('wasunassigned', 'block_helpdesk');
+            $update->notes_editor['format'] = FORMAT_HTML;
 
-            if(!$this->add_update($dat)) {
-                notify(get_string('cantaddupdate', 'block_helpdesk'));
+            if(!$this->add_update($update)) {
+                echo $OUTPUT->notification(get_string('cantaddupdate', 'block_helpdesk'));
             }
-            return $result;
         }
+
+        if (!empty($CFG->block_helpdesk_assigned_auto_watch)) {
+            if (!$this->remove_watcher($user->hd_userid)) {
+                print_error('cannotremovewatcher', 'block_helpdesk');
+            }
+        }
+        return $result;
     }
 
     /**
@@ -699,6 +758,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      */
     function get_assigned() {
         global $DB;
+
         // When a new ticket is stored, there is no id. We want to stop here.
         if (empty($this->id)) {
             return false;
@@ -713,7 +773,108 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         // At this point we have to process each user. This may sound scary but
         // the number of assigned users is usually low.
         foreach($records as $record) {
-            $users[] = helpdesk_get_user($record->userid);
+            $user = helpdesk_get_user($record->userid);
+            $users[$user->userid] = $user;
+        }
+
+        return $users;
+    }
+
+    /**
+     * This method adds a watcher to a ticket. It assumes that checks have already been
+     *
+     * @param int       $hd_userid hd_user.id of user being added
+     * @return bool
+     */
+    function add_watcher($hd_userid) {
+        global $DB, $OUTPUT;
+
+        $watchers = $this->get_watchers();
+        if (isset($watchers[$hd_userid])) {
+            return true;
+        }
+
+        $user = helpdesk_get_hd_user($hd_userid);
+
+        $watcher = (object) array(
+            'ticketid'  => $this->id,
+            'hd_userid' => $hd_userid,
+        );
+        if (!$DB->insert_record('block_helpdesk_watcher', $watcher)) { return false; }
+
+        // update
+        $update = (object) array(
+            'notes_editor' => array('text' => fullname($user) . get_string('startwatching', 'block_helpdesk'),
+                'format' => FORMAT_HTML),
+            'status'    => HELPDESK_NATIVE_UPDATE_WATCHING,
+            'type'      => HELPDESK_UPDATE_TYPE_DETAILED,
+        );
+        if(!$this->add_update($update)) {
+            echo $OUTPUT->notification(get_string('cantaddupdate', 'block_helpdesk'));
+        }
+
+        $this->fetch();
+        $this->store();
+        return true;
+    }
+
+    /**
+     * This method removes a watcher from a ticket
+     *
+     * @param int       $hd_userid hd_user.id of user being removed
+     */
+    function remove_watcher($hd_userid) {
+        global $DB, $OUTPUT;
+
+        $watchers = $this->get_watchers();
+        if (!isset($watchers[$hd_userid])) {
+            return true;
+        }
+
+        $result = $DB->delete_records('block_helpdesk_watcher', array('hd_userid' => $hd_userid, 'ticketid' => $this->id));
+        if ($result) {
+            $this->store();
+            $user = helpdesk_get_hd_user($hd_userid);
+            $update = (object) array(
+                'notes_editor' => array('text' => fullname($user) . get_string('notwatching', 'block_helpdesk'),
+                    'format' => FORMAT_HTML),
+                'status'    => HELPDESK_NATIVE_UPDATE_NOTWATCHING,
+                'type'      => HELPDESK_UPDATE_TYPE_DETAILED,
+            );
+
+            if(!$this->add_update($update)) {
+                echo $OUTPUT->notification(get_string('cantaddupdate', 'block_helpdesk'));
+            }
+        }
+        return true;
+    }
+
+    /**
+     * This gets all the watching hd_users for a particular ticket. It will return
+     * an array of users, similar to a database record array from moodle.
+     *
+     * @return array
+     */
+    function get_watchers() {
+        global $DB;
+
+        // When a new ticket is stored, there is no id. We want to stop here.
+        if (empty($this->id)) {
+            return false;
+        }
+        $records = $DB->get_records('block_helpdesk_watcher', array('ticketid' => $this->id));
+
+        // If there are no records, there are no users assigned.
+        if (!$records) {
+            return false;
+        }
+
+        // At this point we have to process each user. This may sound scary but
+        // the number of assigned users is usually low.
+        foreach($records as $record) {
+            $user = helpdesk_get_hd_user($record->hd_userid);
+            $user = (object) array_merge((array) $user, (array) $record);
+            $users[$user->hd_userid] = $user;
         }
 
         return $users;
@@ -736,21 +897,34 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if (!$ticket) {
             return false;
         }
+        if (isset($USER->hd_userid)) {
+            $hd_user = $USER;
+        } else {
+            $hd_user = helpdesk_get_user($USER->id);
+        }
+        $watchers = $DB->get_records('block_helpdesk_watcher', array('ticketid' => $this->id));
+        $iswatcher = false;
+        if (!empty($watchers)) {
+            foreach ($watchers as $w) {
+                if ($w->hd_userid == $hd_user->hd_userid) {
+                    $iswatcher = true;
+                    break;
+                }
+            }
+        }
         # Check for permission before proceeding.
-        if (!helpdesk_is_capable(HELPDESK_CAP_ASK) or $ticket->userid != $USER->id) {
+        if (!helpdesk_is_capable(HELPDESK_CAP_ASK) or !$iswatcher) {
             if (!helpdesk_is_capable(HELPDESK_CAP_ANSWER, $permissionhalt)) {
                 return false;
             }
         }
 
         $this->parse_db_ticket($ticket);
-        $updates        = $DB->get_records('block_helpdesk_ticket_update',
-                        array('ticketid' => $this->id), 'timecreated DESC');
-        $tags           = $DB->get_records('block_helpdesk_ticket_tag',
-                        array('ticketid' => $this->id), 'name ASC');
+        $updates        = $DB->get_records('block_helpdesk_ticket_update', array('ticketid' => $this->id), 'timecreated DESC');
+        $tags           = $DB->get_records('block_helpdesk_ticket_tag', array('ticketid' => $this->id), 'name ASC');
         $this->status   = $DB->get_record('block_helpdesk_status', array('id' => $this->status));
         if(!is_object($this->status)) {
-            error("Invalid status id on ticket $this->id.");
+            print_error("Invalid status id on ticket $this->id.");
         }
         $this->parse_db_updates($updates);
         $this->parse_db_tags($tags);
@@ -766,7 +940,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      **/
     function store() {
-        global $USER, $DB;
+        global $DB;
         $dataobject                     = new stdClass;
         $dataobject->summary            = $this->summary;
         $dataobject->detail             = $this->detail;
@@ -779,8 +953,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $dataobject->timecreated        = $this->timecreated;
         $this->set_timemodified();
         $dataobject->timemodified       = $this->timemodified;
-        $dataobject->userid             = $this->userid;
-
+        $dataobject->hd_userid             = $this->hd_userid;
+        $dataobject->createdby          = $this->createdby;
         if (empty($this->status)) {
             $this->status               = $DB->get_record('block_helpdesk_status', array('ticketdefault' => 1));
         }
@@ -789,12 +963,12 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
         if (is_numeric($this->firstcontact)) {
             if(!$DB->record_exists('user', array('id' => $this->firstcontact))) {
-                error('Invalid first contact user id.');
+                print_error('Invalid first contact user id.');
             }
             $this->firstcontact = helpdesk_get_user($this->firstcontact);
         }
         $dataobject->firstcontact       = is_object($this->firstcontact) ?
-                                          $this->firstcontact->id : 0;
+                                          $this->firstcontact->userid : 0;
 
         $assigned = $this->get_assigned();
         if ($assigned === false) {
@@ -802,7 +976,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         } else {
             $dataobject->assigned_refs  = count($assigned);
         }
-        if (!is_numeric($this->userid)) {
+        if (!is_numeric($this->hd_userid)) {
             return false;
         }
         if (!empty($this->id)) {
@@ -810,37 +984,37 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         }
 
         if (!empty($dataobject->id)) {
-            // Ewww, this is a hack for Moodle 1.9. insert_record adds slashes
-            // where update_record does not.
-            foreach($dataobject as &$col) {
-                $col = addslashes($col);
+            if ($result = $DB->update_record('block_helpdesk_ticket', $dataobject)) {
+                $this->fetch();
+                return true;
             }
-            $result = $DB->update_record('block_helpdesk_ticket', $dataobject);
+            return false;
+        }
+        $result = $DB->insert_record('block_helpdesk_ticket', $dataobject);
+        if ($result) {
+            $this->id = $result;
         } else {
-            $result = $DB->insert_record('block_helpdesk_ticket', $dataobject, true);
-            if ($result) {
-                $this->id = $result;
-            } else {
-                error(get_string('error_insertquestion', 'block_helpdesk'));
-            }
-            if(get_config(null, 'block_helpdesk_includeagent') == true) {
-                $tag = new stdClass;
-                $tag->name = get_string('useragent', 'block_helpdesk');
-                $tag->value = $_SERVER['HTTP_USER_AGENT'];
-                $tag->ticketid = $this->get_idstring();
-                $this->add_tag($tag);
-                $tag = new stdClass;
-                $tag->ticketid = $this->get_idstring();
-                $tag->name = addslashes(get_string('useroperatingsystem', 'block_helpdesk'));
-                $tag->value = addslashes($this->get_os($_SERVER['HTTP_USER_AGENT']));
-                $this->add_tag($tag);
-            }
+            print_error('error_insertquestion', 'block_helpdesk');
         }
-        if (is_numeric($result) or $result == true) {
-            $this->fetch();
-            return true;
+
+        # add the submitter as a watcher
+        $this->add_watcher($this->hd_userid);
+
+        if($this->createdby === $this->hd_userid and get_config(null, 'block_helpdesk_includeagent') == true) {
+            $tag = new stdClass;
+            $tag->name = get_string('useragent', 'block_helpdesk');
+            $tag->value = $_SERVER['HTTP_USER_AGENT'];
+            $tag->ticketid = $this->get_idstring();
+            $this->add_tag($tag);
+            $tag = new stdClass;
+            $tag->ticketid = $this->get_idstring();
+            $tag->name = get_string('useroperatingsystem', 'block_helpdesk');
+            $tag->value = $this->get_os($_SERVER['HTTP_USER_AGENT']);
+            $this->add_tag($tag);
         }
-        return false;
+
+        # no need to fetch, as adding the watcher did that
+        return true;
     }
 
     /**
@@ -874,6 +1048,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         if (!is_object($data)) {
             return false;
         }
+        $hd_user = helpdesk_get_user($USER->id);
         // An id may not always exists, like if this is a new ticket.
         if (isset($data->id)) {
             $this->id           = $data->id;
@@ -887,10 +1062,15 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $this->detail           = $data->detail;
         $this->detailformat     = $data->detailformat;
         $this->summary          = $data->summary;
-        if (empty($data->userid)) {
-            $this->userid = $USER->id;
+        if (empty($data->hd_userid)) {
+            $this->hd_userid = $hd_user->hd_userid;
         } else {
-            $this->userid       = $data->userid;
+            $this->hd_userid    = $data->hd_userid;
+        }
+        if (empty($data->createdby)) {
+            $this->createdby = $hd_user->hd_userid;
+        } else {
+            $this->createdby = $data->hd_userid;
         }
         if (isset($data->timecreated)) {
             $this->timecreated  = $data->timecreated;
@@ -908,7 +1088,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
     /**
      * Very similar to parse, except this one strips slashes. This takes in
-     * database records specifically. Like ones returned from $DB->get_record().
+     * database records specifically. Like ones returned from get_record().
      *
      * @param object    $record is a database record from moodle.
      * @return true
@@ -921,7 +1101,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $this->detail           = stripslashes($record->detail);
         $this->detailformat     = stripslashes($record->detailformat);
         $this->summary          = stripslashes($record->summary);
-        $this->userid           = $record->userid;
+        $this->hd_userid           = $record->hd_userid;
+        $this->createdby        = $record->createdby;
         $this->timecreated      = $record->timecreated;
         $this->timemodified     = $record->timemodified;
         $this->status           = $record->status;
@@ -958,19 +1139,27 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $status = $this->status;
         $update = $this->process_update($update);
 
-        if (!is_object($this->firstcontact) and
-            $this->get_userid() != $USER->id and
-            $isanswerer) {
-
-            $this->firstcontact = $USER;
+        if (!is_object($this->firstcontact)) {
+            if ($isanswerer and empty($USER->helpdesk_external)) {
+                $current_hd_user = helpdesk_get_user($USER->id);
+                if ($this->get_hd_userid() != $current_hd_user->hd_userid) {
+                    $this->firstcontact = $current_hd_user;
+                }
+            }
         }
 
         $dat->notes         = '';
         $dat->notesformat   = FORMAT_HTML;
-        $dat->userid        = !empty($dat->userid) ? $dat->userid : $USER->id;
+        if (!empty($update->hd_userid)) {
+            $dat->hd_userid = $update->hd_userid;
+        } else if (!empty($USER->helpdesk_external)) {
+            $dat->hd_userid = $USER->hd_userid;
+        } else {
+            $dat->hd_userid = helpdesk_get_user($USER->id)->hd_userid;
+        }
         $dat->status        = $update->status;
         $dat->type          = $update->type;
-        $dat->hidden       = isset($update->hidden) ? $update->hidden : false;
+        $dat->hidden        = isset($update->hidden) ? $update->hidden : false;
         $dat->timecreated   = time();
         $dat->timemodified  = time();
         if(isset($update->newticketstatus)) {
@@ -981,7 +1170,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $usefirstcontact = get_config(null, 'block_helpdesk_firstcontact');
             $isanswerer = helpdesk_is_capable(HELPDESK_CAP_ANSWER);
             if ($usefirstcontact and $isanswerer and $this->firstcontact == true) {
-                $this->firstcontact = $user->id;
+                $this->firstcontact = helpdesk_get_user($USER->id)->hd_userid;;
             }
 
             // You're wondering what this is. This actually updates the time
@@ -1002,7 +1191,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
             // Need to update the notes.
             $context = context_system::instance();
-            $editoroptions = array('maxfiles'=> 99, 'maxbytes'=>$CFG->maxbytes, 'context'=>$context);
+            $editoroptions = array('maxfiles'=> 99, 'maxbytes'=> $CFG->maxbytes, 'context'=>$context);
             $dat->id = $updateid;
             $dat->notes_editor = $update->notes_editor;
             $dat = file_postupdate_standard_editor($dat, 'notes', $editoroptions, $context,
@@ -1017,6 +1206,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
 
     private function process_update($update) {
         global $DB;
+
         // This allows us to change the status of a ticket at the same time as
         // we add an update.
 
@@ -1026,7 +1216,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $this->status = $DB->get_record('block_helpdesk_status', array('id' => $update->status));
             $update->newticketstatus = $this->status->id;
             if (!is_object($this->status)) {
-                error('Invalid ticket status. Does not exist in status table.');
+                print_error('Invalid ticket status. Does not exist in status table.');
             }
             $this->store();
             $update->status = HELPDESK_NATIVE_UPDATE_STATUS;
@@ -1050,12 +1240,12 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $tag = file_postupdate_standard_editor($tag, 'value', $editoroptions, $context,
             'block_helpdesk', 'tickettag', $tag->id);
 
-        if (!$DB->update_record('block_helpdesk_ticket_tag', $tag)) {
-            return false;
+        if ($DB->update_record('block_helpdesk_ticket_tag', $tag)) {
+            $this->store();
+            $this->fetch();
+            return true;
         }
-        $this->store();
-        $this->fetch();
-        return true;
+        return false;
     }
 
     /**
@@ -1066,7 +1256,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function add_tag($tag) {
-        global $DB;
+        global $DB, $OUTPUT;
+
         if (!is_object($tag)) {
             return false;
         }
@@ -1093,7 +1284,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $dat->type      = HELPDESK_UPDATE_TYPE_DETAILED;
 
         if(!$this->add_update($dat)) {
-            notify(get_string('cantaddupdate', 'block_helpdesk'));
+            echo $OUTPUT->notification(get_string('cantaddupdate', 'block_helpdesk'));
         }
 
         // Update modified time and refresh the ticket.
@@ -1109,7 +1300,8 @@ class helpdesk_ticket_native extends helpdesk_ticket {
      * @return bool
      */
     function remove_tag($id) {
-        global $CFG, $DB;
+        global $DB, $OUTPUT;
+
         if (!is_numeric($id)) {
             return false;
         }
@@ -1125,12 +1317,12 @@ class helpdesk_ticket_native extends helpdesk_ticket {
         $dat = new stdClass;
         $dat->ticketid      = $this->id;
         $dat->notes_editor  = array('text' => get_string('tagremovewithnameof', 'block_helpdesk') . $tag->name,
-        'format' => FORMAT_HTML);
+            'format' => FORMAT_HTML);
         $dat->status        = HELPDESK_NATIVE_UPDATE_UNTAG;
         $dat->type          = HELPDESK_UPDATE_TYPE_DETAILED;
 
         if(!$this->add_update($dat)) {
-            notify(get_string('cantaddupdate', 'block_helpdesk'));
+            echo $OUTPUT->notification(get_string('cantaddupdate', 'block_helpdesk'));
         }
 
         $this->store();
@@ -1197,13 +1389,15 @@ class helpdesk_ticket_native extends helpdesk_ticket {
     }
 
     /**
-     * This is calld when an already existing ticket is edited. This allows us
+     * This is calld when an already existing ticket is edited. This allows us 
      * to make an updated associated with this edit.
      *
      * @param string    $notes is a message to leave in the update.
      * @return bool
      */
     function store_edit($noteseditor=null, $newstatus=null) {
+        global $OUTPUT;
+
         if(!$this->store()) {
             return false;
         }
@@ -1216,7 +1410,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $update->newticketstatus = $newstatus;
         }
         if (!$this->add_update($update)) {
-            notify(get_string('unabletoaddeditupdate', 'block_helpdesk'));
+            echo $OUTPUT->notification(get_string('unabletoaddeditupdate', 'block_helpdesk'));
         }
         return true;
     }
@@ -1256,17 +1450,16 @@ class helpdesk_ticket_native extends helpdesk_ticket {
     }
 
     /**
-     * This gives the user object for the first contact user or false if there
+     * This gives the user object for the first contact user or false if there 
      * is no firstcontact.
      *
      * @return mixed
      */
     public function get_firstcontact() {
-        global $DB;
         if(empty($this->firstcontact)) {
             return false;
         }
-        return get_record('user', array('id' => $this->firstcontact));
+        return helpdesk_get_user($this->firstcontact->userid);
     }
 
     /**
@@ -1280,7 +1473,7 @@ class helpdesk_ticket_native extends helpdesk_ticket {
             $user = $user->id;
         }
         if(empty($user)) {
-            error(get_string('invalidtype', 'block_helpdesk') . ' - ' . __FILE__ . ':' . __LINE__);
+            print_error('invalidtype', 'block_helpdesk');
         }
         if(empty($this->firstcontact)) {
             $this->firstcontact = $user;

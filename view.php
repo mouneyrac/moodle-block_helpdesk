@@ -31,25 +31,32 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 // We are also Helpdesk, so we shall also become a helpdesk.
 require_once("$CFG->dirroot/blocks/helpdesk/lib.php");
 
-require_login(0, false);
-
 $id = required_param('id', PARAM_INT);
+$token = optional_param('token', '', PARAM_ALPHANUM);
 
 $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/search.php");
-$nav = array(
-    array (
-        'name' => get_string('helpdesk', 'block_helpdesk'),
-        'link' => $url->out()
-    ),
-    array(
-        'name' => get_string('ticketviewer', 'block_helpdesk')
-    )
-);
-//$heading = get_string('ticketviewer', 'block_helpdesk');
-
+if (strlen($token)) {
+    helpdesk_authenticate_token($id, $token);
+    $readonly = empty($CFG->block_helpdesk_external_updates);
+    $nav = array();
+} else {
+    require_login(0, false);
+    $readonly = false;
+    $nav = array(
+        array (
+            'name' => get_string('helpdesk', 'block_helpdesk'),
+            'link' => $url->out()
+        ),
+        array(
+            'name' => get_string('ticketviewer', 'block_helpdesk')
+        )
+    );
+}
 $title = get_string('helpdeskticketviewer', 'block_helpdesk');
 helpdesk::page_init($title, $nav);
-helpdesk::page_header();
+echo $OUTPUT->header();
+
+echo $OUTPUT->heading(get_string('ticketviewer', 'block_helpdesk'));
 
 // Let's construct our helpdesk.
 $hd = helpdesk::get_helpdesk();
@@ -57,8 +64,8 @@ $hd = helpdesk::get_helpdesk();
 // Display specific ticket.
 $ticket = $hd->get_ticket($id);
 if (!$ticket) {
-    error(get_string('ticketiddoesnotexist','block_helpdesk'));
+    print_error('ticketiddoesnotexist', 'block_helpdesk');
 }
-$hd->display_ticket($ticket);
+$hd->display_ticket($ticket, $readonly);
 
-helpdesk::page_footer();
+helpdesk_print_footer();

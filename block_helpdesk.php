@@ -37,7 +37,9 @@ class block_helpdesk extends block_base {
      * @return null
      */
     function init() {
-        $this->title = get_string('helpdesk', 'block_helpdesk');
+        global $CFG;
+        $this->title = !empty($CFG->block_helpdesk_block_name) ?
+            $CFG->block_helpdesk_block_name : get_string('helpdesk', 'block_helpdesk');
         $this->cron = 1;
     }
 
@@ -50,7 +52,7 @@ class block_helpdesk extends block_base {
     function specialization() {
         global $DB;
         // If no core statuses, install the plugin.
-        // TODO: Make this less brain dead.
+        // TODO: Make this less brain dead. (I agree, it should be moved into a install.php script)
         $hd = helpdesk::get_helpdesk();
         if(!$hd->is_installed()) {
             $hd->install();
@@ -64,7 +66,7 @@ class block_helpdesk extends block_base {
      * @return string
      */
     function get_content() {
-        global $CFG, $USER;
+        global $CFG, $USER, $OUTPUT;
         // Get objects initialized and variables declared.
 
         $this->content = new stdClass;
@@ -75,7 +77,7 @@ class block_helpdesk extends block_base {
         $this->content->text = '';
         $this->content->footer = '';
         $noticketstr = get_string('noticketstodisplay', 'block_helpdesk');
-        if ($cap == false) {
+        if ($cap == false || empty($USER->id)) {
             return $this->content;
         }
 
@@ -109,7 +111,7 @@ class block_helpdesk extends block_base {
                 }
                 $this->content->text .= '</ul>';
             } else {
-                $this->content->text .= notify($noticketstr, 'notifyproblem', 'center', true);
+                $this->content->text .= $OUTPUT->notification($noticketstr, 'notifyproblem');
             }
         }
 
@@ -118,8 +120,9 @@ class block_helpdesk extends block_base {
         $this->content->text .= '<h3>' . get_string('mytickets', 'block_helpdesk') . '</h3>';
 
         // Grab the tickets to display and add to the content.
+        $hd_user = helpdesk_get_user($USER->id);
         $so = $hd->new_search_obj();
-        $so->submitter = $USER->id;
+        $so->watcher = $hd_user->hd_userid;
         $so->status = $hd->get_status_ids(true, false);
         $tickets = $hd->search($so, 5, 0);
         if (!empty($tickets->count)) {
@@ -140,7 +143,7 @@ class block_helpdesk extends block_base {
             }
             $this->content->text .= '</ul>';
         } else {
-            $this->content->text .= notify($noticketstr, 'notifyproblem', 'center', true);
+            $this->content->text .= $OUTPUT->notification($noticketstr, 'notifyproblem');
         }
 
         // Link for viewing all kinds of tickets.
@@ -150,14 +153,31 @@ class block_helpdesk extends block_base {
 
         // Link for submitting a new ticket.
         $url = $hd->default_submit_url()->out();
-        $text = get_string('submitnewticket', 'block_helpdesk');
+        $text =  !empty($CFG->block_helpdesk_submit_text) ? $CFG->block_helpdesk_submit_text: get_string('submitnewticket', 'block_helpdesk');
         $this->content->text .= "<a href=\"$url\">$text</a><br /><br />";
+
+        if (helpdesk_is_capable(HELPDESK_CAP_ANSWER)) {
+            $submitas_url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/userlist.php");
+            $submitas_url->param('function', HELPDESK_USERLIST_SUBMIT_AS);
+            $submitas_url = $submitas_url->out();
+            $submitas_text = get_string('submitas', 'block_helpdesk');
+            $this->content->text .= "<a href=\"$submitas_url\">$submitas_text</a><br />";
+
+            if ($CFG->block_helpdesk_allow_external_users) {
+                $manage_url = new moodle_Url("$CFG->wwwroot/blocks/helpdesk/userlist.php");
+                $manage_url->param('function', HELPDESK_USERLIST_MANAGE_EXTERNAL);
+                $manage_url = $manage_url->out();
+                $manage_text = $manage_text = get_string('manageexternallink', 'block_helpdesk');
+                $this->content->text .= "<a href=\"$manage_url\">$manage_text</a><br />";
+            }
+            $this->content->text .= "<br />";
+        }
 
         // print a footer.
         $url = new moodle_url("$CFG->wwwroot/blocks/helpdesk/preferences.php");
         $url = $url->out();
         $translated = get_string('preferences');
-        $prefhelp = helpdesk_simple_helpbutton($translated, 'pref');
+        $prefhelp = $OUTPUT->help_icon('pref', 'block_helpdesk');
         $this->content->footer = "<a href=\"$url\">$translated</a>$prefhelp";
 
         return $this->content;
@@ -170,9 +190,11 @@ class block_helpdesk extends block_base {
      * @return null
      */
     function cron() {
+        global $OUTPUT;
+
         $hd = helpdesk::get_helpdesk();
         if(!$hd->cron()) {
-            notify('Warning: Plugin cron returned non-true value.');
+            echo $OUTPUT->notification('Warning: Plugin cron returned non-true value.');
         }
     }
 

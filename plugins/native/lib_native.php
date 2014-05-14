@@ -34,6 +34,8 @@ define('HELPDESK_NATIVE_STATUS_INPROGRESS', 'workinprogress');
 define('HELPDESK_NATIVE_UPDATE_COMMENT', 'comment');
 define('HELPDESK_NATIVE_UPDATE_ASSIGN', 'assign');
 define('HELPDESK_NATIVE_UPDATE_UNASSIGN', 'unassign');
+define('HELPDESK_NATIVE_UPDATE_WATCHING', 'watching');
+define('HELPDESK_NATIVE_UPDATE_NOTWATCHING', 'notwatching');
 define('HELPDESK_NATIVE_UPDATE_TAG', 'tag');
 define('HELPDESK_NATIVE_UPDATE_UNTAG', 'untag');
 define('HELPDESK_NATIVE_UPDATE_STATUS', 'statuschanged');
@@ -43,6 +45,7 @@ define('HELPDESK_NATIVE_UPDATE_DETAILS', 'detailschanged');
 // relations that group tickets together.
 define('HELPDESK_NATIVE_REL_ALL', 'alltickets');
 define('HELPDESK_NATIVE_REL_REPORTEDBY', 'reportedby');
+define('HELPDESK_NATIVE_REL_WATCHING', 'watching');
 define('HELPDESK_NATIVE_REL_ASSIGNEDTO', 'assignedto');
 define('HELPDESK_NATIVE_REL_NEW', 'newtickets');
 define('HELPDESK_NATIVE_REL_CLOSED', 'closedtickets');
@@ -57,7 +60,8 @@ define('HELPDESK_NATIVE_REL_UNASSIGNED', 'unassignedtickets');
  */
 function get_ticket_statuses() {
     global $DB;
-    $status = $DB->get_records('block_helpdesk_status', array(), 'name ASC');
+
+    $status = $DB->get_records('block_helpdesk_status', null, 'name ASC');
     return $status;
 }
 
