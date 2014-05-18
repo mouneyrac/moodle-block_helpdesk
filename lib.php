@@ -526,32 +526,32 @@ function email_to_external_user($user, $from, $subject, $messagetext, $messageht
 
     global $CFG;
 
-    ////////// CORE CHANGES
-    //- if (empty($user) or empty($user->id)) {
-    if (empty($user)) {
-    ////////// END OF CORE CHANGES
-        debugging('Can not send email to null user', DEBUG_DEVELOPER);
-        return false;
-    }
-
-    if (empty($user->email)) {
-        debugging('Can not send email to user without email: '.$user->id, DEBUG_DEVELOPER);
+    if (empty($user) || empty($user->email)) {
+        $nulluser = 'User is null or has no email';
+        error_log($nulluser);
+        if (CLI_SCRIPT) {
+            mtrace('Error: lib/moodlelib.php email_to_user(): '.$nulluser);
+        }
         return false;
     }
 
     if (!empty($user->deleted)) {
-        debugging('Can not send email to deleted user: '.$user->id, DEBUG_DEVELOPER);
+        // do not mail deleted users
+        $userdeleted = 'User is deleted';
+        error_log($userdeleted);
+        if (CLI_SCRIPT) {
+            mtrace('Error: lib/moodlelib.php email_to_user(): '.$userdeleted);
+        }
         return false;
     }
 
-    if (defined('BEHAT_SITE_RUNNING')) {
-        // Fake email sending in behat.
-        return true;
-    }
-
     if (!empty($CFG->noemailever)) {
-        // Hidden setting for development sites, set in config.php if needed.
-        debugging('Not sending email due to $CFG->noemailever config setting', DEBUG_NORMAL);
+        // hidden setting for development sites, set in config.php if needed
+        $noemail = 'Not sending email due to noemailever config setting';
+        error_log($noemail);
+        if (CLI_SCRIPT) {
+            mtrace('Error: lib/moodlelib.php email_to_user(): '.$noemail);
+        }
         return true;
     }
 
@@ -561,13 +561,13 @@ function email_to_external_user($user, $from, $subject, $messagetext, $messageht
         $user->email = $CFG->divertallemailsto;
     }
 
-    // Skip mail to suspended users.
+    // skip mail to suspended users
     if ((isset($user->auth) && $user->auth=='nologin') or (isset($user->suspended) && $user->suspended)) {
         return true;
     }
 
     if (!validate_email($user->email)) {
-        // We can not send emails to invalid addresses - it might create security issue or confuse the mailer.
+        // we can not send emails to invalid addresses - it might create security issue or confuse the mailer
         $invalidemail = "User $user->id (".fullname($user).") email ($user->email) is invalid! Not sending.";
         error_log($invalidemail);
         if (CLI_SCRIPT) {
@@ -587,7 +587,7 @@ function email_to_external_user($user, $from, $subject, $messagetext, $messageht
 
     // If the user is a remote mnet user, parse the email text for URL to the
     // wwwroot and modify the url to direct the user's browser to login at their
-    // home site (identity provider - idp) before hitting the link itself.
+    // home site (identity provider - idp) before hitting the link itself
     if (is_mnet_remote_user($user)) {
         require_once($CFG->dirroot.'/mnet/lib.php');
 
@@ -610,17 +610,17 @@ function email_to_external_user($user, $from, $subject, $messagetext, $messageht
     $temprecipients = array();
     $tempreplyto = array();
 
-    $supportuser = core_user::get_support_user();
+    $supportuser = generate_email_supportuser();
 
-    // Make up an email address for handling bounces.
+    // make up an email address for handling bounces
     if (!empty($CFG->handlebounces)) {
-        $modargs = 'B'.base64_encode(pack('V', $user->id)).substr(md5($user->email), 0, 16);
-        $mail->Sender = generate_email_processing_address(0, $modargs);
+        $modargs = 'B'.base64_encode(pack('V',$user->id)).substr(md5($user->email),0,16);
+        $mail->Sender = generate_email_processing_address(0,$modargs);
     } else {
         $mail->Sender = $supportuser->email;
     }
 
-    if (is_string($from)) { // So we can pass whatever we want if there is need.
+    if (is_string($from)) { // So we can pass whatever we want if there is need
         $mail->From     = $CFG->noreplyaddress;
         $mail->FromName = $from;
     } else if ($usetrueaddress and $from->maildisplay) {
@@ -640,19 +640,17 @@ function email_to_external_user($user, $from, $subject, $messagetext, $messageht
 
     $mail->Subject = substr($subject, 0, 900);
 
-    $temprecipients[] = array($user->email, fullname_nowarnings($user));
+    $temprecipients[] = array($user->email, fullname($user));
 
-    // Set word wrap.
-    $mail->WordWrap = $wordwrapwidth;
+    $mail->WordWrap = $wordwrapwidth;                   // set word wrap
 
-    if (!empty($from->customheaders)) {
-        // Add custom headers.
+    if (!empty($from->customheaders)) {                 // Add custom headers
         if (is_array($from->customheaders)) {
             foreach ($from->customheaders as $customheader) {
-                $mail->addCustomHeader($customheader);
+                $mail->AddCustomHeader($customheader);
             }
         } else {
-            $mail->addCustomHeader($from->customheaders);
+            $mail->AddCustomHeader($from->customheaders);
         }
     }
 
@@ -660,10 +658,9 @@ function email_to_external_user($user, $from, $subject, $messagetext, $messageht
         $mail->Priority = $from->priority;
     }
 
-    if ($messagehtml && !empty($user->mailformat) && $user->mailformat == 1) {
-        // Don't ever send HTML to users who don't want it.
-        $mail->isHTML(true);
-        $mail->Encoding = 'quoted-printable';
+    if ($messagehtml && !empty($user->mailformat) && $user->mailformat == 1) { // Don't ever send HTML to users who don't want it
+        $mail->IsHTML(true);
+        $mail->Encoding = 'quoted-printable';           // Encoding to use
         $mail->Body    =  $messagehtml;
         $mail->AltBody =  "\n$messagetext\n";
     } else {
@@ -672,21 +669,20 @@ function email_to_external_user($user, $from, $subject, $messagetext, $messageht
     }
 
     if ($attachment && $attachname) {
-        if (preg_match( "~\\.\\.~" , $attachment )) {
-            // Security check for ".." in dir path.
+        if (preg_match( "~\\.\\.~" ,$attachment )) {    // Security check for ".." in dir path
             $temprecipients[] = array($supportuser->email, fullname($supportuser, true));
-            $mail->addStringAttachment('Error in attachment.  User attempted to attach a filename with a unsafe name.', 'error.txt', '8bit', 'text/plain');
+            $mail->AddStringAttachment('Error in attachment.  User attempted to attach a filename with a unsafe name.', 'error.txt', '8bit', 'text/plain');
         } else {
             require_once($CFG->libdir.'/filelib.php');
             $mimetype = mimeinfo('type', $attachname);
-            $mail->addAttachment($CFG->dataroot .'/'. $attachment, $attachname, 'base64', $mimetype);
+            $mail->AddAttachment($CFG->dataroot .'/'. $attachment, $attachname, 'base64', $mimetype);
         }
     }
 
-    // Check if the email should be sent in an other charset then the default UTF-8.
+    // Check if the email should be sent in an other charset then the default UTF-8
     if ((!empty($CFG->sitemailcharset) || !empty($CFG->allowusermailcharset))) {
 
-        // Use the defined site mail charset or eventually the one preferred by the recipient.
+        // use the defined site mail charset or eventually the one preferred by the recipient
         $charset = $CFG->sitemailcharset;
         if (!empty($CFG->allowusermailcharset)) {
             if ($useremailcharset = get_user_preferences('mailcharset', '0', $user->id)) {
@@ -694,55 +690,43 @@ function email_to_external_user($user, $from, $subject, $messagetext, $messageht
             }
         }
 
-        // Convert all the necessary strings if the charset is supported.
+        // convert all the necessary strings if the charset is supported
         $charsets = get_list_of_charsets();
         unset($charsets['UTF-8']);
         if (in_array($charset, $charsets)) {
             $mail->CharSet  = $charset;
-            $mail->FromName = core_text::convert($mail->FromName, 'utf-8', strtolower($charset));
-            $mail->Subject  = core_text::convert($mail->Subject, 'utf-8', strtolower($charset));
-            $mail->Body     = core_text::convert($mail->Body, 'utf-8', strtolower($charset));
-            $mail->AltBody  = core_text::convert($mail->AltBody, 'utf-8', strtolower($charset));
+            $mail->FromName = textlib::convert($mail->FromName, 'utf-8', strtolower($charset));
+            $mail->Subject  = textlib::convert($mail->Subject, 'utf-8', strtolower($charset));
+            $mail->Body     = textlib::convert($mail->Body, 'utf-8', strtolower($charset));
+            $mail->AltBody  = textlib::convert($mail->AltBody, 'utf-8', strtolower($charset));
 
             foreach ($temprecipients as $key => $values) {
-                $temprecipients[$key][1] = core_text::convert($values[1], 'utf-8', strtolower($charset));
+                $temprecipients[$key][1] = textlib::convert($values[1], 'utf-8', strtolower($charset));
             }
             foreach ($tempreplyto as $key => $values) {
-                $tempreplyto[$key][1] = core_text::convert($values[1], 'utf-8', strtolower($charset));
+                $tempreplyto[$key][1] = textlib::convert($values[1], 'utf-8', strtolower($charset));
             }
         }
     }
 
     foreach ($temprecipients as $values) {
-        $mail->addAddress($values[0], $values[1]);
+        $mail->AddAddress($values[0], $values[1]);
     }
     foreach ($tempreplyto as $values) {
-        $mail->addReplyTo($values[0], $values[1]);
+        $mail->AddReplyTo($values[0], $values[1]);
     }
 
-    if ($mail->send()) {
+    if ($mail->Send()) {
+
         ////////// CORE CHANGES
-        //- set_send_count($user);
+        // set_send_count($user);
         ////////// END OF CORE CHANGES
         if (!empty($mail->SMTPDebug)) {
             echo '</pre>';
         }
         return true;
     } else {
-        var_dump('failed to send mail');
-        var_dump($mail);
-        // Trigger event for failing to send email.
-        $event = \core\event\email_failed::create(array(
-            'context' => context_system::instance(),
-            'userid' => $from->id,
-            'relateduserid' => 0,
-            'other' => array(
-                'subject' => $subject,
-                'message' => $messagetext,
-                'errorinfo' => $mail->ErrorInfo
-            )
-        ));
-        $event->trigger();
+        add_to_log(SITEID, 'library', 'mailer', qualified_me(), 'ERROR: '. $mail->ErrorInfo);
         if (CLI_SCRIPT) {
             mtrace('Error: lib/moodlelib.php email_to_user(): '.$mail->ErrorInfo);
         }

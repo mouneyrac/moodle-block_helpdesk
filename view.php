@@ -52,7 +52,7 @@ if (strlen($token)) {
         )
     );
 }
-$title = get_string('helpdeskticketviewer', 'block_helpdesk');
+$title = get_string('helpdesk', 'block_helpdesk');
 helpdesk::page_init($title, $nav);
 echo $OUTPUT->header();
 
