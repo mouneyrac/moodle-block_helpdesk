@@ -1,29 +1,40 @@
 Moodle-Block-Helpdesk
+======================
 
-Sponsored/maintained by:
-    Virtual Learning Academy Charter School (vlacs.org)
+If you run a help center and need a ticket tracking system, and especially
+if you use Moodle :), this block might help you out. It's a simple way for
+users to ask questions that get tracked until your help desk staff can
+answer them fully.
 
-Developers:
-    Jon Doane <jdoane@vlacs.org>
-    David Zaharee <dzaharee@vlacs.org>
-    Jerome Mouneyrac <jerome@mouneyrac.com>
 
-Supported Moodle versions of the MOODLE_22_STABLE branch:
-    * 2.2+
-    * 2.3+
-    * 2.4+
+Sponsored/maintained by
+---
+Virtual Learning Academy Charter School (vlacs.org)
 
-Supported Moodle versions of the MOODLE_25_STABLE branch:
-    * 2.5+
-    * 2.6+
-    * master
-
-Introduction:
-    If you run a help center and need a ticket tracking system, and especially
-    if you use Moodle :), this block might help you out. It's a simple way for
-    users to ask questions that get tracked until your help desk staff can
-    answer them fully.
-
+Developers
+---
+Anthony Borrow
 Matt Oquist <moquist@majen.net>
-Wed Mar 14 13:51:46 EDT 2012
-(Updated Wed Jun 12 13:07:57 EDT 2013, David Zaharee)
+Jon Doane <jdoane@vlacs.org>
+David Zaharee <dzaharee@vlacs.org>
+Jerome Mouneyrac <jerome@mouneyrac.com>
+[List of Contributors](https://github.com/vlacs/moodle-block_helpdesk/graphs/contributors)
+
+Supported Moodle versions of the plugin branch
+---
+
+**MOODLE_19_STABLE**
+* 1.9+
+
+**MOODLE_22_STABLE**
+* 2.2+
+* 2.3+
+* 2.4+
+
+**MOODLE_25_STABLE**
+* 2.5+
+
+**master**
+* 2.6+
+* master
+
