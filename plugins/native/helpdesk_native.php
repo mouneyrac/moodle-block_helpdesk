@@ -474,24 +474,26 @@ class helpdesk_native extends helpdesk {
         global $CFG, $DB;
 
         $processed = array();
-        foreach($watchers as $w) {
-            if (isset($w->userid)) {
-                $w = $DB->get_record('user', array('id' => $w->userid));
-            } else {
-                if (empty($CFG->block_helpdesk_external_user_tokens)) {
-                    continue;
-                }
-                if (!strlen($w->token)) {
-                    $w->token = helpdesk_generate_token();
-                }
-                $w->token_last_issued = time();
-                $DB->update_record('block_helpdesk_watcher', $w);
-                unset($w->id);  # Moodle's email functions thinks this is a user.id
+        if (!empty($watchers)) {
+            foreach($watchers as $w) {
+                if (isset($w->userid)) {
+                    $w = $DB->get_record('user', array('id' => $w->userid));
+                } else {
+                    if (empty($CFG->block_helpdesk_external_user_tokens)) {
+                        continue;
+                    }
+                    if (!strlen($w->token)) {
+                        $w->token = helpdesk_generate_token();
+                    }
+                    $w->token_last_issued = time();
+                    $DB->update_record('block_helpdesk_watcher', $w);
+                    unset($w->id);  # Moodle's email functions thinks this is a user.id
 
-                $w->mailformat = 1;             # it's 2013, send html messages
-                $w->helpdesk_external = true;
+                    $w->mailformat = 1;             # it's 2013, send html messages
+                    $w->helpdesk_external = true;
+                }
+                $processed[] = $w;
             }
-            $processed[] = $w;
         }
         return $processed;
     }
