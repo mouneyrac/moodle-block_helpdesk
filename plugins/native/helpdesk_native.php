@@ -368,7 +368,11 @@ class helpdesk_native extends helpdesk {
             $emailtext = str_replace('!supportname!', $supportuser->firstname, $emailtext);
             $emailhtml = str_replace('!supportname!', $supportuser->firstname, $emailhtml);
 
-            $rval = email_to_user($user, $supportuser, $emailsubject, $emailtext, $emailhtml);
+            if(empty($user->id)) {
+                $rval = email_to_external_user($user, $supportuser, $emailsubject, $emailtext, $emailhtml);
+            } else {
+                $rval = email_to_user($user, $supportuser, $emailsubject, $emailtext, $emailhtml);
+            }
             if ($rval === false) {
                 echo $OUTPUT->notification(get_string('failedtosendemail', 'block_helpdesk'));
             }
@@ -427,7 +431,7 @@ class helpdesk_native extends helpdesk {
 
         foreach($users as $user) {
             // Dont send an email to the person making the update.
-            if (!empty($USER->id) && $user->id == $USER->id) {
+            if (!empty($USER->id) && !empty($user->id) && $user->id == $USER->id) {
                 continue;
             }
 
@@ -452,7 +456,12 @@ class helpdesk_native extends helpdesk {
             $emailtext = str_replace('!updatetime!', helpdesk_get_date_string(time()), $emailtext);
             $emailhtml = str_replace('!updatetime!', helpdesk_get_date_string(time()), $emailhtml);
 
-            $rval = email_to_user($user, $supportuser, $emailsubject, $emailtext, $emailhtml);
+            // if it's an external user, then use a custom email_to_user function that just skip.
+            if(empty($user->id)) {
+                $rval = email_to_external_user($user, $supportuser, $emailsubject, $emailtext, $emailhtml);
+            } else {
+                $rval = email_to_user($user, $supportuser, $emailsubject, $emailtext, $emailhtml);
+            }
             if ($rval === false) {
                 echo $OUTPUT->notification(get_string('failedtosendemail', 'block_helpdesk'));
             }

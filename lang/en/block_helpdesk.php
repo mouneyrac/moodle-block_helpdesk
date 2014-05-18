@@ -239,6 +239,7 @@ $string['invalidtoken']         = 'Invalid or expired token';
 $string['welcome']              = 'Welcome, ';
 $string['nowatchers']            = 'No watchers';
 $string['unabletoadddetailtoticket']= 'Unable to update the detail fields during ticket creation';
+$string['failedtosendemail'] = 'Fail to send email';
 
 /**
  * These are settings.php strings.
